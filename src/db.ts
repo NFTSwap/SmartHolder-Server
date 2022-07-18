@@ -51,7 +51,7 @@ async function load_main_db() {
 			target       varchar (64)    not null,
 			member       varchar (128)   default ('') not null, -- 成员出账id,如果为成员分成才会存在
 			balance      varchar (128)   not null,
-			time         bigint          not null,
+			time         bigint          not null
 		);
 		create table if not exists member (
 			id           int primary key auto_increment,
