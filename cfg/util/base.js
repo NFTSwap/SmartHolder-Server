@@ -1,11 +1,11 @@
 
 module.exports = {
-	name: 'shd-ser',
+	name: 'shs', // Smart Holder Server
 	server: { // web服务端口监听配置
 		host: process.env.SERVER_HOST || '0.0.0.0',
 		port: Number(process.env.SERVER_PORT) || 8002,
 	},
-	var: '/data/SmartHolder-Server/var', // `${__dirname}/var`,
+	var: '/data/shs/var', // `${__dirname}/var`,
 	web3s: {}, // web3s 配置列表
 	// 0单一模式：优先选择第一个节点,当第一个节点比第二个节点小16个块时切换到第二个节点
 	// 1多模式：在多个节点中自动切换，当前一个节点出现故障时，会随机切换到下一个节点
@@ -19,7 +19,8 @@ module.exports = {
 	env: 'dev', // dev|prod, 正式服务器设置为 prod
 	apis: [`${__dirname}/../../src/api`],
 	tests: [`${__dirname}/../../test/test`],
-	root: '/data/HC/dphotos/SmartHolder-Server/out/public', // 前端程序路径,可为空
+	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
+	root: '/data/HC/dphotos/shs/out/public', // 前端程序路径,可为空
 	qiniu: {
 		prefix: 'https://mvp-img.stars-mine.com',
 		all_prefix: [
@@ -30,14 +31,6 @@ module.exports = {
 		zone: 'huadong', // 华东
 		accessKey: 'iiMyOZsCAMpDbj2t-JLnLvyEbGMGfRO78NTIUdrO',
 		secretKey: 'HkaFTPPG8zdoUB-xxyYfGXZth2PCNX75oKPFJeL5',
-	},
-	yunpian: { // 云片
-		// 海外服务器地址 https://us.yunpian.com/v2
-		prefix: 'https://sms.yunpian.com/v2',
-		apikey: 'dde639c949db3d5667662382018e8f8f',
-		// 验证码短信模板,这个模板必需在云片注册
-		tpl: '【哈稀】您正在使用 Hashii 服务进行短信认证， 您的验证码是#code#，请在10分钟内完成验证。',
-		timeout: 6e5, /*10m*/ // 短信验证码超时时间
 	},
 	mysql: {
 		host: '192.168.0.189', port: 22022, user: 'root', password: 'uzBGtlhlHnAQFtxdKj*Z', database: 'mvp', // dev

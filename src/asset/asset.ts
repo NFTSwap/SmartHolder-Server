@@ -5,7 +5,7 @@
 
 import {
 	Asset, AssetMy, AssetOwner, AssetType,
-	AssetContract, ChainType, Collection, AssetOrder
+	AssetContract, ChainType, AssetOrder
 } from '../models/def';
 import db from '../db';
 import {IBcWeb3} from 'bclib/web3_tx';
@@ -14,7 +14,7 @@ import {EventData} from 'web3-tx';
 import sync from '../sync';
 import somes from 'somes';
 import * as fetch from '../utils';
-import * as msg from '../message';
+// import * as msg from '../message';
 import errno from '../errno';
 import {Transaction, Log} from 'web3-core';
 import {getAbiByType} from '../web3+';
@@ -288,7 +288,6 @@ export abstract class AssetFactory {
 		var token = this.address;
 		var type = this.type;
 		var chain = this.chain;
-		var categorie = asset.categorie;
 
 		if (ac.type != type) {
 			type = ac.type;
@@ -299,25 +298,17 @@ export abstract class AssetFactory {
 			console.warn('fix assert.chain no match, assert.chain != assetContract.chain');
 		}
 		
-		if (!categorie) {
-			if (asset.collection) {
-				var coll = await db.selectOne<Collection>('collection', { opensea_id: asset.collection });
-				if (coll)
-					categorie = coll.categorie;
-			}
-		}
 		if (asset.token != token
 			|| this.type != type
 			|| asset.chain != chain
-			|| asset.categorie != categorie
 		) { // fix case sensitive or type
-			await db.update('asset', {token, type, categorie, chain}, {id: asset.id});
-			Object.assign(asset, {token, type, categorie, chain});
+			await db.update('asset', {token, type, chain}, {id: asset.id});
+			Object.assign(asset, {token, type, chain});
 		}
 	}
 
 	static postMessage(asset: AssetMy, event: string = 'UpdateNFT') {
-		msg.postMessageFrom(asset.ownerBase || asset.owner || '', event, asset);
+		// msg.postMessageFrom(asset.ownerBase || asset.owner || '', event, asset);
 	}
 
 	static async blockTimeStamp(web3: IBcWeb3, blockNumber: number) {
@@ -386,7 +377,7 @@ export abstract class AssetFactory {
 			});
 		}
 
-		sync.assetMetaDataSync.fetchFrom(asset);
+		// sync.assetMetaDataSync.fetchFrom(asset);
 	}
 
 }

@@ -1,9 +1,9 @@
 /**
- * @copyright © 2022 Copyright ccl
- * @date 2022-01-25
+ * @copyright © 2022 Copyright SmartHolder Server
+ * @date 2022-07-18
  */
 
-import '../src/uncaught';
+import uncaught from '../src/uncaught';
 import somes from 'somes';
 import local_storage from 'bclib/storage';
 import * as db from '../src/db';
@@ -14,6 +14,13 @@ import * as net from 'net';
 somes.config = __dirname + '/..'; // set config dir
 
 var daemons: Daemon[] = [];
+
+async function initialize() {
+	// uncaught.abortOnUncaughtException(true);
+	await local_storage.initialize(db.local_db); // init local db
+	await db.initialize(); // init db;
+	// uncaught.abortOnUncaughtException(false);
+}
 
 function runWebForwardServer() {
 	return somes.promise<void>((resolve)=>{
@@ -36,76 +43,47 @@ function runWebForwardServer() {
 	});
 }
 
-async function initialize() {
-	//uncaught.abortOnUncaughtException(true);
-	await local_storage.initialize(db.local_db); // init local db
-	await db.initialize(); // init db;
-	//uncaught.abortOnUncaughtException(false);
-}
-
 export async function startWeb(workers?: number) {
-	await initialize();
-	await runWebForwardServer();
 	workers = workers || (cfg.env == 'dev' ? 2: 8);
 
+	await initialize();
+	await runWebForwardServer();
+
 	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`mvp-web_${i}`);
+		var dea = new Daemon(`shs-web_${i}`);
 		await dea.start(process.execPath, [`--inspect=${9220+i}`, `${__dirname}/../`], {
 			__WORKERS: workers,
 			__WORKER: i,
 			RUN_DAEMON: '',
 			SERVER_HOST: '127.0.0.1',
 			SERVER_PORT: 8220 + i,
-			MVP_TYPE: 'web',
-			MVP_SYNC_MAIN: 0,
-			MVP_SYNC_META: 0,
-			MVP_SYNC_OPENSEA: 0,
+			PROC_TYPE: 'web',
+			WATCH_SYNC_MAIN: 0,
 		});
 		daemons.push(dea);
 	}
 }
 
 export async function startWatch(workers?: number) {
-	await initialize();
-
 	workers =  workers || (cfg.env == 'dev' ? 2: 8);
 	workers = Math.pow(2, Math.ceil(Math.log2(workers)));
 
+	await initialize();
+
 	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`mvp-watch_${i}`);
+		var dea = new Daemon(`shs-watch_${i}`);
 		// `--max-heap-size=2048`, // 2048MB
 		// `--trace-gc`, 
 		// Scavenge
 		var args = [`${__dirname}/../`];
 		//if (!i)
-			args.unshift(`--inspect=${9230+i}`); 
+		args.unshift(`--inspect=${9230+i}`); 
 		await dea.start(process.execPath, args, {
 			__WORKERS: workers,
 			__WORKER: i,
-			MVP_TYPE: 'watch',
+			PROC_TYPE: 'watch',
 			RUN_DAEMON: '',
 			DISABLE_WEB: true,
-		});
-		daemons.push(dea);
-	}
-}
-
-export async function startWeb3TxDequeue(workers?: number) {
-	await initialize();
-	workers = workers || (cfg.env == 'dev' ? 2: 8);
-
-	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`mvp-web3Tx_${i}`);
-		await dea.start(process.execPath, [`--inspect=${9240+i}`, `${__dirname}/../`], {
-			__WORKERS: workers,
-			__WORKER: i,
-			RUN_DAEMON: '',
-			MVP_TYPE: 'tx',
-			MVP_SYNC_MAIN: 0,
-			MVP_SYNC_META: 0,
-			MVP_SYNC_OPENSEA: 0,
-			DISABLE_WEB: true,
-			WEB3_TX_DEQUEUE: true,
 		});
 		daemons.push(dea);
 	}

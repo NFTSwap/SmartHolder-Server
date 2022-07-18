@@ -6,8 +6,6 @@ module.exports = {
 	...base,
 	web3s: {
 		RINKEBY: rpc.RINKEBY,
-		// MUMBAI: rpc.MUMBAI,
-		// BSN_TEST: rpc.BSN_TEST,
 	},
 	mbus: 'mqtt://192.168.0.189:1883',
 	mbus_auth: 'nft_mqtt_dev:inmyshowD3', // user:password

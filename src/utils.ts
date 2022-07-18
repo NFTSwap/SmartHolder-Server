@@ -22,7 +22,7 @@ import {Asset} from './models/def';
 var proxyFetchs = [] as number[];
 var proxyFetchsTotal = 1;
 
-var httpProxyCfg = (cfg.httpProxy || []).filter(e=>{
+var httpProxyCfg = ((cfg as any).httpProxy as string[] || []).filter(e=>{
 	proxyFetchs[proxyFetchs.length] = 0;
 	return e;
 });

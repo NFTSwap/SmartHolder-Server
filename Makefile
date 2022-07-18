@@ -1,7 +1,7 @@
 
 R_DIR    = ~
 D_PORT  ?= 9210
-PROJ     = mvp-ser
+PROJ     = shs
 MAIN     = index.js
 COPYS    = .cfg*.js public abi cc binding.gyp tools run *.sh *.service
 DEPS     = deps deps/bclib/deps

@@ -1,6 +1,6 @@
 /**
- * @copyright © 2020 Copyright hc
- * @date 2020-11-29
+ * @copyright © 2022 Copyright SmartHolder Server
+ * @date 2022-07-18
  */
 
 async function start() {
@@ -9,8 +9,6 @@ async function start() {
 		var workers = Number(process.env.RUN_WORKERS) || 0;
 		if (target == 'web') {
 			await (await import('./run/daemon')).startWeb(workers);
-		} else if (target == 'web3tx') {
-			await (await import('./run/daemon')).startWeb3TxDequeue(workers);
 		} else if (target == 'watch') {
 			await (await import('./run/daemon')).startWatch(workers);
 		}
@@ -19,7 +17,7 @@ async function start() {
 	}
 }
 
-start().then(()=>console.log('\n--------------------- Start [mvp-ser] OK ---------------------')).catch(e=>{
+start().then(()=>console.log('\n--------------------- Start [SmartHolder-Server] OK ---------------------')).catch(e=>{
 	console.error(e);
 	process.exit(e.errno || -1);
 });

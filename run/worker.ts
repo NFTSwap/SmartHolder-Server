@@ -1,6 +1,6 @@
 /**
- * @copyright © 2020 Copyright ccl
- * @date 2020-11-29
+ * @copyright © 2022 Copyright SmartHolder Server
+ * @date 2022-07-18
  */
 
 // import * as http from 'http';
@@ -19,15 +19,11 @@ export default async function runWorker() {
 	var db = await import('../src/db');
 	var msg = (await import('../src/message')).default;
 	await (await import('bclib/init')).initialize(db.main_db, db.local_db); console.timeLog('bclib init');
-	await (await import('../src/db')).initialize(); console.timeLog('mvp-ser db');
+	await (await import('../src/db')).initialize(); console.timeLog('SmartHolder-Server db');
 	await (await import('../src/keys')).default.initialize(); console.timeLog('keys');
-	await (await import('../src/redis')).initialize(); console.timeLog('redis');
-
-	if (env.disableWeb) {
-		// await (await import('../src/ethereum')).start(); console.timeLog('ethereum');
-	} else {
+	await (await import('bclib/redis')).initialize(); console.timeLog('redis');
+	if (!env.disableWeb) {
 		await (await import('../src/server')).default.start(); console.timeLog('server');
-		// await (await import('../src/ethereum')).start(); console.timeLog('ethereum');
 		(await import('../src/server')).initializeApi(); console.timeLog('initialize api');
 	}
 	await (await import('../src/watch')).initialize(); console.timeLog('watch');

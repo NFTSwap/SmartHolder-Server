@@ -162,33 +162,33 @@ export enum ChainType {
 	HASHII = 6667,
 }
 
-	// Network Name: Klaytn Cypress
-	// New RPC URL: (Default: https://public-node-api.klaytnapi.com/v1/cypress)
-	// Block Explorer URL: https://scope.klaytn.com/
-	// Chain ID: 8217
+// Network Name: Klaytn Cypress
+// New RPC URL: (Default: https://public-node-api.klaytnapi.com/v1/cypress)
+// Block Explorer URL: https://scope.klaytn.com/
+// Chain ID: 8217
 
-	// Network Name: Klaytn Baobab
-	// New RPC URL: https://api.baobab.klaytn.net:8651 (Default: http://localhost:8551)
-	// Block Explorer URL: https://baobab.scope.klaytn.com/
-	// Chain ID: 1001
+// Network Name: Klaytn Baobab
+// New RPC URL: https://api.baobab.klaytn.net:8651 (Default: http://localhost:8551)
+// Block Explorer URL: https://baobab.scope.klaytn.com/
+// Chain ID: 1001
 
-	// Network Name: Gnosis Chain
-	// New RPC URL: https://rpc.xdaichain.com/
-	// Chain ID: 0x64
-	// Symbol: xDai
-	// Block Explorer URL: https://blockscout.com/xdai/mainnet
+// Network Name: Gnosis Chain
+// New RPC URL: https://rpc.xdaichain.com/
+// Chain ID: 0x64
+// Symbol: xDai
+// Block Explorer URL: https://blockscout.com/xdai/mainnet
 
-	// Network Name: BSC
-	// New RPC URL: https://bsc-dataseed.binance.org/
-	// ChainID: 56
-	// Symbol: BNB
-	// Block Explorer URL: https://bscscan.com
+// Network Name: BSC
+// New RPC URL: https://bsc-dataseed.binance.org/
+// ChainID: 56
+// Symbol: BNB
+// Block Explorer URL: https://bscscan.com
 
-	// Network Name: BSC Testnet
-	// New RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545/
-	// ChainID: 97
-	// Symbol: BNB
-	// Block Explorer URL: https://testnet.bscscan.com
+// Network Name: BSC Testnet
+// New RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545/
+// ChainID: 97
+// Symbol: BNB
+// Block Explorer URL: https://testnet.bscscan.com
 
 export class ChainTraits {
 	UNKNOWN = [ChainType.UNKNOWN, 0, 'UNK'];
@@ -213,3 +213,9 @@ export class ChainTraits {
 }
 
 export const chainTraits = new ChainTraits();
+
+export interface AssetLocalRes {
+	hash: string;
+	id: number;
+	mime: string;
+}

@@ -3,9 +3,9 @@
  * @date 2021-08-03
  */
 
+import {RuleResult} from 'somes/router';
 import ApiController from '../api';
 import auth from '../auth';
-import {RuleResult} from 'somes/router';
 
 const non_auth_apis = [
 	'authUser',

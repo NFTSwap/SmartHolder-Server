@@ -56,7 +56,7 @@ export class AssetERC1155 extends AssetFactory {
 			use: async (e: EventData)=>{ // event URI(string value, uint256 indexed id);
 				var {id} = e.returnValues;
 				var tokenId = formatHex(id, 32);
-				sync.assetMetaDataSync.fetch(this.address, tokenId, this.type, this.chain, true);
+				// sync.assetMetaDataSync.fetch(this.address, tokenId, this.type, this.chain, true);
 			},
 		}
 	};
