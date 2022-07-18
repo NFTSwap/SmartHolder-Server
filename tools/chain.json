@@ -1,0 +1,117 @@
+{
+	"name": "hardchain",
+	"dataDir": "ethereum",
+	"nodeType": "device/miner/boot",
+	"engine": {
+		"Ethash": {
+			"params": {
+				"difficultyVerifySkipNum": 0,
+				"minimumDifficulty": "0x200000",
+				"difficultyBoundDivisor": "0x0800",
+				"durationLimit": "0x0d",
+				"blockReward": {
+					"0": "0x4563918244F40000",
+					"4370000": "0x29A2241AF62C0000"
+				},
+				"homesteadTransition": "0x00",
+				"difficultyBombDelays": {
+					"4370000": 3000000
+				}
+			}
+		}
+	},
+	"params": {
+		"gasLimitBoundDivisor": "0x0400",
+		"registrar" : "",
+		"accountStartNonce": "0x00",
+		"maximumExtraDataSize": "0x20",
+		"minGasLimit": "0x1388",
+		"networkID" : "0x40",
+		"maxCodeSize": 24576,
+		"maxCodeSizeTransition": 2675000,
+		"casperAddress": "0x90C6b9D85BDea319E5a287eAC9EE750DEc82f108",
+		"forkHeight": 499,
+		"validateChainIdTransition":"0x0",
+		"eip98Transition": 0,
+		"eip140Transition": 0,
+		"eip145Transition": 0,
+		"eip150Transition": 0,
+		"eip155Transition": 0,
+		"eip160Transition": 0,
+		"eip161abcTransition": 0,
+		"eip161dTransition": 0,
+		"eip211Transition": 0,
+		"eip214Transition": 0,
+		"eip658Transition": 0,
+		"eip1014Transition": 0,
+		"eip1052Transition": 0,
+		"eip1283Transition": 0,
+		"eip1283DisableTransition": 0,
+		"eip1283ReenableTransition": 0,
+		"eip1344Transition": 0,
+		"eip1706Transition": 0,
+		"eip1884Transition": 0,
+		"eip2028Transition": 0,
+		"eip2315Transition": 0
+	},
+	"genesis": {
+		"seal": {
+			"ethereum": {
+				"nonce": "0x0000000000000056",
+				"mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+			}
+		},
+		"difficulty": "0x200000",
+		"author": "0x0000000000000000000000000000000000000000",
+		"timestamp": "0x00",
+		"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+		"extraData": "",
+		"gasLimit": "0x5f5e100"
+	},
+	"nodes": [
+		"enode://8a6fca700a012fc88f73bc3c8222573771336caa5fd5da37d39fb274d23f46d106aa3ffb75e6da756b3224d72899638d6214125bc167799a0bb89d74a6e7a30b@117.50.36.53:6666"
+	],
+	"accounts": {
+		"0xdcdd17ebb6b0d8f0d866b7bf63a3b50235364782": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0xd5edff723dda8380fc16de22d92b906f49b6c570": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0x4b665096a88310ed8ad000a06d7ad227a6c329e3": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0x0984cc4ac19e0431909699fd1ebe063250664361": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0x4592abc8a260bddedf629cf704188846977861fc": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0xef0a35f184d21a1bf84bfe101d414829ed6054b5": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0x3ac59562fbd52cdd4ddbf3b5f55b103cf29504f0": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0xadca92fd3105d75f262f0c7eb61eb5ca6c3d3504": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0xab5d79e7b821162a04131f4c9b960036464fbccc": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0xae95e9197d8a1251515280bfc5a3687b0f2b306c": {
+			"balance": "1000000005001001002003004005006"
+		},
+		"0x72b13c380aa6fb3043fb54f500e0aa1ce870dfb6": {
+			"balance": "1000000000000000000"
+		},
+		"0000000000000000000000000000000000000001": { "balance": "1", "builtin": { "name": "ecrecover", "pricing": { "linear": { "base": 3000, "word": 0 } } } },
+		"0000000000000000000000000000000000000002": { "balance": "1", "builtin": { "name": "sha256", "pricing": { "linear": { "base": 60, "word": 12 } } } },
+		"0000000000000000000000000000000000000003": { "balance": "1", "builtin": { "name": "ripemd160", "pricing": { "linear": { "base": 600, "word": 120 } } } },
+		"0000000000000000000000000000000000000004": { "balance": "1", "builtin": { "name": "identity", "pricing": { "linear": { "base": 15, "word": 3 } } } },
+		"0000000000000000000000000000000000000005": { "balance": "1", "builtin": { "name": "modexp", "activate_at": 0, "pricing": { "modexp": {"divisor": 20 } } } },
+		"0000000000000000000000000000000000000006": { "balance": "1", "builtin": { "name": "alt_bn128_add", "activate_at": 0, "pricing": { "linear": { "base": 500, "word": 0 } } } },
+		"0000000000000000000000000000000000000007": { "balance": "1", "builtin": { "name": "alt_bn128_mul", "activate_at": 0, "pricing": { "linear": { "base": 40000, "word": 0 } } } },
+		"0000000000000000000000000000000000000008": { "balance": "1", "builtin": { "name": "alt_bn128_pairing", "activate_at": 0, "pricing": { "alt_bn128_pairing": { "base": 100000, "pair": 80000 } } } }
+	}
+}

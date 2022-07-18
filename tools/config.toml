@@ -1,0 +1,84 @@
+[parity]
+mode = "last"
+mode_timeout = 300
+mode_alarm = 3600
+no_persistent_txqueue = false
+# auto_update = "critical"
+# release_track = "current"
+# public_node = false
+# no_download = false
+# no_consensus = false
+
+[network]
+interface = "127.0.0.1"
+port = 6666
+min_peers = 25
+max_peers = 2000
+nat = "any"
+discovery = true
+warp = true
+allow_ips = "all" # private for miner, public for device, all for boot.
+snapshot_peers = 0
+max_pending_peers = 64
+id = 64
+# no_serve_light = false
+
+[mining]
+#configure both author and signer for miner.
+#author = "0xd668214a70a6b10c6a50bde7234d631b48d7dd4c" # 0x261a94d3a8e6e701789810dea7823d6ab4e75ff2
+#engine_signer = "0xd668214a70a6b10c6a50bde7234d631b48d7dd4c"
+force_sealing = true
+reseal_on_txs = "all"
+reseal_min_period = 10000
+reseal_max_period = 60000000
+work_queue_size = 20
+relay_set = "cheap"
+usd_per_tx = "0.0025"
+usd_per_eth = "auto"
+price_update_period = "hourly"
+gas_floor_target = "123456789"
+gas_cap = "1234567890"
+tx_queue_size = 8192
+tx_gas_limit = "123456789"
+tx_time_limit = 8000 #ms
+extra_data = "Parity"
+remove_solved = false
+# notify_work = ["http://localhost:3001"]
+refuse_service_transactions = false
+
+[rpc]
+disable = false
+port = 7777
+interface = "local"
+cors = ["all"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "personal"]
+hosts = ["*"]
+# server_threads
+# processing_threads
+# max_payload
+keep_alive = true
+# experimental_rpcs 
+# poll_lifetime
+# allow_missing_blocks
+
+[websockets]
+disable = true
+port = 38546
+interface = "local"
+origins = ["all"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "personal"]
+hosts = ["none"]
+# max_connections
+
+[ipc]
+disable = true
+path = "$HOME/.local/share/io.parity.ethereum/jsonrpc.ipc"
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "parity_accounts", "traces", "personal"]
+
+[secretstore]
+disable = true
+nodes = []
+http_interface = "local"
+http_port = 8082
+interface = "local"
+port = 8083
