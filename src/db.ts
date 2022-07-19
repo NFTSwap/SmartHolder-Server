@@ -46,6 +46,7 @@ async function load_main_db() {
 
 		create table if not exists member (
 			id           int primary key auto_increment,
+<<<<<<< HEAD
 			host         varchar (64)    not null, -- dao host
 			token        varchar (64)    not null, -- address
 			tokenId      varchar (72)    not null, -- id
@@ -58,6 +59,17 @@ async function load_main_db() {
 			votes        int default (0) not null, -- default > 0
 			time         bigint          not null,
 			modify       bigint          not null
+=======
+			dao_id       int not null,
+			ledger_addr  varchar (64)    not null,
+			type         int default (0) not null, -- 0保留,1进账,2出账-取出,3出账-成员分成
+			name         varchar (64)    default ('') not null,
+			describe     varchar (1024)  default ('') not null,
+			target       varchar (64)    not null,
+			member       varchar (128)   default ('') not null, -- 成员出账id,如果为成员分成才会存在
+			balance      varchar (128)   not null,
+			time         bigint          not null
+>>>>>>> 0580070f17e91a5edf88a23df7f7d912958325a8
 		);
 
 		create table if not exists asset_global (
