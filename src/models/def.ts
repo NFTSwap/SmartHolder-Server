@@ -139,11 +139,19 @@ export interface Votes {
 	blockNumber: number;//  int                          not null
 }
 
+export enum WatchType {
+	DAO,
+	Member,
+	ERC721,
+	Ledger,
+	VotePool,
+}
+
 export interface Watch {
 	id: number;//           int primary key auto_increment,
 	address: string;//      varchar (64)                 not null,
 	host: string;//         varchar (64)                 not null, -- dao host
-	type: number;//         int          default (0)     nut null, -- contracts type
+	type: WatchType;//      int          default (0)     nut null, -- contracts type
 	state: number;//        int          default (0)     not null, -- 状态: 0启用, 1禁用
 	time: number;//         bigint                       not null  -- 
 }
