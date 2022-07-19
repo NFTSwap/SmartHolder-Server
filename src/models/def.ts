@@ -1,106 +1,70 @@
 /**
- * @copyright © 2020 Copyright ccl
- * @date 2021-09-29
+ * @copyright © 2022 Smart Holder Server
+ * @date 2022-07-19
 */
 
-export enum AssetType {
-	INVALID = 0,
-	ERC721 = 1,
-	ERC1155,
-	ERC20,
-	INL_MATIC = 100, // 0x0000000000000000000000000000000000001010
-	ERC721Proxy = (1 << 8) + 1,
-	ERC1155Proxy,
+export interface DAO {
+	id: number;//           int primary key auto_increment,
+	host: string;//         varchar (64)   not null, -- dao host or self address
+	address: string;//      varchar (64)   not null,
+	name: string;//         varchar (64)   not null,
+	mission: string;//      varchar (1024) not null,
+	describe: string;//     varchar (1024) not null,
+	root: string;//         varchar (64)   not null,
+	operator: string;//     varchar (64)   not null,
+	member: string;//       varchar (64)   not null,
+	ledger: string;//       varchar (64)   not null,
+	assetGlobal: string;//  varchar (64)   not null,
+	asset: string;//        varchar (64)   not null,
+	time: number;//         bigint         not null,
+	modify: number;//       bigint         not null
 }
 
-export interface Asset {
+export interface Member {
+	id: number;//           int primary key auto_increment,
+	host: string;//         varchar (64)    not null, -- dao host
+	token: string;//        varchar (64)    not null, -- address
+	tokenId: string;//      varchar (72)    not null, -- id
+	uri: string;//          varchar (512)   not null, -- uri
+	owner: string;//        varchar (64)    not null, -- owner address
+	name: string;//         varchar (64)    not null, -- member name
+	describe: string;//     varchar (512)   not null, -- member describe
+	avatar: string;//       varchar (512)   not null, -- member head portrait
+	role: number;//         int default (0) not null, -- default 0
+	votes: number;//        int default (0) not null, -- default > 0
+	time: number;//         bigint          not null,
+	modify: number;//       bigint          not null
+}
+
+export enum Selling { // 销售类型
+	Unsell,  // 0未销售
+	Opensea, // 1销售opensea
+	Order,   // 2其它平台
+}
+
+export interface AssetGlobal {
 	id: number;
+	host: string;
 	token: string;
 	tokenId: string;
-	count: string;
 	uri: string;
+	owner: string;
+	selling: Selling;
+	sellPrice: string;
+	state: number; // 状态: 0正常,1删除
+	time: number;
+	modify: number;
+}
+
+export interface AssetExt extends AssetGlobal {
 	media: string;
 	mediaOrigin: string;
 	image: string;
 	imageOrigin: string;
-	type: AssetType;
 	name: string;
-	author: string;
 	info: string; // description
-	retry: number; // 抓取数据重试次数
-	retryTime: number;
-	syncTime: number;
-	properties: any | null;
-	contract?: AssetContract;
-	chain: ChainType;
 	externalLink: string;
-	backgroundColor: string;
-	// ext
-	imageWidth: number;
-	imageHeight: number;
-	animationUrl: string;
-	animationWidth: number;
-	animationHeight: number;
-	symbol: string;
-	tokenMetadata: string;
-	numVisitors: number;
-	isCurated: boolean;
-	isNsfw: boolean;
-	frozenAt: string;
-	decimals: number;
-	usdSpotPrice: number;
-	opensea_id: string;
-	displayName: string;
-	collection: string;
-	favoritesCount: number;
-	imageUrl: String;
-	displayImageUrl: String;
-	hasUnlockableContent: boolean;
-	imagePreviewUrl: string;
-	imageThumbnailUrl: string;
-	isDelisted: boolean;
-	isFavorite: boolean;
-	isCurrentlyFungible: boolean;
-	isListable: boolean;
-	isFrozen: boolean;
-	isEditable: boolean;
-	isEditableByOwner: boolean;
-	isFreezable: boolean;
-	createdDate: number;
-	modifiedDate: number;
-	relayId: string;
-	bestAsk: string; // 最低售价
-	bestBid: string; // 最高出价
-	lastSale: string; // 最后成交价格
-}
-
-export interface AssetJson {
-	id: number;
-	asset_id: number;
-	json: any;
-}
-
-export interface SyncMetaFirst {
-	id: number;
-	address: string;
-	info: string;
-	status: number;
-}
-
-export interface AssetMy extends Asset {
-	owner: string;
-	ownerBase?: string; // 这个表示委托人,也是nft的真正持有者
-	owners?: string[];
-}
-
-export interface AssetOwner {
-	id: number;
-	token: string;
-	tokenId: string;
-	owner: string;
-	ownerBase?: string;
-	count: string;
-	chain: ChainType;
+	properties: any | null;
 }
 
 export interface AssetOrder {
@@ -111,111 +75,75 @@ export interface AssetOrder {
 	tokenId: string;//      char    (66)                      not null,  -- hash
 	fromAddres: string;//   char    (42)                      not null,  -- from
 	toAddress: string;//    char    (42)                      not null,  -- to
-	count: string;//        varchar (66)                      not null,  -- asset 数量
 	value: string;//        varchar (128)        default ('') not null,  -- tx value
-	chain: ChainType;//     int                  default (0)  not null,  -- ETHEREUM|MATIC...
-	description: string;//  varchar (1024)       default ('') not null,
-	date: number;//         bigint               default (0)  not null
+	describe: string;   //  varchar (1024)       default ('') not null,
+	time: number;//         bigint               default (0)  not null
 }
 
-export interface AssetContract {
-	id: number;
-	address: string;
-	name: string;
-	symbol: string;
-	openseaVersion: string;
-	tokenStandard: string;
-	isSharedStorefront: boolean;
-	opensea_id: string;
-	blockExplorerLink: string;
-	chain: ChainType;
-	createdDate: number;
-	modifiedDate: number;
-	relayId: string;
-	state: number;
-	type: AssetType;
-	platform: string;
-	sync_height: number;
-	init_height: number;
-	abi: string | null;
+export enum LedgerType {
+	Reserved, // 0保留
+	Receive, // 1进账-无名接收存入
+	Deposit, // 2进账-存入
+	Withdraw,// 3出账-取出
+	Release,// 4出账-成员分成
 }
 
-export enum ChainType {
-	UNKNOWN = 0, // UNKNOWN
-	ETHEREUM = 1, // ETHEREUM
-	MATIC = 137, // MATIC
-	KLAYTN = 8217, // KLAYTN
-	XDAI = 100, // XDAI
-	BSC = 56, // BSC
-	FLOW = -2, // FLOW
-	LOCAL = -1, // LOCAL
-	ROPSTEN = 3, // ROPSTEN
-	RINKEBY = 4, // RINKEBY
-	MUMBAI = 80001, // MUMBAI
-	BAOBAB = 1001, // BAOBAB
-	BSC_TESTNET = 97, // BSC_TESTNET
-	GOERLI = 5, // GOERLI
-	HCETH = 64, // hard-chain ETHEREUM
-	BSN_TEST = 5555,
-	BSN = 5555,
-	HASHII_TEST = 6666,
-	HASHII = 6667,
+export interface Ledger {
+	id: number;//           int primary key auto_increment,
+	host: string;//         varchar (64)                 not null, -- dao host
+	address: string;//      varchar (64)                 not null, -- 合约地址
+	txHash: string;//       varchar (72)                 not null, -- tx hash
+	type: LedgerType;//     int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
+	name: string;//         varchar (64)    default ('') not null, -- 转账名目
+	describe: string;//     varchar (1024)  default ('') not null, -- 详细
+	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
+	member: string;//       varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
+	balance: string;//      varchar (72)                 not null, -- 金额
+	time: number;//         bigint                       not null, -- 时间
+	blockNumber: number;//  int                          not null  -- 区块
 }
 
-// Network Name: Klaytn Cypress
-// New RPC URL: (Default: https://public-node-api.klaytnapi.com/v1/cypress)
-// Block Explorer URL: https://scope.klaytn.com/
-// Chain ID: 8217
-
-// Network Name: Klaytn Baobab
-// New RPC URL: https://api.baobab.klaytn.net:8651 (Default: http://localhost:8551)
-// Block Explorer URL: https://baobab.scope.klaytn.com/
-// Chain ID: 1001
-
-// Network Name: Gnosis Chain
-// New RPC URL: https://rpc.xdaichain.com/
-// Chain ID: 0x64
-// Symbol: xDai
-// Block Explorer URL: https://blockscout.com/xdai/mainnet
-
-// Network Name: BSC
-// New RPC URL: https://bsc-dataseed.binance.org/
-// ChainID: 56
-// Symbol: BNB
-// Block Explorer URL: https://bscscan.com
-
-// Network Name: BSC Testnet
-// New RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545/
-// ChainID: 97
-// Symbol: BNB
-// Block Explorer URL: https://testnet.bscscan.com
-
-export class ChainTraits {
-	UNKNOWN = [ChainType.UNKNOWN, 0, 'UNK'];
-	ETHEREUM = [ChainType.ETHEREUM, 18, 'ETH'];
-	MATIC = [ChainType.MATIC, 18, 'MATIC'];
-	KLAYTN = [ChainType.KLAYTN, 18, 'KLAY'];
-	XDAI = [ChainType.XDAI, 18, 'XDAI'];
-	BSC = [ChainType.BSC, 18, 'BNB'];
-	FLOW = [ChainType.FLOW, 18, 'FLOW',];
-	LOCAL = [ChainType.LOCAL, 18, 'LOCAL',];
-	ROPSTEN = [ChainType.ROPSTEN, 18, 'ROPSTEN'];
-	RINKEBY = [ChainType.RINKEBY, 18, 'RINKEBY'];
-	MUMBAI = [ChainType.MUMBAI, 18, 'MUMBAI'];
-	BAOBAB = [ChainType.BAOBAB, 18, 'BAOBAB'];
-	BSC_TESTNET = [ChainType.BSC_TESTNET, 18, 'BNB_TEST'];
-	GOERLI = [ChainType.GOERLI, 18, 'GOERLI'];
-	HCETH = [ChainType.HCETH, 18, 'ETH'];
-	BSN_TEST = [ChainType.BSN_TEST, 18, 'BSN_TEST'];
-	BSN = [ChainType.BSN, 18, 'BSN'];
-	HASHII_TEST = [ChainType.HASHII_TEST, 18, 'HASHII_TEST'];
-	HASHII = [ChainType.HASHII, 18, 'HASHII'];
+export interface VoteProposal {
+	id: number;//           int primary key auto_increment,
+	host: string;//         varchar (64)                 not null, -- dao host
+	address: string;//      varchar (64)                 not null, -- 投票池合约地址
+	proposal_id: string;//  varchar (72)                 not null, -- 提案id
+	name: string;//         varchar (64)                 not null, -- 提案名称
+	describe: string;//     varchar (1024)               not null, -- 提案描述
+	origin: string;//       varchar (64)                 not null, -- 发起人
+	target: string;//       varchar (64)                 not null, -- 执行目标合约地址
+	data: string;//         text                         not null, -- 执行参数数据
+	lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）
+	expiry: number;//       bigint                       not null, -- 过期时间（区块链时间单位）
+	voteRate: number;//     int                          not null, -- 投票率不小于全体票数50% (0-10000)
+	passRate: number;//     int                          not null, -- 通过率不小于全体票数50% (0-10000)
+	loop: number;//         int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
+	loopTime: number;//     bigint           default (0) not null, -- 执行循环间隔时间
+	voteTotal: number;//    bigint           default (0) not null, -- 投票总数
+	agreeTotal: number;//   bigint           default (0) not null, -- 通过总数
+	executeTime: number;//  bigint           default (0) not null, -- 上次执行的时间
+	isAgree: boolean;//     bit              default (0) not null, -- 是否通过采用
+	isClose: boolean;//     bit              default (0) not null, -- 投票是否截止
+	isExecuted: boolean;//  bit              default (0) not null  -- 是否已执行完成
+	time: number;//         bigint                       not null,
+	modify: number;//       bigint                       not null,
+	blockNumber: number;//  int                          not null
 }
 
-export const chainTraits = new ChainTraits();
+export interface Votes {
+	id: number;//           int primary key auto_increment,
+	proposal_id: string;//  varchar (72)                 not null, -- 提案id
+	member_id: string;//    varchar (72)                 not null, -- 成员 id
+	votes: number;//        int                          not null, -- 投票数量
+	time: number;//         bigint                       not null,
+	blockNumber: number;//  int                          not null
+}
 
-export interface AssetLocalRes {
-	hash: string;
-	id: number;
-	mime: string;
+export interface Watch {
+	id: number;//           int primary key auto_increment,
+	address: string;//      varchar (64)                 not null,
+	host: string;//         varchar (64)                 not null, -- dao host
+	type: number;//         int          default (0)     nut null, -- contracts type
+	state: number;//        int          default (0)     not null, -- 状态: 0启用, 1禁用
+	time: number;//         bigint                       not null  -- 
 }
