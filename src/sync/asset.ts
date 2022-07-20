@@ -5,7 +5,7 @@
 
 import db, {storage, AssetContract, AssetType, ChainType,SyncMetaFirst} from '../db';
 import {WatchCat} from 'bclib/watch';
-import * as asset from '../asset';
+import * as asset from '../scaner';
 import {isRpcLimitDataSize, web3s, isRpcLimitRequestAccount} from '../web3+';
 import _sync from '.';
 import {update as updateAc} from '../models/contract';

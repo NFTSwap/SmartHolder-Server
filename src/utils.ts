@@ -90,7 +90,7 @@ export function toURINoErr(uri?: string | null, asset?: Asset) {
 			// https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x{id}
 			if (asset) {
 				uri = uri
-					.replace('{chain}', String(asset.chain))
+					// .replace('{chain}', String(asset.chain))
 					.replace(/(0x)?\{(token|address)\}/, asset.token)
 					.replace(/(0x)?\{id\}/, asset.tokenId)
 				;

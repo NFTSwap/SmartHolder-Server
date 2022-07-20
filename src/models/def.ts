@@ -3,6 +3,13 @@
  * @date 2022-07-19
 */
 
+export class Entity<T> {
+	readonly value: T;
+	constructor(value: T) {
+		this.value = value;
+	}
+}
+
 export interface DAO {
 	id: number;//           int primary key auto_increment,
 	host: string;//         varchar (64)   not null, -- dao host or self address
@@ -42,21 +49,27 @@ export enum Selling { // 销售类型
 	Order,   // 2其它平台
 }
 
-export interface AssetGlobal {
+export enum State {
+	Enable,
+	Disable,
+}
+
+export interface Asset {
 	id: number;
 	host: string;
 	token: string;
 	tokenId: string;
 	uri: string;
 	owner: string;
+	author: string;
 	selling: Selling;
 	sellPrice: string;
-	state: number; // 状态: 0正常,1删除
+	state: State; // 状态: 0正常,1删除
 	time: number;
 	modify: number;
 }
 
-export interface AssetExt extends AssetGlobal {
+export interface AssetExt extends Asset {
 	media: string;
 	mediaOrigin: string;
 	image: string;
@@ -97,10 +110,21 @@ export interface Ledger {
 	name: string;//         varchar (64)    default ('') not null, -- 转账名目
 	describe: string;//     varchar (1024)  default ('') not null, -- 详细
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
-	member: string;//       varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
+	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 	balance: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
+}
+
+export interface LedgerReleaseLog {
+	id: number;//           int primary key auto_increment,
+	address: string;//      varchar (64)                 not null, -- 合约地址
+	operator: string;//     varchar (64)                 not null,
+	txHash: string;//       varchar (72)                 not null, -- tx hash
+	log: string;//          varchar (1024)               not null,
+	balance: string;//      varchar (72)                 not null, -- 金额
+	time: number;//         bigint                       not null,
+	blockNumber: number;//  int                          not null
 }
 
 export interface VoteProposal {
@@ -139,7 +163,8 @@ export interface Votes {
 	blockNumber: number;//  int                          not null
 }
 
-export enum WatchType {
+export enum ContractType {
+	Invalid,
 	DAO,
 	Member,
 	ERC721,
@@ -147,11 +172,84 @@ export enum WatchType {
 	VotePool,
 }
 
-export interface Watch {
+export interface ContractInfo {
 	id: number;//           int primary key auto_increment,
+	host: string;
 	address: string;//      varchar (64)                 not null,
-	host: string;//         varchar (64)                 not null, -- dao host
-	type: WatchType;//      int          default (0)     nut null, -- contracts type
-	state: number;//        int          default (0)     not null, -- 状态: 0启用, 1禁用
-	time: number;//         bigint                       not null  -- 
+	type: ContractType;//   int          default (0)     nut null, -- contracts type
+	blockNumber: number;//  合约部署高度
+	syncHeight: number; //  合约同步高度
+	abi: string | null; //  abi
+	state: State; //        int          default (0)     not null, -- 状态: 0启用, 1禁用
+	time: number; //        bigint                       not null  -- 
 }
+
+export enum ChainType {
+	UNKNOWN = 0, // UNKNOWN
+	ETHEREUM = 1, // ETHEREUM
+	MATIC = 137, // MATIC
+	KLAYTN = 8217, // KLAYTN
+	XDAI = 100, // XDAI
+	BSC = 56, // BSC
+	ROPSTEN = 3, // ROPSTEN
+	RINKEBY = 4, // RINKEBY
+	MUMBAI = 80001, // MUMBAI
+	BAOBAB = 1001, // BAOBAB
+	BSC_TESTNET = 97, // BSC_TESTNET
+	GOERLI = 5, // GOERLI
+	HCETH = 64, // hard-chain ETHEREUM
+	BSN_TEST = 5555,
+	BSN = 5555,
+	HASHII_TEST = 6666,
+	HASHII = 6667,
+}
+
+// Network Name: Klaytn Cypress
+// New RPC URL: (Default: https://public-node-api.klaytnapi.com/v1/cypress)
+// Block Explorer URL: https://scope.klaytn.com/
+// Chain ID: 8217
+
+// Network Name: Klaytn Baobab
+// New RPC URL: https://api.baobab.klaytn.net:8651 (Default: http://localhost:8551)
+// Block Explorer URL: https://baobab.scope.klaytn.com/
+// Chain ID: 1001
+
+// Network Name: Gnosis Chain
+// New RPC URL: https://rpc.xdaichain.com/
+// Chain ID: 0x64
+// Symbol: xDai
+// Block Explorer URL: https://blockscout.com/xdai/mainnet
+
+// Network Name: BSC
+// New RPC URL: https://bsc-dataseed.binance.org/
+// ChainID: 56
+// Symbol: BNB
+// Block Explorer URL: https://bscscan.com
+
+// Network Name: BSC Testnet
+// New RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545/
+// ChainID: 97
+// Symbol: BNB
+// Block Explorer URL: https://testnet.bscscan.com
+
+export class ChainTraits {
+	UNKNOWN = [ChainType.UNKNOWN, 0, 'UNK'];
+	ETHEREUM = [ChainType.ETHEREUM, 18, 'ETH'];
+	MATIC = [ChainType.MATIC, 18, 'MATIC'];
+	KLAYTN = [ChainType.KLAYTN, 18, 'KLAY'];
+	XDAI = [ChainType.XDAI, 18, 'XDAI'];
+	BSC = [ChainType.BSC, 18, 'BNB'];
+	ROPSTEN = [ChainType.ROPSTEN, 18, 'ROPSTEN'];
+	RINKEBY = [ChainType.RINKEBY, 18, 'RINKEBY'];
+	MUMBAI = [ChainType.MUMBAI, 18, 'MUMBAI'];
+	BAOBAB = [ChainType.BAOBAB, 18, 'BAOBAB'];
+	BSC_TESTNET = [ChainType.BSC_TESTNET, 18, 'BNB_TEST'];
+	GOERLI = [ChainType.GOERLI, 18, 'GOERLI'];
+	HCETH = [ChainType.HCETH, 18, 'ETH'];
+	BSN_TEST = [ChainType.BSN_TEST, 18, 'BSN_TEST'];
+	BSN = [ChainType.BSN, 18, 'BSN'];
+	HASHII_TEST = [ChainType.HASHII_TEST, 18, 'HASHII_TEST'];
+	HASHII = [ChainType.HASHII, 18, 'HASHII'];
+}
+
+export const chainTraits = new ChainTraits();

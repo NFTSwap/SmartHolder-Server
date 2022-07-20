@@ -7,7 +7,7 @@ import somes from 'somes';
 import {WatchCat} from 'bclib/watch';
 import { storage, ChainType, AssetType, AssetContract } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
-import * as asset from '../asset';
+import * as asset from '../scaner';
 import {Transaction, TransactionReceipt, Log} from 'web3-core';
 import * as cfg from '../../config';
 import {insert as insertAc, update as updateAc, getAssetContract} from '../models/contract';
