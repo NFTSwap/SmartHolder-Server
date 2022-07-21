@@ -30,18 +30,14 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 
 	async asset(tokenId: string) {
 		var token = this.address;
-		var type = this.type;
-		var chain = this.chain;
-		var host = await this.host();
 
-		var [asset] = await db.select<Asset>(`asset_global_${this.chain}`, { token, tokenId }, {limit:1});
+		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
-			var uri = await fetch.storageTokenURI(await this.uriNoErr(tokenId), {
-				tokenId, token, type, chain,
-			} as any);
+			let uri = await fetch.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
-			var id = await db.insert(`asset_global_${this.chain}`, { token, tokenId, type, uri, time: Date.now(), host });
-			var [asset] = await db.select<Asset>(`asset_global_${this.chain}`, {id});
+			let time = Date.now();
+			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, moify: time });
+			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
 		}
 		return asset;
 	}
@@ -55,17 +51,17 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		var token = this.address;
 		var asset = await this.asset(tokenId);
 		var time = await blockTimeStamp(this.web3, blockNumber);
-		var up: Dict = { owner: to[0], modify: time };
+		var data = { owner: to[0], modify: time };
+
 		if (!asset.author && !BigInt(from[0]) && BigInt(to[0])) { // update author
-			Object.assign(up, { author: to[0], modify: time });
+			Object.assign(data, { author: to[0], modify: time });
 		}
-		await db.update(`asset_global_${this.chain}`, up, { id: asset.id });
 
-		var orders = await db.select<AssetOrder>('asset_order', { txHash });
+		await db.update(`asset_${this.chain}`, data, { id: asset.id });
 
-		if (!orders.length || !orders.find(e=>e.token==token&&e.tokenId==tokenId)) 
-		{ // skip repact
-			await db.insert('asset_order', {
+		var order = await db.selectOne(`asset_order_${this.chain}`, { txHash, token, tokenId });
+		if (! order ) {
+			await db.insert(`asset_order_${this.chain}`, {
 				txHash: txHash,
 				blockNumber: blockNumber,
 				token, tokenId,

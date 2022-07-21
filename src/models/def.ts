@@ -56,7 +56,6 @@ export enum State {
 
 export interface Asset {
 	id: number;
-	host: string;
 	token: string;
 	tokenId: string;
 	uri: string;
@@ -156,6 +155,7 @@ export interface VoteProposal {
 
 export interface Votes {
 	id: number;//           int primary key auto_increment,
+	address: string;//      varchar (64)                 not null, -- 投票池合约地址
 	proposal_id: string;//  varchar (72)                 not null, -- 提案id
 	member_id: string;//    varchar (72)                 not null, -- 成员 id
 	votes: number;//        int                          not null, -- 投票数量
@@ -178,7 +178,6 @@ export interface ContractInfo {
 	address: string;//      varchar (64)                 not null,
 	type: ContractType;//   int          default (0)     nut null, -- contracts type
 	blockNumber: number;//  合约部署高度
-	syncHeight: number; //  合约同步高度
 	abi: string | null; //  abi
 	state: State; //        int          default (0)     not null, -- 状态: 0启用, 1禁用
 	time: number; //        bigint                       not null  -- 

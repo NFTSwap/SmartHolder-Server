@@ -81,18 +81,23 @@ export async function multipleFetch<T>(url: string,
 	} while(true);
 }
 
-export function toURINoErr(uri?: string | null, asset?: Asset) {
+export interface ToURIOptions {
+	token: string;
+	tokenId: string;
+}
+
+export function toURINoErr(uri?: string | null, opts?: ToURIOptions) {
 	if (uri) {
 		// opensea uri
 		if (uri.match(/^https?:\/\//i)) {
 			// https://mvp.stars-mine.com/asset/{chain}/{token}/{id}
 			// https://mvp.stars-mine.com/asset/0x{address}/0x{id}
 			// https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/0x{id}
-			if (asset) {
+			if (opts) {
 				uri = uri
 					// .replace('{chain}', String(asset.chain))
-					.replace(/(0x)?\{(token|address)\}/, asset.token)
-					.replace(/(0x)?\{id\}/, asset.tokenId)
+					.replace(/(0x)?\{(token|address)\}/, opts.token)
+					.replace(/(0x)?\{id\}/, opts.tokenId)
 				;
 			}
 		} else {
@@ -118,15 +123,15 @@ export function toURINoErr(uri?: string | null, asset?: Asset) {
 	return uri;
 }
 
-export function toURI(_uri?: string | null, asset?: Asset) {
-	var uri = toURINoErr(_uri, asset);
-	somes.assert(uri, `Unknown match uri ${uri} ${asset}`);
+export function toURI(_uri?: string | null, opts?: ToURIOptions) {
+	var uri = toURINoErr(_uri, opts);
+	somes.assert(uri, `Unknown match uri ${uri}`);
 	return uri as string;
 }
 
-export function toURIData(_uri?: string | null, asset?: Asset) {
+export function toURIData(_uri?: string | null, opts?: ToURIOptions) {
 	if (_uri) {
-		var uri = toURINoErr(_uri, asset);
+		var uri = toURINoErr(_uri, opts);
 		if (uri) {
 			return {uri, data: ''};
 		} else {
@@ -136,8 +141,8 @@ export function toURIData(_uri?: string | null, asset?: Asset) {
 	return {uri: '', data: ''};
 }
 
-export async function storageTokenURI(uri?: string | null, asset?: Asset) {
-	let {uri: uri_, data} = toURIData(uri, asset);
+export async function storageTokenURI(uri?: string | null, opts?: ToURIOptions) {
+	let {uri: uri_, data} = toURIData(uri, opts);
 	if (data) {
 		var ext = '.txt';
 		var s = 'data:application/json;base64,';

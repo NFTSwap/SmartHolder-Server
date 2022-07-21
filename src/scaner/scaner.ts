@@ -203,9 +203,11 @@ export abstract class ContractScaner {
 			if (abiItem) {
 				var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
 				if (signature == log.topics[0]) {
-					if ( await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve, true) ) {
-						return true;
-					}
+					somes.assert(
+						await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve),
+						'ContractScaner#solveReceiptLog not solve log'
+					);
+					return true;
 				}
 			}
 		}

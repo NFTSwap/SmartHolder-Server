@@ -2,12 +2,11 @@
 import bcweb3, {BcWeb3} from 'bclib/web3+';
 import {Web3,Contract,MPSwitchMode,MultipleProvider,BaseProvider,JsonRpcResponse} from 'web3-tx';
 import * as abi from 'bclib/abi';
-import {AssetType} from './models/def';
-import {ChainType} from './db';
+import {ContractType,ChainType} from './models/def';
 import * as cfg from '../config';
 import somes from 'somes';
 import {AbiInterface} from 'bclib/abi';
-import {getAssetContract} from './models/contract';
+import {getContractInfo} from './models/contract';
 import {WatchCat} from 'bclib/watch';
 import { env } from './env';
 
@@ -27,19 +26,19 @@ abi.FetchAbiFunList.pop(); // delete default fetch fun
 
 abi.FetchAbiFunList.push(async (addr, chain)=>{
 	somes.assert(addr, 'fetchAbiFunList address Cannot be empty');
-	var ac = await getAssetContract(addr, chain);
+	var info = await getContractInfo(addr, chain);
 
-	if (ac && ac.abi) {
+	if (info && info.abi) {
 		try {
-			var abi: abi.AbiInterface = { address: addr, abi: JSON.parse(ac.abi) };
+			var abi: abi.AbiInterface = { address: addr, abi: JSON.parse(info.abi) };
 			return abi;
 		} catch(err:any) {
 			console.warn('mvp-ser#web3+#FetchAbiFunList', err.message);
 		}
 	}
 	// use default abi
-	if (ac && ac.type) {
-		var abiI = await getAbiByType(ac.type);
+	if (info && info.type) {
+		var abiI = await getAbiByType(info.type);
 		// var abiI = await getAbiByType(1);
 		if (abiI) {
 			return {...abiI, address: addr};
@@ -47,8 +46,8 @@ abi.FetchAbiFunList.push(async (addr, chain)=>{
 	}
 });
 
-export function getAbiByType(type: AssetType) {
-	return abi.getLocalAbi(`${__dirname}/../abi/${AssetType[type]}.json`);
+export function getAbiByType(type: ContractType) {
+	return abi.getLocalAbi(`${__dirname}/../abi/${ContractType[type]}.json`);
 }
 
 export function isRpcLimitRequestAccount(web3: Web3, err: Error) {
@@ -149,7 +148,7 @@ export class MvpWeb3 extends BcWeb3 {
 		return somes.timeout(this.provider.request({
 			method: 'eth_getTransactionReceiptsByBlock',
 			params:  [`0x${block.toString(16)}`]
-		}), 3e4); // 10s
+		}), 3e4); // 30s
 	}
 
 	async hasSupportGetTransactionReceiptsByBlock() {

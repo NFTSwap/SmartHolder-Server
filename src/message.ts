@@ -1,17 +1,17 @@
 /**
  * @copyright © 2021 Copyright dphone.com
- * @date 2021-12-02
+ * @date 2022-07-21
  */
 
 import bus from 'bclib/message';
+import {ChainType} from './models/def';
 
-// import server from './server';
-// import { WSAPI } from './api';
-// import db, {Device,Asset} from './db';
-// import {User} from './auth';
-// import {disableWeb,noReceiveMsg} from '../src/env';
-// import * as cfg from '../config';
+export enum Events {
+	WatchBlock = 'WatchBlock',
+}
 
-// const bus = new MessageCenter();
+export function broadcastWatchBlock(worker: number, blockNumber: number, chain: ChainType) {
+	bus.post(Events.WatchBlock, { worker, blockNumber, chain });
+}
 
 export default bus;

@@ -51,13 +51,22 @@ export class DAO extends ContractScaner {
 							blockNumber: e.blockNumber,
 						});
 					}
-				} else if (tag == 'Ledger') {
+				} else if (tag == 'MissionAndDescribe') {
+					await db.update(`dao_${this.chain}`, {
+						mission: await m.mission().call(),
+						describe: await m.describe().call(), modify: time,
+					}, { address: this.address });
+				}
+				else if (tag == 'Ledger') {
 					await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
-				} else if (tag == 'AssetGlobal') {
+				}
+				else if (tag == 'AssetGlobal') {
 					await db.update(`dao_${this.chain}`, { assetGlobal: await m.assetGlobal().call(), modify: time }, { address: this.address });
-				} else if (tag == 'Asset') {
+				}
+				else if (tag == 'Asset') {
 					await db.update(`dao_${this.chain}`, { asset: await m.asset().call(), modify: time }, { address: this.address });
-				} else if (tag == 'Department') {
+				}
+				else if (tag == 'Department') {
 					// await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
 				}
 			},

@@ -53,7 +53,7 @@ export class Member extends ContractScaner {
 						time: time,
 						modify: time,
 					});
-					await storage.set(`member_${chain}_total`, await (await this.methods()).total().call());
+					await storage.set(`member_${chain}_${this.address}_total`, await (await this.methods()).total().call());
 				}
 			},
 		},

@@ -16,6 +16,7 @@ module.exports = {
 	enable_auth: true, // 启用web服务访问认证
 	mbus: 'mqtt://mqtt.stars-mine.com:1883', // Disable mbus when empty, mbus为空时禁用消息总线
 	mbus_auth: '', // user:password
+	mbus_topic: 'shs_default',
 	env: 'dev', // dev|prod, 正式服务器设置为 prod
 	apis: [`${__dirname}/../../src/api`],
 	tests: [`${__dirname}/../../test/test`],
