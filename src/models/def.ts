@@ -252,3 +252,16 @@ export class ChainTraits {
 }
 
 export const chainTraits = new ChainTraits();
+
+export interface Tasks {
+	id: number;//           int primary        key auto_increment, -- 主键id
+	name: string;//         varchar (64)                 not null, -- 任务名称
+	method: string;//       varchar (1204)               not null, -- 执行任务的方法以及文件名
+	args: any;//            json,                                  -- 执行参数
+	data: any;
+	step: number;//         int        default (0)       not null, -- 当前执行步骤
+	stepTime: number;//     int          default (0)     not null, -- 当前执行步骤
+	user: string; //        varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
+	state: number;//        int        default (0)       not null, -- 0进行中,1完成,2失败
+	time: number;//         bigint                       not null,
+}

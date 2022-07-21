@@ -31,6 +31,7 @@ async function load_main_db() {
 	for ( let [k] of Object.entries(cfg.web3s)) {
 		let chain = ChainType[k as any];
 		await main_db.load(`
+
 			create table if not exists dao_${chain} (
 				id           int primary key auto_increment,
 				host         varchar (64)               not null, -- dao host or self address
@@ -184,7 +185,7 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx3      on asset_order_${chain}            (txHash)`,
 			`create unique  index asset_order_${chain}_idx4      on asset_order_${chain}            (txHash,token,tokenId)`,
 			`create         index asset_order_${chain}_idx6      on asset_order_${chain}            (token)`,
-			// ledgr
+			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (address)`,
 			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (address,target)`,
 			`create         index ledger_${chain}_idx2           on ledger_${chain}                 (address,type)`,
@@ -204,16 +205,33 @@ async function load_main_db() {
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
 		], `shs_${chain}`);
 	}
+
+	await main_db.load(`
+		create table if not exists tasks (
+			id           int primary        key auto_increment, -- 主键id
+			name         varchar (64)                 not null, -- 任务名称, MekeDAO#Name
+			method       varchar (1204)               not null, -- 执行任务的方法以及文件名
+			args         json,                                  -- 执行参数数据
+			data         json,                                  -- 成功或失败的数据 {data, error}
+			step         int          default (0)     not null, -- 当前执行步骤
+			stepTime     int          default (0)     not null, -- 当前执行步骤的超时时间,可用于执行超时检查
+			user         varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
+			state        int          default (0)     not null, -- 0进行中,1完成,2失败
+			time         bigint                       not null,
+		);
+		`, [], [
+		`create  unique index tasks_idx0    on    tasks          (name,state)`,
+		`create         index tasks_idx1    on    tasks          (name)`,
+		`create         index tasks_idx2    on    tasks          (state)`,
+	], `shs`);
 }
 
 export async function initialize() {
-
 	if (cfg.fastStart) {
 		await main_db.load(``, [], [], 'shs');
 	} else {
 		await load_main_db();
 	}
-
 	await storage.initialize(main_db);
 }
 

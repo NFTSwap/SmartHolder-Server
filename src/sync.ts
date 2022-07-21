@@ -189,26 +189,27 @@ export class Sync {
 				addWatch(_sync.watchBlocks[k]);
 				await storage.set(`WatchBlock_Workers_${v.chain}`, env.workers ? env.workers.workers: 1);
 			}
-		} else {
-			msg.addEventListener(Events.WatchBlock, async (e)=>{
-				let {worker, blockNumber, chain} = e.data;
-				let wait = this._waits[`${chain}_${worker}`];
-				let now = Date.now();
-
-				for (let i = 0; i < wait.callback.length;) {
-					let it = wait.callback[i];
-					if (blockNumber > it.blockNumber) { // ok
-						it.resolve();
-						wait.callback.splice(i, 1); // delete
-					} else if (now > it.timeout) { // timeout
-						it.reject(errno.ERR_SYNC_WAIT_BLOCK_TIMEOUT);
-						wait.callback.splice(i, 1); // delete
-					} else { // wait
-						i++;
-					}
-				}
-			});
 		}
+
+		msg.addEventListener(Events.WatchBlock, async (e)=>{
+			let {worker, blockNumber, chain} = e.data;
+			let wait = this._waits[`${chain}_${worker}`];
+			let now = Date.now();
+			if (!wait) return;
+
+			for (let i = 0; i < wait.callback.length;) {
+				let it = wait.callback[i];
+				if (blockNumber > it.blockNumber) { // ok
+					it.resolve();
+					wait.callback.splice(i, 1); // delete
+				} else if (now > it.timeout) { // timeout
+					it.reject(errno.ERR_SYNC_WAIT_BLOCK_TIMEOUT);
+					wait.callback.splice(i, 1); // delete
+				} else { // wait
+					i++;
+				}
+			}
+		});
 	}
 
 	async waitBlockNumber(chain: ChainType, blockNumber: number, timeout?: number) {

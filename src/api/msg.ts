@@ -8,6 +8,6 @@ import {WSAPI} from '../api';
 export default class Message extends WSAPI {
 	
 	EVENTs() {
-		return ['UpdateNFT'];
+		return ['MakeDAOComplete'];
 	}
 }
