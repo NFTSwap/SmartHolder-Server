@@ -11,34 +11,73 @@ import db from './db';
 import * as env from './env';
 import {broadcastTaskComplete} from './message';
 
-export interface TaskConstructor {
-	new(tasks: Tasks): Task;
+export interface TaskConstructor<T> {
+	new(tasks: Tasks<T>): Task<T>;
 }
 
-export abstract class Task {
+export abstract class Task<T = any> {
 
-	readonly tasks: Tasks;
+	private _steps: ({func: (...args: any[])=>any, retry?: (err: any)=>any, timeout: number})[] = [];
 
-	protected constructor(tasks: Tasks) {
+	readonly tasks: Tasks<T>;
+
+	protected constructor(tasks: Tasks<T>) {
 		this.tasks = tasks;
+		this.exec(tasks.args);
 	}
 
-	abstract exec(): Promise<any>;
+	abstract exec(args: T): void;
 
-	async step<T = any>(func: (this: Task)=>Promise<T>, timeout?: number): Promise<T> {
-		// TODO ...
-		return {} as any;
+	step<T = any, Args = any>(func: (...args: Args[])=>Promise<T>, retry?: (err: any)=>any, timeout?: number) {
+		this._steps.push({ func, retry: retry, timeout: timeout || (1800 * 1e3) });
 	}
 
-	next(error?: any, data?: any): void {
-		// TODO ...
-		// await this.exec();
+	private complete() {
+		broadcastTaskComplete(this.tasks.id);
 	}
 
-	static async make(this: TaskConstructor, name: string, method: string, args: any, user?: string) {
-		let Constructor = this as TaskConstructor;
+	async next(error?: any, data?: any): Promise<void> {
+
+		// somes.assert(this.tasks.state == 0, errno.ERR_TASK_BEEN_CLOSED);
+		if (this.tasks.state != 0) {
+			console.warn(`ERR_TASK_BEEN_CLOSED`);
+			return;
+		}
+
+		await somes.sleep(1);
+
+		let {id, step} = this.tasks;
+		if (error) {
+			if (await db.update(`tasks`, { state: 3, data: { error: Error.new(error) } }, { id, state: 0 }) == 1) { /*fail*/
+				this.complete();
+			}
+		} else if (step < this._steps.length) {
+			let stepExec = this._steps[step];
+			let stepTime = stepExec.timeout ? stepExec.timeout + Date.now(): 0;
+
+			let i = await db.update(`tasks`, { step: step + 1, stepTime }, { id, step, state: 0 });
+			if ( i == 1) {
+				this.tasks.step++;
+				try {
+					await stepExec.func(data);
+				} catch (err: any) {
+					console.warn('Task#next', err.message);
+					if ( await db.update(`tasks`, { data: { error: Error.new(err) }, state: 3 }, { id, step: this.tasks.step, state: 0 }) == 1) {
+						this.complete();
+					}
+				}
+			}
+		} else if (step == this._steps.length) { // complete
+			if ( await db.update(`tasks`, { data: { data }, state: 2 }, { id, step, state: 0 }) == 1) {
+				this.complete();
+			}
+		}
+	}
+
+	static async make<T = any>(this: TaskConstructor<T>, name: string, args: T, user?: string) {
+		let Constructor = this as TaskConstructor<T>;
 		// MekeDAO#Name
-		somes.assert(await db.selectOne(`tasks`, { name, state: 0 }), errno.ERR_TASK_ALREADY_EXISTS);
+		somes.assert(!await db.selectOne(`tasks`, { name, state: 0 }), errno.ERR_TASK_ALREADY_EXISTS);
 
 		// id           int primary        key auto_increment, -- 主键id
 		// name         varchar (64)                 not null, -- 任务名称, MekeDAO#Name
@@ -51,14 +90,16 @@ export abstract class Task {
 		// state        int          default (0)     not null, -- 0进行中,1完成,2失败
 		// time         bigint                       not null,
 
-		let id = await db.insert(`tasks`, { name, method, args, state: 0, user, time: Date.now() });
+		let id = await db.insert(`tasks`, {
+			name, args: args || {}, state: 0, user, time: Date.now(), modify: Date.now()
+		});
 		let tasks = await db.selectOne<Tasks>(`tasks`, {id});
 
 		return new Constructor(tasks!);
 	}
 
-	static async task(this: TaskConstructor, id: number) {
-		let Constructor = this as TaskConstructor;
+	static async task<T = any>(this: TaskConstructor<T>, id: number) {
+		let Constructor = this as TaskConstructor<T>;
 		let tasks = await db.selectOne<Tasks>(`tasks`, {id});
 		somes.assert(tasks, errno.ERR_TASK_NOT_EXISTS);
 		return new Constructor(tasks!);

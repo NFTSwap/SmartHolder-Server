@@ -11,8 +11,10 @@ module.exports = {
 	// 1多模式：在多个节点中自动切换，当前一个节点出现故障时，会随机切换到下一个节点
 	web3Mode: {}, // web3模式 default use kMultiple_Fixed
 	web3PriceLimit: {},
+	contractImpls: {},
 	keys_auto_unlock: true,
 	web3_tx_dequeue: false,
+	mvp_ser_api: 'https://mvp.stars-mine.com/service-api',
 	enable_auth: true, // 启用web服务访问认证
 	mbus: 'mqtt://mqtt.stars-mine.com:1883', // Disable mbus when empty, mbus为空时禁用消息总线
 	mbus_auth: '', // user:password

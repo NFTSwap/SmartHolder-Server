@@ -16,7 +16,7 @@ export interface DAO {
 	address: string;//      varchar (64)   not null,
 	name: string;//         varchar (64)   not null,
 	mission: string;//      varchar (1024) not null,
-	describe: string;//     varchar (1024) not null,
+	description: string;//     varchar (1024) not null,
 	root: string;//         varchar (64)   not null,
 	operator: string;//     varchar (64)   not null,
 	member: string;//       varchar (64)   not null,
@@ -35,7 +35,7 @@ export interface Member {
 	uri: string;//          varchar (512)   not null, -- uri
 	owner: string;//        varchar (64)    not null, -- owner address
 	name: string;//         varchar (64)    not null, -- member name
-	describe: string;//     varchar (512)   not null, -- member describe
+	description: string;//     varchar (512)   not null, -- member description
 	avatar: string;//       varchar (512)   not null, -- member head portrait
 	role: number;//         int default (0) not null, -- default 0
 	votes: number;//        int default (0) not null, -- default > 0
@@ -88,7 +88,7 @@ export interface AssetOrder {
 	fromAddres: string;//   char    (42)                      not null,  -- from
 	toAddress: string;//    char    (42)                      not null,  -- to
 	value: string;//        varchar (128)        default ('') not null,  -- tx value
-	describe: string;   //  varchar (1024)       default ('') not null,
+	description: string;   //  varchar (1024)       default ('') not null,
 	time: number;//         bigint               default (0)  not null
 }
 
@@ -107,7 +107,7 @@ export interface Ledger {
 	txHash: string;//       varchar (72)                 not null, -- tx hash
 	type: LedgerType;//     int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
 	name: string;//         varchar (64)    default ('') not null, -- 转账名目
-	describe: string;//     varchar (1024)  default ('') not null, -- 详细
+	description: string;//     varchar (1024)  default ('') not null, -- 详细
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 	balance: string;//      varchar (72)                 not null, -- 金额
@@ -132,7 +132,7 @@ export interface VoteProposal {
 	address: string;//      varchar (64)                 not null, -- 投票池合约地址
 	proposal_id: string;//  varchar (72)                 not null, -- 提案id
 	name: string;//         varchar (64)                 not null, -- 提案名称
-	describe: string;//     varchar (1024)               not null, -- 提案描述
+	description: string;//     varchar (1024)               not null, -- 提案描述
 	origin: string;//       varchar (64)                 not null, -- 发起人
 	target: string;//       varchar (64)                 not null, -- 执行目标合约地址
 	data: string;//         text                         not null, -- 执行参数数据
@@ -140,7 +140,7 @@ export interface VoteProposal {
 	expiry: number;//       bigint                       not null, -- 过期时间（区块链时间单位）
 	voteRate: number;//     int                          not null, -- 投票率不小于全体票数50% (0-10000)
 	passRate: number;//     int                          not null, -- 通过率不小于全体票数50% (0-10000)
-	loop: number;//         int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
+	loopCount: number;//    int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
 	loopTime: number;//     bigint           default (0) not null, -- 执行循环间隔时间
 	voteTotal: number;//    bigint           default (0) not null, -- 投票总数
 	agreeTotal: number;//   bigint           default (0) not null, -- 通过总数
@@ -253,11 +253,10 @@ export class ChainTraits {
 
 export const chainTraits = new ChainTraits();
 
-export interface Tasks {
+export interface Tasks<Args = any> {
 	id: number;//           int primary        key auto_increment, -- 主键id
 	name: string;//         varchar (64)                 not null, -- 任务名称
-	method: string;//       varchar (1204)               not null, -- 执行任务的方法以及文件名
-	args: any;//            json,                                  -- 执行参数
+	args: Args;//            json,                                  -- 执行参数
 	data: any;
 	step: number;//         int        default (0)       not null, -- 当前执行步骤
 	stepTime: number;//     int          default (0)     not null, -- 当前执行步骤

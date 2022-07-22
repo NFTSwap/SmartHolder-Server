@@ -12,8 +12,8 @@ export class Ledger extends ContractScaner {
 
 		// event Receive(address indexed from, uint256 balance);
 		// event ReleaseLog(address indexed operator, uint256 balance, string log);
-		// event Deposit(address indexed from, uint256 balance, string name, string describe);
-		// event Withdraw(address indexed target, uint256 balance, string describe);
+		// event Deposit(address indexed from, uint256 balance, string name, string description);
+		// event Withdraw(address indexed target, uint256 balance, string description);
 		// event Release(uint256 indexed member, address indexed to, uint256 balance);
 
 		Receive: {
@@ -28,7 +28,7 @@ export class Ledger extends ContractScaner {
 				// txHash       varchar (72)                 not null, -- tx hash
 				// type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
 				// name         varchar (64)    default ('') not null, -- 转账名目
-				// describe     varchar (1024)  default ('') not null, -- 详细
+				// description     varchar (1024)  default ('') not null, -- 详细
 				// target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 				// member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				// balance      varchar (72)                 not null, -- 金额
@@ -72,14 +72,14 @@ export class Ledger extends ContractScaner {
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: e.blockNumber,
 					});
-					await db.update(`ledger_${this.chain}`, { describe: log }, { address: this.address, txHash, });
+					await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
 				}
 			},
 		},
 
 		Deposit: {
 			use: async (e: EventData)=>{
-				let {from,balance,name,describe} = e.returnValues;
+				let {from,balance,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
@@ -91,7 +91,7 @@ export class Ledger extends ContractScaner {
 						target: from,
 						balance: formatHex(balance),
 						name: name,
-						describe: describe,
+						description: description,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: e.blockNumber,
 					});
@@ -101,7 +101,7 @@ export class Ledger extends ContractScaner {
 		
 		Withdraw: {
 			use: async (e: EventData)=>{
-				let {target,balance,describe} = e.returnValues;
+				let {target,balance,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
@@ -112,7 +112,7 @@ export class Ledger extends ContractScaner {
 						type: type,
 						balance: formatHex(balance),
 						target: target,
-						describe: describe,
+						description: description,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: e.blockNumber,
 					});
@@ -135,7 +135,7 @@ export class Ledger extends ContractScaner {
 						type: type,
 						target: to,
 						balance: formatHex(balance),
-						describe: log?.log || '',
+						description: log?.log || '',
 						member_id: member,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: e.blockNumber,

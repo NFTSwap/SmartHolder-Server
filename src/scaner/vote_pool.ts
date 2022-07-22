@@ -71,7 +71,7 @@ export class VotePool extends ContractScaner {
 				address: this.address,
 				proposal_id: proposal_id,
 				name: proposal.name,
-				describe: proposal.describe,
+				description: proposal.description,
 				origin: proposal.origin,
 				target: proposal.target,
 				data: proposal.data,
@@ -79,7 +79,7 @@ export class VotePool extends ContractScaner {
 				expiry: proposal.expiry,
 				voteRate: proposal.voteRate,
 				passRate: proposal.passRate,
-				loop: proposal.loop,
+				loopCount: proposal.loopCount,
 				loopTime: proposal.loopTime,
 				voteTotal: proposal.voteTotal,
 				agreeTotal: proposal.agreeTotal,
@@ -95,7 +95,7 @@ export class VotePool extends ContractScaner {
 			await storage.set(`vote_proposal_${this.chain}_${this.address}_total`, await (await this.methods()).total().call());
 		} else {
 			await db.update(`vote_proposal_${this.chain}`, {
-				loop: proposal.loop,
+				loopCount: proposal.loopCount,
 				voteTotal: proposal.voteTotal,
 				agreeTotal: proposal.agreeTotal,
 				executeTime: proposal.executeTime,
@@ -115,7 +115,7 @@ export class VotePool extends ContractScaner {
 		// address: string;//      varchar (64)                 not null, -- 投票池合约地址
 		// proposal_id: string;//  varchar (72)                 not null, -- 提案id
 		// name: string;//         varchar (64)                 not null, -- 提案名称
-		// describe: string;//     varchar (1024)               not null, -- 提案描述
+		// description: string;//     varchar (1024)               not null, -- 提案描述
 		// origin: string;//       varchar (64)                 not null, -- 发起人
 		// target: string;//       varchar (64)                 not null, -- 执行目标合约地址
 		// data: string;//         text                         not null, -- 执行参数数据
@@ -138,7 +138,7 @@ export class VotePool extends ContractScaner {
 		// struct Proposal {
 		// 	uint256 id;
 		// 	string name;
-		// 	string describe;
+		// 	string description;
 		// 	address origin; // 发起人
 		// 	address target; // 目标合约
 		// 	uint256 lifespan; // 投票生命周期

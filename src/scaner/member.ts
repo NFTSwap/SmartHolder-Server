@@ -25,7 +25,7 @@ export class Member extends ContractScaner {
 				// uri          varchar (512)              not null, -- uri
 				// owner        varchar (64)               not null, -- owner address
 				// name         varchar (64)               not null, -- member name
-				// describe     varchar (512)              not null, -- member describe
+				// description     varchar (512)              not null, -- member description
 				// avatar       varchar (512)              not null, -- member head portrait
 				// role         int           default (0)  not null, -- default 0
 				// votes        int           default (0)  not null, -- default > 0
@@ -46,7 +46,7 @@ export class Member extends ContractScaner {
 						tokenId, uri,
 						owner: owner,
 						name: info.name,
-						describe: info.describe,
+						description: info.description,
 						avatar: info.avatar,
 						role: info.role,
 						votes: info.votes,
@@ -69,7 +69,7 @@ export class Member extends ContractScaner {
 				await db.update(`member_${chain}`, {
 					uri,
 					name: info.name,
-					describe: info.describe,
+					description: info.description,
 					avatar: info.avatar,
 					role: info.role,
 					votes: info.votes,

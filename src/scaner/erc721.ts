@@ -69,7 +69,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 				toAddress: to[0],
 				count: count,
 				value: `${value}`,
-				//describe: '',
+				//description: '',
 				time: time,
 			});
 		}

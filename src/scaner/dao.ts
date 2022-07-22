@@ -19,7 +19,7 @@ export class DAO extends ContractScaner {
 				// address: string;//      varchar (64)   not null,
 				// name: string;//         varchar (64)   not null,
 				// mission: string;//      varchar (1024) not null,
-				// describe: string;//     varchar (1024) not null,
+				// description: string;//     varchar (1024) not null,
 				// root: string;//         varchar (64)   not null,
 				// operator: string;//     varchar (64)   not null,
 				// member: string;//       varchar (64)   not null,
@@ -40,7 +40,7 @@ export class DAO extends ContractScaner {
 							address: this.address,
 							name: await m.name().call(),
 							mission: await m.mission().call(),
-							describe: await m.describe().call(),
+							description: await m.description().call(),
 							root: await m.root().call(),
 							member: await m.member().call(),
 							ledger: await m.ledger().call(),
@@ -54,7 +54,7 @@ export class DAO extends ContractScaner {
 				} else if (tag == 'MissionAndDescribe') {
 					await db.update(`dao_${this.chain}`, {
 						mission: await m.mission().call(),
-						describe: await m.describe().call(), modify: time,
+						description: await m.description().call(), modify: time,
 					}, { address: this.address });
 				}
 				else if (tag == 'Ledger') {

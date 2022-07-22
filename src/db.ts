@@ -38,7 +38,7 @@ async function load_main_db() {
 				address      varchar (64)               not null,
 				name         varchar (64)               not null,
 				mission      varchar (1024)             not null,
-				describe     varchar (1024)             not null,
+				description  varchar (1024)             not null,
 				root         varchar (64)               not null,
 				operator     varchar (64)               not null,
 				member       varchar (64)               not null,
@@ -57,7 +57,7 @@ async function load_main_db() {
 				uri          varchar (512)              not null, -- uri
 				owner        varchar (64)               not null, -- owner address
 				name         varchar (64)               not null, -- member name
-				describe     varchar (512)              not null, -- member describe
+				description  varchar (512)              not null, -- member description
 				avatar       varchar (512)              not null, -- member head portrait
 				role         int           default (0)  not null, -- default 0
 				votes        int           default (0)  not null, -- default > 0
@@ -88,7 +88,7 @@ async function load_main_db() {
 				fromAddres   char    (42)                      not null,  -- from
 				toAddress    char    (42)                      not null,  -- to
 				value        varchar (66)   default ('')       not null,  -- tx value
-				describe     varchar (1024) default ('')       not null,
+				description  varchar (1024) default ('')       not null,
 				time         bigint         default (0)        not null
 			);
 
@@ -99,7 +99,7 @@ async function load_main_db() {
 				txHash       varchar (72)                 not null, -- tx hash
 				type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
 				name         varchar (64)    default ('') not null, -- 转账名目
-				describe     varchar (1024)  default ('') not null, -- 详细
+				description  varchar (1024)  default ('') not null, -- 详细
 				target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (72)                 not null, -- 金额
@@ -124,7 +124,7 @@ async function load_main_db() {
 				address      varchar (64)                 not null, -- 投票池合约地址
 				proposal_id  varchar (72)                 not null, -- 提案id
 				name         varchar (64)                 not null, -- 提案名称
-				describe     varchar (1024)               not null, -- 提案描述
+				description  varchar (1024)               not null, -- 提案描述
 				origin       varchar (64)                 not null, -- 发起人
 				target       varchar (64)                 not null, -- 执行目标合约地址
 				data         text                         not null, -- 执行参数数据
@@ -132,7 +132,7 @@ async function load_main_db() {
 				expiry       bigint                       not null, -- 过期时间（区块链时间单位）
 				voteRate     int                          not null, -- 投票率不小于全体票数50% (0-10000)
 				passRate     int                          not null, -- 通过率不小于全体票数50% (0-10000)
-				loop         int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
+				loopCount    int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
 				loopTime     bigint           default (0) not null, -- 执行循环间隔时间
 				voteTotal    bigint           default (0) not null, -- 投票总数
 				agreeTotal   bigint           default (0) not null, -- 通过总数
@@ -165,6 +165,7 @@ async function load_main_db() {
 				state        int             default (0) not null, -- 状态: 0启用, 1禁用
 				time         bigint                      not null  --
 			);
+
 		`, [], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
@@ -210,17 +211,16 @@ async function load_main_db() {
 		create table if not exists tasks (
 			id           int primary        key auto_increment, -- 主键id
 			name         varchar (64)                 not null, -- 任务名称, MekeDAO#Name
-			method       varchar (1204)               not null, -- 执行任务的方法以及文件名
 			args         json,                                  -- 执行参数数据
 			data         json,                                  -- 成功或失败的数据 {data, error}
 			step         int          default (0)     not null, -- 当前执行步骤
-			stepTime     int          default (0)     not null, -- 当前执行步骤的超时时间,可用于执行超时检查
+			stepTime     bigint       default (0)     not null, -- 当前执行步骤的超时时间,可用于执行超时检查
 			user         varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
 			state        int          default (0)     not null, -- 0进行中,1完成,2失败
-			time         bigint                       not null,
+			time         bigint                       not null
 		);
 		`, [], [
-		`create  unique index tasks_idx0    on    tasks          (name,state)`,
+		`create         index tasks_idx0    on    tasks          (name,state)`,
 		`create         index tasks_idx1    on    tasks          (name)`,
 		`create         index tasks_idx2    on    tasks          (state)`,
 	], `shs`);
