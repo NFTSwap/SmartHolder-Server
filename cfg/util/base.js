@@ -24,6 +24,7 @@ module.exports = {
 	tests: [`${__dirname}/../../test/test`],
 	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
 	root: '/data/HC/dphotos/shs/out/public', // 前端程序路径,可为空
+	publicURL: 'https://smartholder.stars-mine.com',
 	qiniu: {
 		prefix: 'https://mvp-img.stars-mine.com',
 		all_prefix: [

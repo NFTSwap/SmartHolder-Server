@@ -17,7 +17,7 @@ export interface TaskConstructor<T> {
 
 export abstract class Task<T = any> {
 
-	private _steps: ({func: (...args: any[])=>any, retry?: (err: any)=>any, timeout: number})[] = [];
+	private _steps: ({func: (...args: any[])=>any, verify?: (data: any)=>Promise<any>, timeout: number})[] = [];
 
 	readonly tasks: Tasks<T>;
 
@@ -28,15 +28,21 @@ export abstract class Task<T = any> {
 
 	abstract exec(args: T): void;
 
-	step<T = any, Args = any>(func: (...args: Args[])=>Promise<T>, retry?: (err: any)=>any, timeout?: number) {
-		this._steps.push({ func, retry: retry, timeout: timeout || (1800 * 1e3) });
+	get id() { return this.tasks.id; }
+
+	step<T = any, Args = any>(
+		func: (...args: Args[])=>Promise<T>,
+		verify?: (data: any)=>Promise<any>,
+		timeout?: number
+	) {
+		this._steps.push({ func, verify, timeout: timeout || (1800 * 1e3) }); // 30 Minutes
 	}
 
 	private complete() {
 		broadcastTaskComplete(this.tasks.id);
 	}
 
-	async next(error?: any, data?: any): Promise<void> {
+	async next(error?: any, data?: any, onlyVerify?: boolean): Promise<void> {
 
 		// somes.assert(this.tasks.state == 0, errno.ERR_TASK_BEEN_CLOSED);
 		if (this.tasks.state != 0) {
@@ -44,14 +50,34 @@ export abstract class Task<T = any> {
 			return;
 		}
 
-		await somes.sleep(1);
+		await somes.sleep(100);
 
 		let {id, step} = this.tasks;
 		if (error) {
 			if (await db.update(`tasks`, { state: 3, data: { error: Error.new(error) } }, { id, state: 0 }) == 1) { /*fail*/
 				this.complete();
 			}
-		} else if (step < this._steps.length) {
+			return;
+		}
+
+		let throwError = async (tag: string, err: any)=>{
+			console.warn(tag, err.message);
+			let set = { data: { error: Error.new(err) }, state: 2 }
+			if ( await db.update(`tasks`, set, { id, step: this.tasks.step, state: 0 }) == 1) {
+				this.complete();
+			}
+		}
+
+		// verify
+		if (step > 0 && step <= this._steps.length) {
+			let stepExec = this._steps[step - 1];
+			if (stepExec.verify) {
+				data = await stepExec.verify(data);
+				if (!data) return;
+			}
+		}
+		
+		if (step < this._steps.length) {
 			let stepExec = this._steps[step];
 			let stepTime = stepExec.timeout ? stepExec.timeout + Date.now(): 0;
 
@@ -61,14 +87,11 @@ export abstract class Task<T = any> {
 				try {
 					await stepExec.func(data);
 				} catch (err: any) {
-					console.warn('Task#next', err.message);
-					if ( await db.update(`tasks`, { data: { error: Error.new(err) }, state: 3 }, { id, step: this.tasks.step, state: 0 }) == 1) {
-						this.complete();
-					}
+					await throwError('Task#next1', err.message);
 				}
 			}
 		} else if (step == this._steps.length) { // complete
-			if ( await db.update(`tasks`, { data: { data }, state: 2 }, { id, step, state: 0 }) == 1) {
+			if ( await db.update(`tasks`, { data: { data }, state: 1 }, { id, step, state: 0 }) == 1) {
 				this.complete();
 			}
 		}

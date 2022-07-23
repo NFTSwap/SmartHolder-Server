@@ -51,7 +51,7 @@ export class DAO extends ContractScaner {
 							blockNumber: e.blockNumber,
 						});
 					}
-				} else if (tag == 'MissionAndDescribe') {
+				} else if (tag == 'MissionAndDesc') {
 					await db.update(`dao_${this.chain}`, {
 						mission: await m.mission().call(),
 						description: await m.description().call(), modify: time,

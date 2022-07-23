@@ -41,7 +41,7 @@ if (!disableWeb) {
 				if (user && user.name == tasks.user) {
 					 // send to websocket user client
 					msg.trigger(`${event}Complete`, {
-						name: tasks.name, state: tasks.state, data: tasks.data, ok: tasks.state == 1
+						state: tasks.state, task: tasks, data: tasks.data, ok: tasks.state == 1
 					});
 					break;
 				}

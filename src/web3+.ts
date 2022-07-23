@@ -215,6 +215,6 @@ export async function initialize(addWatch: (watch: WatchCat)=>void) {
 
 export default function(type: ChainType) {
 	var web3 = web3s[type];
-	somes.assert(web3, `web3 lib ${type} undefined`);
+	somes.assert(web3, `web3 lib ${type} undefined, This network is not supported`);
 	return web3;
 }

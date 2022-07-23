@@ -165,9 +165,11 @@ export interface Votes {
 
 export enum ContractType {
 	Invalid,
+	ERC721,
 	DAO,
 	Member,
-	ERC721,
+	Asset = ERC721,
+	AssetGlobal = ERC721,
 	Ledger,
 	VotePool,
 }
