@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import db, {DAO, ChainType, Member, Asset, State, AssetOrder, AssetExt, Ledger, Votes, VoteProposal} from '../db';
+import { ChainType, State } from '../db';
 import * as utils from '../models/utils';
 
 export default class extends ApiController {
