@@ -47,7 +47,7 @@ async function load_main_db() {
 				asset        varchar (64)               not null,
 				time         bigint                     not null,
 				modify       bigint                     not null,
-				blockNumber  int                        not null,
+				blockNumber  int                        not null
 			);
 
 			create table if not exists member_${chain} (
@@ -188,6 +188,7 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx3      on asset_order_${chain}            (txHash)`,
 			`create unique  index asset_order_${chain}_idx4      on asset_order_${chain}            (txHash,token,tokenId)`,
 			`create         index asset_order_${chain}_idx6      on asset_order_${chain}            (token)`,
+			`create         index asset_order_${chain}_idx7      on asset_order_${chain}            (token,fromAddres)`,
 			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (address)`,
 			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (address,target)`,

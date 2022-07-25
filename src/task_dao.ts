@@ -173,7 +173,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 					asset: Asset,
 					time: Date.now(),
 					modify: Date.now(),
-					blockNumber: 0,//result.receipt!.blockNumber,
+					blockNumber: result.receipt!.blockNumber,
 				});
 			}
 

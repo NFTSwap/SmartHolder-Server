@@ -21,7 +21,8 @@ export default class extends ApiController {
 		}
 	}
 
-	makeDAO_Next__(args: any) {
+	// @private
+	private makeDAO_Next__(args: any) {
 		return MakeDAO.next(args);
 	}
 
