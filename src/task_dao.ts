@@ -3,6 +3,7 @@
  * @date 2022-07-21
  */
 
+import somes from 'somes';
 import {Task} from './task';
 import {Tasks} from './models/def';
 import {ChainType} from './models/def';
@@ -11,6 +12,7 @@ import getWeb3, {MvpWeb3} from './web3+';
 import {PostResult} from 'bclib/web3_tx';
 import * as cfg from '../config';
 import db, {storage, ContractType} from './db';
+import errno from './errno';
 // abis
 import * as ContextProxyDAO from '../abi/ContextProxyDAO.json';
 import * as ContextProxyAsset from '../abi/ContextProxyAsset.json';
@@ -38,7 +40,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	private async deploy(web3: MvpWeb3, impl: string, from: string, abi: {bytecode: string, abi: any}, flags: string) {
 		let addr = '0x0000000000000000000000000000000000000000';
 		let id = this.tasks.id;
-		let review = await mvpApi.post<string>('tx/sendSync', {
+		let review = await mvpApi.post<string>('tx/send', {
 			chain: web3.chain,
 			tx: {
 				from: from,
@@ -47,16 +49,16 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 					arguments: [impl],
 				}).encodeABI(),
 			},
-			callback: `${cfg.publicURL}/service-api/tasks/__makeDAONext__?taskId=${id}&flags=${flags}`,
+			callback: `${cfg.publicURL}/service-api/tasks/makeDAO_Next__?taskId=${id}&flags=${flags}`,
 		});
 		await storage.set(`MakeDAO_${this.id}_review_${flags}`, review);
 	}
 
 	private async callContract(web3: MvpWeb3, address: string, from: string, data: string, flags: string) {
-		let review = await mvpApi.post<string>('tx/sendSync', {
+		let review = await mvpApi.post<string>('tx/send', {
 			chain: web3.chain,
 			tx: { from, to: address, data },
-			callback: `${cfg.publicURL}/service-api/tasks/__makeDAONext__?taskId=${this.id}&flags=${flags}`,
+			callback: `${cfg.publicURL}/service-api/tasks/makeDAO_Next__?taskId=${this.id}&flags=${flags}`,
 		});
 		await storage.set(`MakeDAO_${this.id}_review_${flags}`, review);
 	}
@@ -80,15 +82,15 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		// deploy
 		this.step(async ()=>{
 			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
-			let impls = cfg.contractImpls[ChainType[web3.chain]] as any;
+			let impls = (cfg.contractImpls as Dict)[ChainType[web3.chain]];
 			await this.deploy(web3, impls.DAO, from, ContextProxyDAO, 'DAO');
-			await this.deploy(web3, impls.DAO, from, ContextProxyAsset, 'Asset');
-			await this.deploy(web3, impls.DAO, from, ContextProxyAssetGlobal, 'AssetGlobal');
-			await this.deploy(web3, impls.DAO, from, ContextProxyLedger, 'Ledger');
-			await this.deploy(web3, impls.DAO, from, ContextProxyMember, 'Member');
-			await this.deploy(web3, impls.DAO, from, ContextProxyVotePool, 'VotePool');
+			await this.deploy(web3, impls.Asset, from, ContextProxyAsset, 'Asset');
+			await this.deploy(web3, impls.AssetGlobal, from, ContextProxyAssetGlobal, 'AssetGlobal');
+			await this.deploy(web3, impls.Ledger, from, ContextProxyLedger, 'Ledger');
+			await this.deploy(web3, impls.Member, from, ContextProxyMember, 'Member');
+			await this.deploy(web3, impls.VotePool, from, ContextProxyVotePool, 'VotePool');
 		}, async (result: Result)=>{
-			if (result.error) throw Error.new(result.error);
+			if (result.error) return Error.new(result.error);
 			let tableName = `contract_info_${web3.chain}`;
 			let time = Date.now();
 			let blockNumber = result.receipt!.blockNumber;
@@ -104,7 +106,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 				if (!addr) return;
 			}
 			return true;
-		}, 600 * 1e3);
+		});
 
 		// DAO.InitInterfaceID
 		this.step(async ()=>{
@@ -112,30 +114,31 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let DAO = await storage.get(`MakeDAO_${this.id}_address_DAO`);
 			await this.callContract(web3, DAO, from, (await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
 		}, async(result: Result)=>{
-			if (result.error) throw Error.new(result.error);
 			if (result.flags != 'InitInterfaceID') return false;
+			if (result.error) return Error.new(result.error);
 			return result.receipt;
-		}, 100 * 1e3);
+		});
 
 		// Init
 		this.step(async()=>{
 			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
-			await this.callContract(web3, Asset, from, (await web3.contract(Asset)).methods.initAsset(DAO).encodeABI(), 'Init_Asset');
-			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO).encodeABI(), 'Init_AssetGlobal');
-			await this.callContract(web3, Ledger, from, (await web3.contract(Ledger)).methods.initLedger(DAO).encodeABI(), 'Init_Ledger');
-			await this.callContract(web3, Member, from, (await web3.contract(Member)).methods.initMember(DAO).encodeABI(), 'Init_Member');
-			await this.callContract(web3, VotePool, from, (await web3.contract(VotePool)).methods.initVotePool(DAO).encodeABI(), 'Init_VotePool');
+			let operator = '0x0000000000000000000000000000000000000000';
+			await this.callContract(web3, Asset, from, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
+			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator).encodeABI(), 'Init_AssetGlobal');
+			await this.callContract(web3, Ledger, from, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
+			await this.callContract(web3, Member, from, (await web3.contract(Member)).methods.initMember(DAO, '', operator).encodeABI(), 'Init_Member');
+			await this.callContract(web3, VotePool, from, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
 		}, async (result: Result)=>{
-			if (result.error) throw Error.new(result.error);
 			if (result.flags.indexOf('Init_') != 0) return false;
+			if (result.error) return Error.new(result.error);
 			await storage.set(`MakeDAO_${this.id}_${result.flags}`, result.receipt!.to);
 			for (let i of ['Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
 				let addr = await storage.get(`MakeDAO_${this.id}_Init_${i}`);
 				if (!addr) return;
 			}
 			return true;
-		}, 600 * 1e3);
+		});
 
 		// InitDAO
 		this.step(async()=>{
@@ -151,12 +154,12 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 				'Init_DAO'
 			);
 		}, async(result: Result)=>{
-			if (result.error) throw Error.new(result.error);
 			if (result.flags != 'Init_DAO') return false;
+			if (result.error) return Error.new(result.error);
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
 	
 			if (! await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) {
-				await db.insert(`dao${web3.chain}`, {
+				await db.insert(`dao_${web3.chain}`, {
 					address: DAO,
 					host: DAO,
 					name: args.name,
@@ -170,22 +173,32 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 					asset: Asset,
 					time: Date.now(),
 					modify: Date.now(),
-					blockNumber: result.receipt!.blockNumber,
+					blockNumber: 0,//result.receipt!.blockNumber,
 				});
 			}
 
 			return DAO;
-		}, 100*1e3);
+		});
 	}
 
 	static async makeDAO(args: MakeDaoArgs, user?: string) {
+		// let task = await this.task(42);
+		// await task.next();
+
+		// let id = 41;
+		// let web3 = getWeb3(args.chain);
+		// let DAO = await storage.get(`MakeDAO_${id}_address_DAO`);
+		// let data = (await web3.contract(DAO)).methods.initInterfaceID().encodeABI();
+		// console.log(data);
+		// return data;
+		somes.assert(! await db.selectOne(`dao_${args.chain}`, { name: args.name }), errno.ERR_DAO_NAME_EXISTS);
 		let task = await this.make(`MakeDAO#${args.name}`, args, user);
 		await task.next();
 		return task.tasks;
 	}
 
 	static async next(data: any) {
-		let task = await this.task(data.task_id);
+		let task = await this.task(data.taskId);
 		await task.next(null, data);
 	}
 }

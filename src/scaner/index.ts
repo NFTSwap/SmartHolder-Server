@@ -25,16 +25,22 @@ export function make(address: string, type: ContractType, chain: ChainType): Con
 	if (type == ContractType.DAO) {
 		cs = new DAO(address, type, chain);
 	}
-	if (type == ContractType.ERC721) {
+	else if (type == ContractType.ERC721) {
 		cs = new AssetERC721(address, type, chain);
 	}
-	if (type == ContractType.Ledger) {
+	else if (type == ContractType.Asset) {
+		cs = new AssetERC721(address, type, chain);
+	}
+	else if (type == ContractType.AssetGlobal) {
+		cs = new AssetERC721(address, type, chain);
+	}
+	else if (type == ContractType.Ledger) {
 		cs = new Ledger(address, type, chain);
 	}
-	if (type == ContractType.Member) {
+	else if (type == ContractType.Member) {
 		cs = new Member(address, type, chain);
 	}
-	if (type == ContractType.VotePool) {
+	else if (type == ContractType.VotePool) {
 		cs = new VotePool(address, type, chain);
 	}
 	else {

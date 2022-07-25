@@ -46,7 +46,8 @@ async function load_main_db() {
 				assetGlobal  varchar (64)               not null,
 				asset        varchar (64)               not null,
 				time         bigint                     not null,
-				modify       bigint                     not null
+				modify       bigint                     not null,
+				blockNumber  int                        not null,
 			);
 
 			create table if not exists member_${chain} (
@@ -169,6 +170,7 @@ async function load_main_db() {
 		`, [], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
+			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,

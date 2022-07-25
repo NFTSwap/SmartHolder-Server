@@ -61,6 +61,12 @@ export class WatchBlock implements WatchCat {
 		else if (receipt.to) { // Contract call
 			for (var log of receipt.logs) { // event logs
 				var address = log.address;
+				// if (blockNumber == 11084609) {
+				// 	console.log('------------------------', blockNumber, address, '0x283703CC092EC7621F286dE09De5Ca9279AE4F98');
+				// 	if (address.toLowerCase() == '0x283703CC092EC7621F286dE09De5Ca9279AE4F98'.toLowerCase()) {
+				// 		debugger;
+				// 	}
+				// }
 				var info = await getContractInfo(address, chain);
 				if (info && info.type) {
 					var scaner = asset.make(address, info.type, chain);

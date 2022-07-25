@@ -13,6 +13,7 @@ export class ErrnoList extends SysErrnoList {
 	ERR_TASK_ALREADY_EXISTS: ErrnoCode = [100327, `ERR_TASK_ALREADY_EXISTS`]
 	ERR_TASK_NOT_EXISTS: ErrnoCode = [100328, `ERR_TASK_NOT_EXISTS`]
 	ERR_TASK_BEEN_CLOSED: ErrnoCode = [100329, `ERR_TASK_BEEN_CLOSED`]
+	ERR_DAO_NAME_EXISTS: ErrnoCode = [100330, `ERR_DAO_NAME_EXISTS`]
 }
 
 export default new ErrnoList;

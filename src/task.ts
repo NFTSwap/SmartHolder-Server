@@ -54,7 +54,7 @@ export abstract class Task<T = any> {
 
 		let {id, step} = this.tasks;
 		if (error) {
-			if (await db.update(`tasks`, { state: 3, data: { error: Error.new(error) } }, { id, state: 0 }) == 1) { /*fail*/
+			if (await db.update(`tasks`, { state: 2, data: { error: Error.new(error) } }, { id, state: 0 }) == 1) { /*fail*/
 				this.complete();
 			}
 			return;
@@ -73,10 +73,15 @@ export abstract class Task<T = any> {
 			let stepExec = this._steps[step - 1];
 			if (stepExec.verify) {
 				data = await stepExec.verify(data);
-				if (!data) return;
+				if (data) {
+					if (data instanceof Error) {
+						await throwError('Task#next', data.message);
+						return;
+					}
+				} else return;
 			}
 		}
-		
+
 		if (step < this._steps.length) {
 			let stepExec = this._steps[step];
 			let stepTime = stepExec.timeout ? stepExec.timeout + Date.now(): 0;
@@ -142,7 +147,7 @@ export class TaskCenter implements WatchCat {
 		for (let task of await db.select<Tasks>(`tasks`, {state: 0})) {
 			if (task.stepTime && task.stepTime < Date.now()) { // timeout
 				let error = Error.new(errno.ERR_TASK_STEP_EXEC_TIMEOUIT);
-				if (await db.update(`tasks`, { state: 3 /*fail*/, data: { error } }, { id: task.id, state: 0 }) == 1) {
+				if (await db.update(`tasks`, { state: 2 /*fail*/, data: { error } }, { id: task.id, state: 0 }) == 1) {
 					// 更新成功后，发送完成消息
 					broadcastTaskComplete(task.id);
 				}

@@ -8,7 +8,7 @@ import ApiController from '../api';
 import {MakeDAO, MakeDaoArgs} from '../task_dao';
 
 const non_auth_apis = [
-	'__makeDAONext__',
+	'makeDAO_Next__',
 ];
 
 export default class extends ApiController {
@@ -21,7 +21,7 @@ export default class extends ApiController {
 		}
 	}
 
-	__makeDAONext__(args: any) {
+	makeDAO_Next__(args: any) {
 		return MakeDAO.next(args);
 	}
 

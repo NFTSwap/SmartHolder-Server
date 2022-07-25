@@ -25,6 +25,7 @@ export interface DAO {
 	asset: string;//        varchar (64)   not null,
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
+	blockNumber: number;//  int            not null,
 }
 
 export interface Member {
@@ -168,10 +169,10 @@ export enum ContractType {
 	ERC721,
 	DAO,
 	Member,
-	Asset = ERC721,
-	AssetGlobal = ERC721,
 	Ledger,
 	VotePool,
+	Asset,
+	AssetGlobal,
 }
 
 export interface ContractInfo {
