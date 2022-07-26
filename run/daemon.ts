@@ -27,7 +27,7 @@ function runWebForwardServer() {
 		var {host, port} = cfg.server;
 		net.createServer((socket: net.Socket) => {
 			if (daemons.length) { // forward port
-				var port = somes.random(0, daemons.length * 1e3) % daemons.length + 8220;
+				var port = somes.random(0, daemons.length * 1e3) % daemons.length + 8320;
 				var socket2 = net.createConnection(port, '127.0.0.1', ()=>{
 					socket.pipe(socket2);
 					socket.resume();
@@ -51,12 +51,12 @@ export async function startWeb(workers?: number) {
 
 	for (var i = 0; i < workers; i++) {
 		var dea = new Daemon(`shs-web_${i}`);
-		await dea.start(process.execPath, [`--inspect=${9220+i}`, `${__dirname}/../`], {
+		await dea.start(process.execPath, [`--inspect=${9320+i}`, `${__dirname}/../`], {
 			__WORKERS: workers,
 			__WORKER: i,
 			RUN_DAEMON: '',
 			SERVER_HOST: '127.0.0.1',
-			SERVER_PORT: 8220 + i,
+			SERVER_PORT: 8320 + i,
 			PROC_TYPE: 'web',
 			WATCH_SYNC_MAIN: 0,
 		});
@@ -77,7 +77,7 @@ export async function startWatch(workers?: number) {
 		// Scavenge
 		var args = [`${__dirname}/../`];
 		//if (!i)
-		args.unshift(`--inspect=${9230+i}`); 
+		args.unshift(`--inspect=${9330+i}`); 
 		await dea.start(process.execPath, args, {
 			__WORKERS: workers,
 			__WORKER: i,
