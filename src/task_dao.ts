@@ -13,6 +13,7 @@ import {PostResult} from 'bclib/web3_tx';
 import * as cfg from '../config';
 import db, {storage, ContractType} from './db';
 import errno from './errno';
+import {escape} from 'somes/db'
 // abis
 import * as ContextProxyDAO from '../abi/ContextProxyDAO.json';
 import * as ContextProxyAsset from '../abi/ContextProxyAsset.json';
@@ -184,14 +185,18 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	static async makeDAO(args: MakeDaoArgs, user?: string) {
 		// let task = await this.task(42);
 		// await task.next();
-
 		// let id = 41;
 		// let web3 = getWeb3(args.chain);
 		// let DAO = await storage.get(`MakeDAO_${id}_address_DAO`);
 		// let data = (await web3.contract(DAO)).methods.initInterfaceID().encodeABI();
 		// console.log(data);
 		// return data;
+
 		somes.assert(! await db.selectOne(`dao_${args.chain}`, { name: args.name }), errno.ERR_DAO_NAME_EXISTS);
+		if (user) {
+			let [task] = await db.query<Tasks<MakeDAO>>(`select * from tasks where name like 'MakeDAO%' and state = 0 and user = ${escape(user)} limit 1`);
+			somes.assert(!task, errno.ERR_DAO_IS_BEING_CREATED);
+		}
 		let task = await this.make(`MakeDAO#${args.name}`, args, user);
 		await task.next();
 		return task.tasks;

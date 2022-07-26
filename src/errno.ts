@@ -15,6 +15,9 @@ export class ErrnoList extends SysErrnoList {
 	ERR_TASK_BEEN_CLOSED: ErrnoCode = [100329, `ERR_TASK_BEEN_CLOSED`]
 	ERR_DAO_NAME_EXISTS: ErrnoCode = [100330, `ERR_DAO_NAME_EXISTS`]
 	ERR_DAO_ADDRESS_NOT_EXISTS: ErrnoCode = [100331, `ERR_DAO_ADDRESS_NOT_EXISTS`]
+	ERR_DAO_IS_BEING_CREATED: ErrnoCode = [100332, `ERR_DAO_IS_BEING_CREATED`]
+
+	// A Dao is being created
 }
 
 export default new ErrnoList;
