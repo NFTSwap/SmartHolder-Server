@@ -37,9 +37,9 @@ export async function getMembersFrom(chain: ChainType, host: string, owner?: str
 	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit});
 }
 
-export async function getAssetFromHost(chain: ChainType, host: string, limit?: number | number[]) {
+export async function getAssetFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
 	let dao = await getDAONoEmpty(chain, host);
-	return db.select<Asset>(`asset_${chain}`, { token: dao.assetGlobal, state: State.Enable }, {limit});
+	return db.select<Asset>(`asset_${chain}`, { token: dao.assetGlobal, owner, state: State.Enable }, {limit});
 }
 
 export function setAssetState(chain: ChainType, token: string, tokenId: string, state: State) {

@@ -24,8 +24,8 @@ export default class extends ApiController {
 		return utils.getMembersFrom(chain,host,owner,limit);
 	}
 
-	getAssetFromHost({chain,host,limit}: { chain: ChainType, host: string, limit?: number | number[]}) {
-		return utils.getAssetFromHost(chain,host,limit);
+	getAssetFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
+		return utils.getAssetFrom(chain,host,owner,limit);
 	}
 
 	setAssetState({chain,token,tokenId,state}: { chain: ChainType, token: string, tokenId: string, state: State}) {
