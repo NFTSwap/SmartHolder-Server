@@ -26,6 +26,10 @@ export interface DAO {
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
 	blockNumber: number;//  int            not null,
+	assetIssuanceTax: string;//    varchar (32) default ('')   not null,
+	assetCirculationTax: string;// varchar (32) default ('')   not null,
+	defaultVoteRate: string;//     varchar (32) default ('')   not null,
+	defaultVotePassRate: string;// varchar (32) default ('')   not null
 }
 
 export interface Member {

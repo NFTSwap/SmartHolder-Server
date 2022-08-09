@@ -42,7 +42,7 @@ export abstract class Task<T = any> {
 		broadcastTaskComplete(this.tasks.id);
 	}
 
-	async next(error?: any, data?: any, onlyVerify?: boolean): Promise<void> {
+	async next(error?: any, data?: any): Promise<void> {
 
 		// somes.assert(this.tasks.state == 0, errno.ERR_TASK_BEEN_CLOSED);
 		if (this.tasks.state != 0) {

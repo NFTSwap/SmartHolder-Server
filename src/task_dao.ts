@@ -25,15 +25,24 @@ import * as ContextProxyVotePool from '../abi/ContextProxyVotePool.json';
 
 // make new dao tasks
 
+export interface MakeMemberArgs {
+	id: string;
+	owner: string;
+	votes: number;
+	name: string;
+	description: string;
+	avatar: string;
+}
+
 export interface MakeDaoArgs {
 	name: string;
 	mission: string;
 	description: string;
 	operator: string;
 	chain: ChainType;
-	members?: { memberId: string }[];
-	assetIssuanceTax?: number;
-	assetCirculationTax?: number;
+	members?: MakeMemberArgs[];
+	assetIssuanceTax?: number; // 资产发行税
+	assetCirculationTax?: number; // 资产流转税
 	defaultVoteRate?: number; // 投票参与率小于 50%，默认50%=0.5
 	defaultVotePassRate?: number; // 投票通过率不小于 50%，默认50%=0.5
 }
@@ -164,28 +173,59 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags != 'Init_DAO') return false;
 			if (result.error) return Error.new(result.error);
-			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
-	
-			if (! await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) {
-				await db.insert(`dao_${web3.chain}`, {
-					address: DAO,
-					host: DAO,
-					name: args.name,
-					mission: args.mission,
-					description: args.description,
-					root: VotePool,
-					operator: args.operator,
-					member: Member,
-					ledger: Ledger,
-					assetGlobal: AssetGlobal,
-					asset: Asset,
-					time: Date.now(),
-					modify: Date.now(),
-					blockNumber: result.receipt!.blockNumber,
-				});
+			await this._InsertDAO(args, result.receipt?.blockNumber);
+			return true;
+		}));
+
+		// Create Members
+		this.step(async()=>{
+			if (!args.members || args.members.length == 0) {
+				return this.next(null, {flags: 'Member_create2_None'});
+			}
+			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let Member = await storage.get(`MakeDAO_${this.id}_address_Member`);
+			let i = 0;
+			for (let it of args.members) {
+				let data = (await web3.contract(Member)).methods.create2(it.owner, it.id, it.votes, it.name, it.description, it.avatar).encodeABI();
+				await this.callContract(web3, Member, from, data, `Member_create2_${i++}`);
+			}
+		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
+			if (result.flags.indexOf('Member_create2_') != 0) return false;
+			if (result.error) return Error.new(result.error);
+
+			let DAO = await storage.get(`MakeDAO_${this.id}_address_DAO`);
+			if (!args.members || args.members.length == 0) return DAO;
+
+			await storage.set(`${result.flags}_${this.id}`, true);
+			for (let i = 0; i < args.members.length; i++) {
+				let ok = await storage.get(`Member_create2_${i}_${this.id}`);
+				if (!ok) return;
 			}
 			return DAO;
 		}));
+	}
+
+	private async _InsertDAO(args: MakeDaoArgs, blockNumber?: number) {
+		let web3 = getWeb3(args.chain);
+		let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
+		if ( await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) return;
+
+		await db.insert(`dao_${web3.chain}`, {
+			address: DAO,
+			host: DAO,
+			name: args.name,
+			mission: args.mission,
+			description: args.description,
+			root: VotePool,
+			operator: args.operator,
+			member: Member,
+			ledger: Ledger,
+			assetGlobal: AssetGlobal,
+			asset: Asset,
+			time: Date.now(),
+			modify: Date.now(),
+			blockNumber: blockNumber || 0,
+		});
 	}
 
 	static async makeDAO(args: MakeDaoArgs, user?: string) {
