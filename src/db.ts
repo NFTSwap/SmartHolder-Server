@@ -34,20 +34,24 @@ async function load_main_db() {
 
 			create table if not exists dao_${chain} (
 				id           int primary key auto_increment,
-				host         varchar (64)               not null, -- dao host or self address
-				address      varchar (64)               not null,
-				name         varchar (64)               not null,
-				mission      varchar (1024)             not null,
-				description  varchar (1024)             not null,
-				root         varchar (64)               not null,
-				operator     varchar (64)               not null,
-				member       varchar (64)               not null,
-				ledger       varchar (64)               not null,
-				assetGlobal  varchar (64)               not null,
-				asset        varchar (64)               not null,
-				time         bigint                     not null,
-				modify       bigint                     not null,
-				blockNumber  int                        not null
+				host         varchar (64)                       not null, -- dao host or self address
+				address      varchar (64)                       not null,
+				name         varchar (64)                       not null,
+				mission      varchar (1024)                     not null,
+				description  varchar (1024)                     not null,
+				root         varchar (64)                       not null,
+				operator     varchar (64)                       not null,
+				member       varchar (64)                       not null,
+				ledger       varchar (64)                       not null,
+				assetGlobal  varchar (64)                       not null,
+				asset        varchar (64)                       not null,
+				time         bigint                             not null,
+				modify       bigint                             not null,
+				blockNumber  int                                not null,
+				assetIssuanceTax    varchar (32) default ('')   not null,
+				assetCirculationTax varchar (32) default ('')   not null,
+				defaultVoteRate     varchar (32) default ('')   not null,
+				defaultVotePassRate varchar (32) default ('')   not null
 			);
 
 			create table if not exists member_${chain} (
@@ -167,7 +171,12 @@ async function load_main_db() {
 				time         bigint                      not null  --
 			);
 
-		`, [], [
+		`, [
+			`alter table dao_${chain}  add assetIssuanceTax      varchar (32)  default ('')  not null`,
+			`alter table dao_${chain}  add assetCirculationTax   varchar (32)  default ('')  not null`,
+			`alter table dao_${chain}  add defaultVoteRate       varchar (32)  default ('')  not null`,
+			`alter table dao_${chain}  add defaultVotePassRate   varchar (32)  default ('')  not null`,
+		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
 			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
