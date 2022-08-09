@@ -31,7 +31,15 @@ export interface MakeDaoArgs {
 	description: string;
 	operator: string;
 	chain: ChainType;
+	members?: { memberId: string }[];
+	assetIssuanceTax?: number;
+	assetCirculationTax?: number;
+	defaultVoteRate?: number; // 投票参与率小于 50%，默认50%=0.5
+	defaultVotePassRate?: number; // 投票通过率不小于 50%，默认50%=0.5
 }
+
+// require(proposal.voteRate > 5000, "#VotePool#create proposal vote rate not less than 50%");
+// require(proposal.passRate > 5000, "#VotePool#create proposal vote rate not less than 50%");
 
 export class MakeDAO extends Task<MakeDaoArgs> {
 
