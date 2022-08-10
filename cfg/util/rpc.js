@@ -75,7 +75,7 @@ module.exports = {
 		'https://opbtest.bsngate.com:18602/api/ac733d05c764467787cebef16f31f646/rpc', // 武汉链（基于Ethereum）
 	],
 	HASHII_TEST: [
-		'http://192.168.0.245:38545',
+		'http://172.16.4.5:38545',
 	],
 	HASHII: [
 		'http://192.168.0.142:18545',
