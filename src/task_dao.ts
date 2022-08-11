@@ -45,6 +45,9 @@ export interface MakeDaoArgs {
 	assetCirculationTax?: number; // 资产流转税
 	defaultVoteRate?: number; // 投票参与率小于 50%，默认50%=0.5
 	defaultVotePassRate?: number; // 投票通过率不小于 50%，默认50%=0.5
+	defaultVoteTime?: number; // 默认投票时间
+	memberBaseName?: string; // 成员base名称
+	memberTotalLimit?: number; // 成员总量限制
 }
 
 // require(proposal.voteRate > 5000, "#VotePool#create proposal vote rate not less than 50%");
@@ -143,8 +146,9 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let operator = '0x0000000000000000000000000000000000000000';
+			let contractURI = `${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?host=${DAO}&chain=${args.chain}`;
 			await this.callContract(web3, Asset, from, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
-			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator).encodeABI(), 'Init_AssetGlobal');
+			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator, contractURI).encodeABI(), 'Init_AssetGlobal');
 			await this.callContract(web3, Ledger, from, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
 			await this.callContract(web3, Member, from, (await web3.contract(Member)).methods.initMember(DAO, '', operator).encodeABI(), 'Init_Member');
 			await this.callContract(web3, VotePool, from, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
@@ -208,24 +212,44 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	private async _InsertDAO(args: MakeDaoArgs, blockNumber?: number) {
 		let web3 = getWeb3(args.chain);
 		let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
-		if ( await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) return;
 
-		await db.insert(`dao_${web3.chain}`, {
-			address: DAO,
-			host: DAO,
-			name: args.name,
-			mission: args.mission,
-			description: args.description,
-			root: VotePool,
-			operator: args.operator,
-			member: Member,
-			ledger: Ledger,
-			assetGlobal: AssetGlobal,
-			asset: Asset,
-			time: Date.now(),
-			modify: Date.now(),
-			blockNumber: blockNumber || 0,
-		});
+		if ( await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) {
+			await db.update(`dao_${web3.chain}`, {
+				assetIssuanceTax: args.assetIssuanceTax,
+				assetCirculationTax: args.assetCirculationTax,
+				defaultVoteRate: args.defaultVoteRate,
+				defaultVotePassRate: args.defaultVotePassRate,
+				defaultVoteTime: args.defaultVoteTime,
+				memberBaseName: args.memberBaseName,
+				memberTotalLimit: args.memberTotalLimit,
+			}, {
+				address: DAO,
+			});
+		} else {
+			await db.insert(`dao_${web3.chain}`, {
+				address: DAO,
+				host: DAO,
+				name: args.name,
+				mission: args.mission,
+				description: args.description,
+				root: VotePool,
+				operator: args.operator,
+				member: Member,
+				ledger: Ledger,
+				assetGlobal: AssetGlobal,
+				asset: Asset,
+				time: Date.now(),
+				modify: Date.now(),
+				blockNumber: blockNumber || 0,
+				assetIssuanceTax: args.assetIssuanceTax, // 资产发行税
+				assetCirculationTax: args.assetCirculationTax, // 资产流转税
+				defaultVoteRate: args.defaultVoteRate, // 投票参与率小于 50%，默认50%=0.5
+				defaultVotePassRate: args.defaultVotePassRate, // 投票通过率不小于 50%，默认50%=0.5
+				defaultVoteTime: args.defaultVoteTime,  // 默认投票时间
+				memberBaseName: args.memberBaseName, // 成员base名称
+				memberTotalLimit: args.memberTotalLimit, // 成员总量限制
+			});
+		}
 	}
 
 	static async makeDAO(args: MakeDaoArgs, user?: string) {

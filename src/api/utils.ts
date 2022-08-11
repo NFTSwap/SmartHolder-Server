@@ -86,4 +86,8 @@ export default class extends ApiController {
 		return utils.getVotesFrom(chain,address,proposal_id,member_id,limit);
 	}
 
+	getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
+		return utils.getOpenseaContractJSON(host, chain);
+	}
+
 }

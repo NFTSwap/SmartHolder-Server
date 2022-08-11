@@ -26,10 +26,13 @@ export interface DAO {
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
 	blockNumber: number;//  int            not null,
-	assetIssuanceTax: string;//    varchar (32) default ('')   not null,
-	assetCirculationTax: string;// varchar (32) default ('')   not null,
-	defaultVoteRate: string;//     varchar (32) default ('')   not null,
-	defaultVotePassRate: string;// varchar (32) default ('')   not null
+	assetIssuanceTax: number;//    int default (0)   not null, // 发行税
+	assetCirculationTax: number;// int default (0)   not null, // 流转税
+	defaultVoteRate: number;//     int default (0)   not null, // 默认最小参与率
+	defaultVotePassRate: number;// int default (0)   not null  // 默认最小投票率
+	defaultVoteTime: number; // bigint         default (0)    not null,
+	memberBaseName: string; // varchar (32)   default ('')   not null,
+	memberTotalLimit: number; // int          default (0)    not null
 }
 
 export interface Member {
