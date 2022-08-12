@@ -226,7 +226,7 @@ export class Sync {
 		let cur = await storage.get(`WatchBlock_Cat_${worker}_${chain}_`);
 		if (cur > blockNumber) return; // ok
 
-		return somes.promise<void>((resolve, reject)=>{
+		return await somes.promise<void>((resolve, reject)=>{
 			let wait = this._waits[`${chain}_${worker}`] || (this._waits[`${chain}_${worker}`] = {
 				chain, worker, callback: []
 			});
