@@ -6,6 +6,7 @@
 import ApiController from '../api';
 import { ChainType, State } from '../db';
 import * as utils from '../models/utils';
+import * as qn from 'bclib/qn';
 
 export default class extends ApiController {
 	/**
@@ -88,6 +89,10 @@ export default class extends ApiController {
 
 	getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
 		return utils.getOpenseaContractJSON(host, chain);
+	}
+
+	qiniuToken() {
+		return qn.uploadToken().token;
 	}
 
 }
