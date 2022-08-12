@@ -28,9 +28,11 @@ export async function getDAOsFromOwner(chain: ChainType, owner: string) {
 
 	let ms = await db.select<Member>(`member_${chain}`, {owner}, {group: 'host'});
 	let hosts = ms.map(e=>`'${e.host}'`);
+	let DAOs: DAO[] = [];
 
-	let DAOs = db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
-
+	if (hosts.length) {
+		DAOs = await db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
+	}
 	return DAOs;
 }
 
