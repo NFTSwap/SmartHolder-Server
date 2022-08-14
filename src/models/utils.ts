@@ -7,6 +7,8 @@ import somes from 'somes';
 import db, {DAO, ChainType, Member, Asset, State, AssetOrder, AssetExt, Ledger, Votes, VoteProposal} from '../db';
 import mvpApi from '../request';
 import errno from '../errno';
+import {web3s} from '../web3+';
+import * as cfg from '../../config';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#utils#getDAO Bad argument. address');
@@ -26,9 +28,11 @@ export async function getDAOsFromOwner(chain: ChainType, owner: string) {
 
 	let ms = await db.select<Member>(`member_${chain}`, {owner}, {group: 'host'});
 	let hosts = ms.map(e=>`'${e.host}'`);
+	let DAOs: DAO[] = [];
 
-	let DAOs = db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
-
+	if (hosts.length) {
+		DAOs = await db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
+	}
 	return DAOs;
 }
 
@@ -73,4 +77,29 @@ export function getVoteProposalFrom(chain: ChainType, address: string, proposal_
 export function getVotesFrom(chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[]) {
 	somes.assert(address, '#utils#getVotesFrom Bad argument. address');
 	return db.select<Votes>(`votes_${chain}`, {address, proposal_id, member_id}, {limit});
+}
+
+export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
+	let dao: DAO | null = null;
+	if (chain) {
+		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+	} else {
+		for (let chain of Object.keys(web3s)) {
+			dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+			if (dao) break;
+		}
+	}
+
+	if (dao) {
+		return {
+			name: dao.name, // "OpenSea Creatures",
+			description: dao.description, // desc
+			image: `${cfg.publicURL}/image.png`, //"external-link-url/image.png",
+			external_link: cfg.publicURL, // "external-link-url",
+			seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
+			fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
+		};
+	} else {
+		return null;
+	}
 }

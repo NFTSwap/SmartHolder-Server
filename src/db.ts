@@ -48,10 +48,13 @@ async function load_main_db() {
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
-				assetIssuanceTax    varchar (32) default ('')   not null,
-				assetCirculationTax varchar (32) default ('')   not null,
-				defaultVoteRate     varchar (32) default ('')   not null,
-				defaultVotePassRate varchar (32) default ('')   not null
+				assetIssuanceTax    int          default (0)    not null,
+				assetCirculationTax int          default (0)    not null,
+				defaultVoteRate     int          default (0)    not null,
+				defaultVotePassRate int          default (0)    not null,
+				defaultVoteTime     bigint       default (0)    not null,
+				memberBaseName      varchar (32) default ('')    not null,
+				memberTotalLimit    int          default (0)    not null
 			);
 
 			create table if not exists member_${chain} (
@@ -172,10 +175,13 @@ async function load_main_db() {
 			);
 
 		`, [
-			`alter table dao_${chain}  add assetIssuanceTax      varchar (32)  default ('')  not null`,
-			`alter table dao_${chain}  add assetCirculationTax   varchar (32)  default ('')  not null`,
-			`alter table dao_${chain}  add defaultVoteRate       varchar (32)  default ('')  not null`,
-			`alter table dao_${chain}  add defaultVotePassRate   varchar (32)  default ('')  not null`,
+			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
+			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
+			`alter table dao_${chain}  add defaultVoteRate       int          default (0)  not null`,
+			`alter table dao_${chain}  add defaultVotePassRate   int          default (0)  not null`, // 
+			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)    not null`,
+			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('')   not null`,
+			`alter table dao_${chain}  add memberTotalLimit      int          default (0)    not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,

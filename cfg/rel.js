@@ -7,6 +7,7 @@ module.exports = {
 	...base,
 	web3s: {
 		RINKEBY: rpc.RINKEBY,
+		HCETH: rpc.HCETH,
 	},
 	contractImpls: impl,
 	mvp_ser_api: 'https://mvp.stars-mine.com/service-api',

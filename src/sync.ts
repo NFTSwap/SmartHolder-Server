@@ -223,10 +223,10 @@ export class Sync {
 
 		let woekers = await storage.get(`WatchBlock_Workers_${chain}`);
 		let worker = blockNumber % woekers;
-		let cur = await storage.get(`WatchBlock_Cat_${worker}_${chain}_`);
+		let cur = await storage.get(`WatchBlock_Cat_${worker}_${ChainType[chain]}_`);
 		if (cur > blockNumber) return; // ok
 
-		return somes.promise<void>((resolve, reject)=>{
+		return await somes.promise<void>((resolve, reject)=>{
 			let wait = this._waits[`${chain}_${worker}`] || (this._waits[`${chain}_${worker}`] = {
 				chain, worker, callback: []
 			});
