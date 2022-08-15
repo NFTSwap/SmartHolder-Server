@@ -126,6 +126,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
 				if (!addr) return;
+				
 			}
 			return true;
 		}));
