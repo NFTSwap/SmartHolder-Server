@@ -86,7 +86,7 @@ export abstract class ContractScaner {
 	async info() {
 		if (!this._info) {
 			var [info] = await db.select(`contract_info_${this.chain}`, { address: this.address, chain: this.chain }) as ContractInfo[];
-			somes.assert(info, `No match the ${this.address} asset_contract`);
+			somes.assert(info, `No match the ${this.address} contract_info_${this.chain}`);
 			this._info = info;
 		}
 		return this._info;

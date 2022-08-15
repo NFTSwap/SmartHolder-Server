@@ -43,13 +43,13 @@ export class Member extends ContractScaner {
 						await storage.set(`member_${chain}_${this.address}_total`, await methods.total().call());
 						await db.delete(`member_${chain}`, { token, tokenId });
 					} else {
-						let owner = this.ownerOf(tokenId);
+						let owner = await this.ownerOf(tokenId);
 						await db.update(`member_${chain}`, { owner: owner }, { token: this.address, tokenId });
 					}
 				} else {
 					if (isRemove)
 						return;
-					let owner = this.ownerOf(tokenId);
+					let owner = await this.ownerOf(tokenId);
 					let uri = await this.uri(tokenId);
 					let info = await this.getMemberInfo(tokenId);
 
