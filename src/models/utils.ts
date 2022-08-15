@@ -9,6 +9,7 @@ import mvpApi from '../request';
 import errno from '../errno';
 import {web3s} from '../web3+';
 import * as cfg from '../../config';
+import * as redis from 'bclib/redis';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#utils#getDAO Bad argument. address');
@@ -34,11 +35,6 @@ export async function getDAOsFromOwner(chain: ChainType, owner: string) {
 		DAOs = await db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
 	}
 	return DAOs;
-}
-
-export async function getMembersFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
-	let dao = await getDAONoEmpty(chain, host);
-	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit});
 }
 
 export async function getAssetFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
@@ -102,4 +98,81 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
 	} else {
 		return null;
 	}
+}
+
+// ----------------------------- Total ------------------------------
+
+export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
+	let key = `getDAOsTotalFromOwner_${chain}_${owner}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let DAOs = await getDAOsFromOwner(chain, owner);
+		await redis.set(key, total = DAOs.length, 1e4);
+	}
+	return total;
+}
+
+export async function getMembersFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
+	let dao = await getDAONoEmpty(chain, host);
+	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit});
+}
+
+export async function getMembersTotalFrom(chain: ChainType, host: string, owner?: string) {
+	let key = `getMembersTotalFrom_${chain}_${owner}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getMembersFrom(chain, host);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: string) {
+	let key = `getAssetTotalFrom_${chain}_${owner}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getAssetFrom(chain, host, owner);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getAssetOrderTotalFrom(chain: ChainType, host: string, fromAddres?: string) {
+	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getAssetOrderFrom(chain, host, fromAddres);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string) {
+	let key = `getLedgerItemsTotalFromHost_${chain}_${host}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getLedgerItemsFromHost(chain, host);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getVoteProposalTotalFrom(chain: ChainType, address: string, proposal_id?: string) {
+	let key = `getVoteProposalTotalFrom_${chain}_${address}_${proposal_id}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getVoteProposalFrom(chain, address, proposal_id);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getVotesTotalFrom(chain: ChainType, address: string, proposal_id: string, member_id?: string) {
+	let key = `getVotesTotalFrom_${chain}_${address}_${proposal_id}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getVotesFrom(chain, address, proposal_id, member_id);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
 }

@@ -95,4 +95,35 @@ export default class extends ApiController {
 		return qn.uploadToken().token;
 	}
 
+	// -------------------------- Total -------------------------
+
+	 getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
+		return utils.getDAOsTotalFromOwner(chain,owner);
+	}
+
+	getMembersTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string}) {
+		return utils.getMembersTotalFrom(chain,host,owner);
+	}
+
+	getAssetTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string }) {
+		return utils.getAssetTotalFrom(chain,host,owner);
+	}
+
+	 getAssetOrderTotalFrom({chain,host,fromAddres}: { chain: ChainType, host: string, fromAddres?: string}) {
+		return utils.getAssetOrderTotalFrom(chain,host,fromAddres);
+	}
+
+	getLedgerItemsTotalFromHost({chain,host}: { chain: ChainType, host: string}) {
+		return utils.getLedgerItemsTotalFromHost(chain,host);
+	}
+
+	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {
+		return utils.getVoteProposalTotalFrom(chain,address,proposal_id);
+	}
+
+	getVotesTotalFrom({chain,address,proposal_id,member_id}: { chain: ChainType, address: string, proposal_id: string, member_id?: string}) {
+		return utils.getVotesTotalFrom(chain,address,proposal_id,member_id);
+	}
+
+
 }
