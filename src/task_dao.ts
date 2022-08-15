@@ -147,11 +147,32 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let operator = '0x0000000000000000000000000000000000000000';
 			let contractURI = `${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?host=${DAO}&chain=${args.chain}`;
+
 			await this.callContract(web3, Asset, from, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
 			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator, contractURI).encodeABI(), 'Init_AssetGlobal');
 			await this.callContract(web3, Ledger, from, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
-			await this.callContract(web3, Member, from, (await web3.contract(Member)).methods.initMember(DAO, args.memberBaseName || '', operator).encodeABI(), 'Init_Member');
+
+			let members = [];
+			for (let it of args.members || []) {
+				members.push({
+					owner: it.owner,
+					info: {
+						id: it.id,
+						name: it.name || '',
+						description: it.description || '',
+						avatar: it.avatar || '', // TODO random avatar ?
+						role: 0,
+						votes: it.votes || 1,
+						idx: 0,
+						__ext: [0, 0],
+					},
+				});
+			}
+			let initMemberCode = (await web3.contract(Member)).methods.initMember(DAO, args.memberBaseName || '', operator, members).encodeABI();
+
+			await this.callContract(web3, Member, from, initMemberCode, 'Init_Member');
 			await this.callContract(web3, VotePool, from, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
+
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags.indexOf('Init_') != 0) return false;
 			if (result.error) return Error.new(result.error);
@@ -177,36 +198,9 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags != 'Init_DAO') return false;
 			if (result.error) return Error.new(result.error);
-			await this._InsertDAO(args, result.receipt?.blockNumber);
-			return true;
+			return await this._InsertDAO(args, result.receipt?.blockNumber);
 		}));
 
-		// Create Members
-		this.step(async()=>{
-			if (!args.members || args.members.length == 0) {
-				return this.next(null, {flags: 'Member_create2_None'});
-			}
-			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
-			let Member = await storage.get(`MakeDAO_${this.id}_address_Member`);
-			let i = 0;
-			for (let it of args.members) {
-				let data = (await web3.contract(Member)).methods.create2(it.owner, it.id, it.votes, it.name, it.description, it.avatar).encodeABI();
-				await this.callContract(web3, Member, from, data, `Member_create2_${i++}`);
-			}
-		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
-			if (result.flags.indexOf('Member_create2_') != 0) return false;
-			if (result.error) return Error.new(result.error);
-
-			let DAO = await storage.get(`MakeDAO_${this.id}_address_DAO`);
-			if (!args.members || args.members.length == 0) return DAO;
-
-			await storage.set(`${result.flags}_${this.id}`, true);
-			for (let i = 0; i < args.members.length; i++) {
-				let ok = await storage.get(`Member_create2_${i}_${this.id}`);
-				if (!ok) return;
-			}
-			return DAO;
-		}));
 	}
 
 	private async _InsertDAO(args: MakeDaoArgs, blockNumber?: number) {
@@ -250,6 +244,8 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 				memberTotalLimit: args.memberTotalLimit, // 成员总量限制
 			});
 		}
+
+		return DAO as string;
 	}
 
 	static async makeDAO(args: MakeDaoArgs, user?: string) {

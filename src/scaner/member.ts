@@ -17,6 +17,7 @@ export class Member extends ContractScaner {
 				let tokenId = formatHex(e.returnValues.tokenId, 32);
 				let chain = this.chain;
 				let time = await blockTimeStamp(this.web3, e.blockNumber);
+				
 
 				// id           int primary key auto_increment,
 				// host         varchar (64)               not null, -- dao host
@@ -32,14 +33,26 @@ export class Member extends ContractScaner {
 				// time         bigint                     not null,
 				// modify       bigint                     not null
 
-				let owner = this.ownerOf(tokenId);
+				let methods = await this.methods();
+				// let to = formatHex(e.returnValues.to, 32);
+				let isRemove = ! await methods.exists().call(); // (to == '0x0000000000000000000000000000000000000000');
 				let token = this.address;
 
 				if (await db.selectOne(`member_${chain}`, { token, tokenId })) {
-					await db.update(`member_${chain}`, { owner: owner }, { token: this.address, tokenId });
+					if (isRemove) {
+						await storage.set(`member_${chain}_${this.address}_total`, await methods.total().call());
+						await db.delete(`member_${chain}`, { token, tokenId });
+					} else {
+						let owner = this.ownerOf(tokenId);
+						await db.update(`member_${chain}`, { owner: owner }, { token: this.address, tokenId });
+					}
 				} else {
+					if (isRemove)
+						return;
+					let owner = this.ownerOf(tokenId);
 					let uri = await this.uri(tokenId);
 					let info = await this.getMemberInfo(tokenId);
+
 					await db.insert(`member_${chain}`, {
 						host: await this.host(),
 						token: this.address,
@@ -53,7 +66,8 @@ export class Member extends ContractScaner {
 						time: time,
 						modify: time,
 					});
-					await storage.set(`member_${chain}_${this.address}_total`, await (await this.methods()).total().call());
+
+					await storage.set(`member_${chain}_${this.address}_total`, await methods.total().call());
 				}
 			},
 		},
