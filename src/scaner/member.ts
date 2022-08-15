@@ -35,7 +35,7 @@ export class Member extends ContractScaner {
 
 				let methods = await this.methods();
 				// let to = formatHex(e.returnValues.to, 32);
-				let isRemove = ! await methods.exists().call(); // (to == '0x0000000000000000000000000000000000000000');
+				let isRemove = ! await methods.exists(tokenId).call(); // (to == '0x0000000000000000000000000000000000000000');
 				let token = this.address;
 
 				if (await db.selectOne(`member_${chain}`, { token, tokenId })) {
