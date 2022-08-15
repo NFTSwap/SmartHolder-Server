@@ -123,11 +123,20 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			if (!await db.selectOne(tableName, {address})) {
 				await db.insert(tableName, { address, type, blockNumber, time });
 			}
+
 			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
 				if (!addr) return;
 				
 			}
+			let host = await storage.get(`MakeDAO_${this.id}_address_DAO`);
+
+			// update host
+			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
+				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
+				await db.update(tableName, { host }, { address: addr });
+			}
+
 			return true;
 		}));
 
