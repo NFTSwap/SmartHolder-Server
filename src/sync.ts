@@ -161,7 +161,7 @@ export class WatchBlock implements WatchCat {
 				this._web3.swatchRpc();
 				throw err;
 			}
-			console.warn('WatchBlock#cat', ...err.filter(['message', 'description'], ['stack', 'message', 'description']));
+			console.error('WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
 		}
 
 		return true;
