@@ -216,7 +216,7 @@ async function load_main_db() {
 			`create         index vote_proposal_${chain}_idx0    on vote_proposal_${chain}          (address)`,
 			`create unique  index vote_proposal_${chain}_idx1    on vote_proposal_${chain}          (address,proposal_id)`,
 			`create         index vote_proposal_${chain}_idx2    on vote_proposal_${chain}          (address,origin)`,
-			// vots
+			// votes
 			`create         index votes_${chain}_idx0            on votes_${chain}                  (address,proposal_id)`,
 			`create unique  index votes_${chain}_idx1            on votes_${chain}                  (address,proposal_id,member_id)`,
 			`create         index votes_${chain}_idx2            on votes_${chain}                  (address,member_id)`,

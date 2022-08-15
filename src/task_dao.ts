@@ -15,6 +15,7 @@ import db, {storage, ContractType} from './db';
 import errno from './errno';
 import {escape} from 'somes/db';
 import {scopeLock} from 'bclib/atomic_lock';
+import {getContractInfo, insert as insertC, update as updateC} from './models/contract';
 // abis
 import * as ContextProxyDAO from '../abi/ContextProxyDAO.json';
 import * as ContextProxyAsset from '../abi/ContextProxyAsset.json';
@@ -113,28 +114,29 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			await this.deploy(web3, impls.VotePool, from, ContextProxyVotePool, 'VotePool');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{ // 使用分布式原子锁
 			if (result.error) return Error.new(result.error);
-			let tableName = `contract_info_${web3.chain}`;
+			// let tableName = `contract_info_${web3.chain}`;
 			let time = Date.now();
 			let blockNumber = result.receipt!.blockNumber;
-			let address = result.receipt!.contractAddress;
-			let type = ContractType[result.flags as any];
+			let address = result.receipt!.contractAddress!;
+			let type = ContractType[result.flags as any] as any as ContractType;
 
 			await storage.set(`MakeDAO_${this.id}_address_${result.flags}`, result.receipt!.contractAddress);
-			if (!await db.selectOne(tableName, {address})) {
-				await db.insert(tableName, { address, type, blockNumber, time });
+			if (! await getContractInfo(address, web3.chain)) {
+				// await db.insert(tableName, { address, type, blockNumber, time });
+				await insertC({ address, type, blockNumber, time }, web3.chain);
 			}
 
 			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
 				if (!addr) return;
-				
 			}
 			let host = await storage.get(`MakeDAO_${this.id}_address_DAO`);
 
 			// update host
 			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
-				await db.update(tableName, { host }, { address: addr });
+				// await db.update(tableName, { host }, { address: addr });
+				await updateC({host}, addr, web3.chain);
 			}
 
 			return true;

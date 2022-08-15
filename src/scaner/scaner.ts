@@ -16,6 +16,7 @@ import {AbiInput} from 'web3-utils';
 import * as cfg from '../../config';
 import {AbiItem} from 'web3-utils';
 import uncaught from '../uncaught';
+import {getContractInfo} from '../models/contract';
 
 const cryptoTx = require('crypto-tx');
 
@@ -85,7 +86,8 @@ export abstract class ContractScaner {
 
 	async info() {
 		if (!this._info) {
-			var [info] = await db.select(`contract_info_${this.chain}`, { address: this.address, chain: this.chain }) as ContractInfo[];
+			// var [info] = await db.select(`contract_info_${this.chain}`, { address: this.address, chain: this.chain }) as ContractInfo[];
+			let info = await getContractInfo(this.address, this.chain) as ContractInfo;
 			somes.assert(info, `No match the ${this.address} contract_info_${this.chain}`);
 			this._info = info;
 		}
