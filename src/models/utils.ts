@@ -37,6 +37,11 @@ export async function getDAOsFromOwner(chain: ChainType, owner: string) {
 	return DAOs;
 }
 
+export async function getMembersFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
+	let dao = await getDAONoEmpty(chain, host);
+	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit});
+}
+
 export async function getAssetFrom(chain: ChainType, host: string, owner?: string, state = State.Enable, limit?: number | number[]) {
 	let dao = await getDAONoEmpty(chain, host);
 	return db.select<Asset>(`asset_${chain}`, { token: dao.assetGlobal, owner, state }, {limit});
@@ -110,11 +115,6 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;
-}
-
-export async function getMembersFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
-	let dao = await getDAONoEmpty(chain, host);
-	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit});
 }
 
 export async function getMembersTotalFrom(chain: ChainType, host: string, owner?: string) {
