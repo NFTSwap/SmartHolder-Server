@@ -17,7 +17,6 @@ import paths from 'bclib/paths';
 import _hash from 'somes/hash';
 import {Http2Sessions,http2request as http2requestRaw} from 'somes/http2';
 import qiniu, {exists} from 'bclib/qn';
-import {Asset} from './models/def';
 
 var proxyFetchs = [] as number[];
 var proxyFetchsTotal = 1;
@@ -184,7 +183,7 @@ type Req = (url: string, opts?: ReqOptions | undefined)=>Promise<Result<IBuffer>
 
 const http2sessions = new Http2Sessions();
 
-export function request(uri: string, opts?: Options, onlyProxy?: boolean) {
+export function request(uri: string, opts?: Options, onlyProxy?: boolean, retry?: number) {
 	var retry301 = 3;
 	var _opts = {statusCode: 200, ...opts};
 
@@ -226,7 +225,7 @@ export function request(uri: string, opts?: Options, onlyProxy?: boolean) {
 			throw err;
 		}
 		return r;
-	}, true, onlyProxy);
+	}, true, onlyProxy, retry);
 }
 
 export async function getString(uri: string, _opts?: Options) {
@@ -235,12 +234,12 @@ export async function getString(uri: string, _opts?: Options) {
 	return str;
 }
 
-export function get(uri: string, _opts?: Options) {
-	return request(uri, { ..._opts, method: 'GET'});
+export function get(uri: string, _opts?: Options, retry?: number) {
+	return request(uri, { ..._opts, method: 'GET'}, undefined, retry);
 }
 
-export function post(uri: string, params?: Params, _opts?: Options) {
-	return request(uri, { ..._opts, params, method: 'POST'});
+export function post(uri: string, params?: Params, _opts?: Options, retry?: number) {
+	return request(uri, { ..._opts, params, method: 'POST'}, undefined, retry);
 }
 
 export const downloading: Map<string, WgetIMPL> = new Map();

@@ -41,8 +41,8 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
-		return utils.getAssetFrom(chain,host,owner,limit);
+	getAssetFrom({chain,host,owner,state,limit}: { chain: ChainType, host: string, owner?: string, state?: State, limit?: number | number[]}) {
+		return utils.getAssetFrom(chain,host,owner,state,limit);
 	}
 
 	/**
@@ -105,8 +105,8 @@ export default class extends ApiController {
 		return utils.getMembersTotalFrom(chain,host,owner);
 	}
 
-	getAssetTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string }) {
-		return utils.getAssetTotalFrom(chain,host,owner);
+	getAssetTotalFrom({chain,host,owner,state}: { chain: ChainType, host: string, state?: State, owner?: string }) {
+		return utils.getAssetTotalFrom(chain,host,owner,state);
 	}
 
 	 getAssetOrderTotalFrom({chain,host,fromAddres}: { chain: ChainType, host: string, fromAddres?: string}) {

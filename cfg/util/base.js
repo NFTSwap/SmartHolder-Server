@@ -25,6 +25,15 @@ module.exports = {
 	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
 	root: '/data/HC/SmartDAO-Client/out/public', // 前端程序路径,可为空
 	publicURL: 'https://smartholder.stars-mine.com',
+	httpProxy: [
+		// 资源下载服务器列表,这需服务器建议使用 cfg/glob_us_meta.js 中的配置
+		'http://152.32.150.111:8001',
+		'http://107.155.48.181:8001',
+		'http://152.32.151.100:8001',
+		'http://128.14.234.156:8001',//
+		'http://152.32.150.90:8001',
+		'http://152.32.182.155:8001',//
+	],
 	qiniu: {
 		prefix: 'https://mvp-img.stars-mine.com',
 		all_prefix: [

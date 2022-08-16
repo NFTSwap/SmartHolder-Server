@@ -5,6 +5,9 @@
 
 import * as req from 'bclib/request';
 import * as cfg from '../config';
+// import {IBuffer} from 'somes/buffer';
+// import {Result} from 'somes/request';
+// import errno from './errno';
 
 export * from 'bclib/request';
 
@@ -16,6 +19,5 @@ class MVPSer extends req.BcRequest {
 export const mvpApi = new MVPSer(cfg.mvp_ser_api || 'https://mvp.stars-mine.com/service-api');
 
 mvpApi.urlencoded = false;
-// _default.timeout = 5e4; // 50s
 
 export default mvpApi;
