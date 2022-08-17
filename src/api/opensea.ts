@@ -27,11 +27,15 @@ export default class extends ApiController {
 	}
 
 	get_CROSS_CHAIN_SEAPORT_ADDRESS() { // 取消出售合约地址 seaport
-		return opensea.CROSS_CHAIN_SEAPORT_ADDRESS;
+		return opensea.get_CROSS_CHAIN_SEAPORT_ADDRESS();
+	}
+
+	get_CROSS_CHAIN_SEAPORT_ABI() { // 取消出售合约地址 seaport
+		return opensea.get_CROSS_CHAIN_SEAPORT_ABI();
 	}
 
 	get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
-		return opensea.OPENSEA_CONDUIT_ADDRESS;
+		return opensea.get_OPENSEA_CONDUIT_ADDRESS();
 	}
 
 }

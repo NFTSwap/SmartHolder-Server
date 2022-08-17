@@ -17,6 +17,7 @@ import {get as get_ ,post as post_} from '../utils';
 import {Params} from 'somes/request';
 import {URL} from 'somes/path';
 import errno from '../errno';
+import {SeaportABI} from '../../abi/Seaport';
 
 const seaports: Map<ChainType, Seaport> = new Map();
 export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
@@ -303,4 +304,14 @@ export async function getOrderState(chain: ChainType, token: string, tokenId: st
 	};
 }
 
-// export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
+export function get_CROSS_CHAIN_SEAPORT_ADDRESS() { // 取消出售合约地址 seaport
+	return CROSS_CHAIN_SEAPORT_ADDRESS;
+}
+
+export function get_CROSS_CHAIN_SEAPORT_ABI() {
+	return SeaportABI;
+}
+
+export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
+	return OPENSEA_CONDUIT_ADDRESS;
+}
