@@ -26,4 +26,12 @@ export default class extends ApiController {
 		return opensea.getOrderState(chain,token,tokenId);
 	}
 
+	get_CROSS_CHAIN_SEAPORT_ADDRESS() { // 取消出售合约地址 seaport
+		return opensea.CROSS_CHAIN_SEAPORT_ADDRESS;
+	}
+
+	get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
+		return opensea.OPENSEA_CONDUIT_ADDRESS;
+	}
+
 }

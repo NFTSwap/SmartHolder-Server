@@ -8,7 +8,7 @@ import web3s from '../web3+';
 import { ChainType } from "./def";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType } from "seaport-smart/constants";
+import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -18,7 +18,8 @@ import {Params} from 'somes/request';
 import {URL} from 'somes/path';
 import errno from '../errno';
 
-export const OPENSEA_CONDUIT_ADDRESS = '0x1e0049783f008a0085193e00003d00cd54003c71';
+const seaports: Map<ChainType, Seaport> = new Map();
+export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
 
 export type TypedDataDomain = {
 	name?: string;
@@ -69,12 +70,15 @@ async function post(chain: ChainType, path: string, params?: Params) {
 	return JSON.parse(data.toString());
 }
 
-function getSeaport(chain: ChainType) {
-	let web3 = web3s(chain);
-	const accountAddress = '0x45d9dB730bac2A2515f107A3c75295E3504faFF7';
-	const provider = new providers.JsonRpcProvider(web3.provider.rpc);
-	const signer = new VoidSigner(accountAddress, provider);
-	const sea = new Seaport(signer);
+export function getSeaport(chain: ChainType) {
+	let sea = seaports.get(chain);
+	if (!sea) {
+		let web3 = web3s(chain);
+		const accountAddress = '0x45d9dB730bac2A2515f107A3c75295E3504faFF7';
+		const provider = new providers.JsonRpcProvider(web3.provider.rpc);
+		const signer = new VoidSigner(accountAddress, provider);
+		seaports.set(chain, sea = new Seaport(signer));
+	}
 	return sea;
 }
 
@@ -298,3 +302,5 @@ export async function getOrderState(chain: ChainType, token: string, tokenId: st
 		totalSize: status.totalSize.toHexString(),
 	};
 }
+
+// export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
