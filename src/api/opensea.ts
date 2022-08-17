@@ -30,7 +30,7 @@ export default class extends ApiController {
 		return opensea.get_CROSS_CHAIN_SEAPORT_ADDRESS();
 	}
 
-	get_CROSS_CHAIN_SEAPORT_ABI() { // 取消出售合约地址 seaport
+	get_CROSS_CHAIN_SEAPORT_ABI() { // 取消出售合约abi seaport
 		return opensea.get_CROSS_CHAIN_SEAPORT_ABI();
 	}
 
