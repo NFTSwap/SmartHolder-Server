@@ -36,7 +36,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 			let uri = await fetch.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
 			let time = Date.now();
-			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, moify: time });
+			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time });
 			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
 		}
 		return asset;
