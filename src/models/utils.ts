@@ -10,6 +10,16 @@ import errno from '../errno';
 import {web3s} from '../web3+';
 import * as cfg from '../../config';
 import * as redis from 'bclib/redis';
+import * as utils from '../utils';
+
+export interface TokenURIInfo {
+	name: string;
+	description: string;
+	image: string;
+	animation_url?: string;
+	external_link?: string;
+	attributes?: {trait_type: string; value: string}[]
+}
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#utils#getDAO Bad argument. address');
@@ -175,4 +185,44 @@ export async function getVotesTotalFrom(chain: ChainType, address: string, propo
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
+}
+
+export async function saveTokenURIInfo(info: TokenURIInfo) {
+	/*
+	// {
+	// 	"name": "Diva 007",
+	// 	"description": "#007\nElement: air",
+	// 	"external_link": "https://opensea.io/collection/naturedivas/",
+	// 	"image": "https://lh3.googleusercontent.com/U61KH6g_g2sO7ZOz92ILJm-hAYzWdpQScWD9Kk3O78pJh4_39QV0qvzLlG_CmkC0N18r6brELJuvrrlarlu-LAAgDwAVxkwXYGux",
+	// 	"animation_url": null
+	// 	"images": [],
+	// attributes: [
+	// {
+	// trait_type: "Bones",
+	// value: "Emerald"
+	// },
+	// {
+	// trait_type: "Clothes",
+	// value: "None"
+	// },
+	// {
+	// trait_type: "Mouth",
+	// value: "None"
+	// },
+	// {
+	// trait_type: "Eyes",
+	// value: "None"
+	// },
+	// {
+	// trait_type: "Hat",
+	// value: "Confetti Party Hat"
+	// },
+	// {
+	// trait_type: "Super Power",
+	// value: "None"
+	// }
+	// ]
+	// }
+*/
+	return await utils.storage(JSON.stringify(info), '.json');
 }

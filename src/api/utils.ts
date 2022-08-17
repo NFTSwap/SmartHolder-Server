@@ -7,6 +7,7 @@ import ApiController from '../api';
 import { ChainType, State } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
+import {TokenURIInfo} from '../models/utils';
 
 export default class extends ApiController {
 	/**
@@ -93,6 +94,10 @@ export default class extends ApiController {
 
 	qiniuToken() {
 		return qn.uploadToken().token;
+	}
+
+	saveTokenURIInfo(info: TokenURIInfo) {
+		return utils.saveTokenURIInfo(info);
 	}
 
 	// -------------------------- Total -------------------------
