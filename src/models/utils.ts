@@ -138,7 +138,7 @@ export async function getMembersTotalFrom(chain: ChainType, host: string, owner?
 }
 
 export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: string, state = State.Enable) {
-	let key = `getAssetTotalFrom_${chain}_${owner}`;
+	let key = `getAssetTotalFrom_${chain}_${owner}_${state}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
 		let ls = await getAssetFrom(chain, host, owner, state);
