@@ -44,7 +44,7 @@ export class Ledger extends ContractScaner {
 						target: from,
 						balance: formatHex(balance),
 						time: await blockTimeStamp(this.web3, e.blockNumber),
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
@@ -70,7 +70,7 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						log,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 					await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
 				}
@@ -93,7 +93,7 @@ export class Ledger extends ContractScaner {
 						name: name,
 						description: description,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
@@ -114,7 +114,7 @@ export class Ledger extends ContractScaner {
 						target: target,
 						description: description,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
@@ -138,7 +138,7 @@ export class Ledger extends ContractScaner {
 						description: log?.log || '',
 						member_id: member,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},

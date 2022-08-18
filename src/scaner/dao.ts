@@ -48,7 +48,7 @@ export class DAO extends ContractScaner {
 							asset: await m.asset().call(),
 							time: time,
 							modify: time,
-							blockNumber: e.blockNumber,
+							blockNumber: Number(e.blockNumber) || 0,
 						});
 					}
 				} else if (tag == 'MissionAndDesc') {

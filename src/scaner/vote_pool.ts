@@ -38,11 +38,12 @@ export class VotePool extends ContractScaner {
 					let time = await blockTimeStamp(this.web3, e.blockNumber);
 
 					await db.insert(`votes_${this.chain}`, {
+						address: this.address,
 						proposal_id,
 						member_id,
 						votes,
 						time,
-						blockNumber: e.blockNumber,
+						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
@@ -89,7 +90,7 @@ export class VotePool extends ContractScaner {
 				isExecuted: proposal.isExecuted,
 				time: time,
 				modify: time,
-				blockNumber: e.blockNumber,
+				blockNumber: Number(e.blockNumber) || 0,
 			});
 
 			await storage.set(`vote_proposal_${this.chain}_${this.address}_total`, await (await this.methods()).total().call());
