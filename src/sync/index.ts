@@ -46,7 +46,7 @@ export class Sync {
 			for (var [k,v] of Object.entries(web3s)) {
 				_sync.watchBlocks[k] = env.workers ?
 					new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
-				// addWatch(_sync.watchBlocks[k]);
+				addWatch(_sync.watchBlocks[k]);
 				await storage.set(`WatchBlock_Workers_${v.chain}`, env.workers ? env.workers.workers: 1);
 			}
 			if (isMainWorker) {
