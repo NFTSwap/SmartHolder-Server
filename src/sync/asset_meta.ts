@@ -28,36 +28,6 @@ export function extname(mime: string) {
 	}
 }
 
-async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
-	if (!asset.uri || !asset.mediaOrigin) {
-		await somes.scopeLock(`asset_${asset.id}`, async ()=>{
-			var [it] = await db.select<Asset>(`asset_${chain}`, {id:asset.id});
-			if (!it.uri || !asset.mediaOrigin) {
-				await sync.assetMetaDataSync.sync(asset, chain);
-			} else {
-				Object.assign(asset, it);
-			}
-		});
-	}
-	return asset;
-}
-
-export async function beautifulAsset(asset: Asset[], chain: ChainType) {
-	var timeout = false;
-	try {
-		await somes.timeout(async () =>{
-			for (var a of asset) {
-				if (timeout) {
-					break;
-				} else {
-					await tryBeautifulAsset(a, chain);
-				}
-			}
-		}, 1e4);
-	} catch(err) {}
-	timeout = true;
-}
-
 export class AssetMetaDataSync extends AssetSyncQueue {
 	constructor() {
 		super('asset_queue');

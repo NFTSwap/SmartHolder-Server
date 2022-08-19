@@ -6,7 +6,7 @@
 import somes from 'somes';
 import db, {DAO, ChainType, Member, Asset, State, AssetOrder, Ledger, Votes, VoteProposal, EventsItem, Selling} from '../db';
 import {escape} from 'somes/db';
-import {beautifulAsset} from '../sync/asset_meta';
+import sync from '../sync';
 import errno from '../errno';
 import {web3s} from '../web3+';
 import * as cfg from '../../config';
@@ -29,6 +29,37 @@ export interface AssetOrderExt extends AssetOrder {
 export interface EventsItemExt extends EventsItem {
 	member?: Member;
 }
+
+async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
+	if (!asset.uri || !asset.mediaOrigin) {
+		await somes.scopeLock(`asset_${asset.id}`, async ()=>{
+			var [it] = await db.select<Asset>(`asset_${chain}`, {id:asset.id});
+			if (!it.uri || !asset.mediaOrigin) {
+				await sync.assetMetaDataSync.sync(asset, chain);
+			} else {
+				Object.assign(asset, it);
+			}
+		});
+	}
+	return asset;
+}
+
+export async function beautifulAsset(asset: Asset[], chain: ChainType) {
+	var timeout = false;
+	try {
+		await somes.timeout(async () =>{
+			for (var a of asset) {
+				if (timeout) {
+					break;
+				} else {
+					await tryBeautifulAsset(a, chain);
+				}
+			}
+		}, 1e4);
+	} catch(err) {}
+	timeout = true;
+}
+
 
 function getLimit(limit?: number|number[]) {
 	limit = limit ? limit: [0, 100];
