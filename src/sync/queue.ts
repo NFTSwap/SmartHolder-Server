@@ -201,7 +201,7 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		if (!await this.isQueue(asset_id, chain)) {
 			let ac = await db.selectOne<ContractInfo>(`contract_info_${chain}`, { address });
 			if (ac) {
-				await db.insert(this._name, { asset_id, asset_contract_id: ac.id, canRetry, chain });
+				await db.insert(this._name, { asset_id, contract_info_id: ac.id, canRetry, chain });
 				this.dequeue();
 			}
 		}
