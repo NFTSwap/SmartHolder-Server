@@ -11,7 +11,7 @@ import {WatchCat} from 'bclib/watch';
 import { storage, ChainType } from '../db';
 import {web3s} from '../web3+';
 import msg, {Events} from '../message';
-import {AssetMetaDataSync} from './asset_meta';
+import {AssetMetaDataSync,AssetMetaDataUpdate} from './asset_meta';
 import {WatchBlock} from './block';
 import {QiniuSync} from './qiniu';
 
@@ -35,6 +35,7 @@ export class Sync {
 	readonly qiniuSync = new QiniuSync();
 	readonly assetMetaDataSync = new AssetMetaDataSync();
 	readonly watchBlocks: Dict<WatchBlock> = {};
+	readonly assetMetaDataUpdate = new AssetMetaDataUpdate();
 
 	async initialize(addWatch: (watch: WatchCat)=>void) {
 		let isMainWorker = !env.workers || env.workers.id === 0;
@@ -50,6 +51,7 @@ export class Sync {
 			}
 			if (isMainWorker) {
 				addWatch(this.qiniuSync);
+				addWatch(this.assetMetaDataUpdate);
 			}
 			addWatch(this.assetMetaDataSync);
 		}

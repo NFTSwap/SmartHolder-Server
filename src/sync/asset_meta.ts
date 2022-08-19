@@ -16,6 +16,8 @@ import errno from '../errno';
 import make from './mk_scaner';
 import {AssetERC721} from './erc721';
 import sync from '.';
+import {WatchCat} from 'bclib/watch';
+import {web3s} from '../web3+';
 
 export function extname(mime: string) {
 	var extname = mime.split('\n')[0].split('/')[1];
@@ -312,5 +314,51 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		if (force || !uri || !mediaOrigin) {
 			await this.enqueue(id, token, chain);
 		}
+	}
+}
+
+export class AssetMetaDataUpdate implements WatchCat {
+
+	cattime = 60 * 10; // 60 minute cat()
+	tryTime = 1 * 10; // try time 1 minute
+
+	private async endCat(offset: number, chain: ChainType) {
+		await storage.set(`NFTAssetDataSync_Offset_${chain}`, offset);
+		await storage.set(`NFTAssetDataSync_Time_${chain}`, Date.now());
+	}
+	
+	async cat() {
+
+		for (let k of Object.keys(web3s)) {
+			let chain = (ChainType as any)[k] as ChainType;
+			let day = 10*24*3600*1e3; // 10天扫描一次数据
+			let offset = await storage.get(`NFTAssetDataSync_Offset_${chain}`, 0) as number;
+			if (offset === 0) {
+				var syncTime = await storage.get(`NFTAssetDataSync_Time_${chain}`, 0) as number;
+				if (syncTime + day > Date.now())
+					continue;
+			}
+
+			do {
+				console.log(`NFTAssetDataSync_Offset start ${chain}`, offset);
+				var assetList = await db.query<Asset>(`select * from asset where id > ${offset} limit 1000`);
+				for (var asset of assetList) {
+					try {
+						if (asset.retry < 10)
+							await sync.assetMetaDataSync.fetchFrom(asset, chain);
+					} catch(err: any) {
+						await this.endCat(offset, chain);
+						throw err;
+					}
+					offset++;
+				}
+				await this.endCat(offset, chain);
+				// await somes.sleep(1e2);
+			} while (assetList.length !== 0);
+
+			await this.endCat(0, chain);
+		}
+
+		return true;
 	}
 }
