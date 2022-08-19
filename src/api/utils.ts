@@ -65,10 +65,17 @@ export default class extends ApiController {
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,limit}: { chain: ChainType, host: string, limit?: number | number[]}) {
-		return utils.getLedgerItemsFromHost(chain,host,limit);
+	getLedgerItemsFromHost({chain,host,state,limit}: { chain: ChainType, host: string, state?: State, limit?: number | number[]}) {
+		return utils.getLedgerItemsFromHost(chain,host,state,limit);
 	}
 
+	/**
+	 * @method setLedgerState() 设置财务记录状态
+	 * */ 
+	setLedgerState(chain: ChainType, id: number, state: State) {
+		return utils.setLedgerState(chain, id, state);
+	}
+	
 	/**
 	 * @method getVoteProposalFrom() 通过投票合约地址 address、proposal_id（可选） 获投票提案列表
 	 * */ 
@@ -87,10 +94,16 @@ export default class extends ApiController {
 		return utils.getOpenseaContractJSON(host, chain);
 	}
 
+	/**
+	 * @method qiniuToken() 获取七牛上传Token
+	 * */ 
 	qiniuToken() {
 		return qn.uploadToken().token;
 	}
 
+	/**
+	 * @method saveTokenURIInfo() 保存TokenURIInfo并返回保存后的URI
+	 * */ 
 	saveTokenURIInfo(info: TokenURIInfo) {
 		return utils.saveTokenURIInfo(info);
 	}

@@ -130,7 +130,8 @@ async function load_main_db() {
 				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (72)                 not null, -- 金额
 				time         bigint                       not null, -- 时间
-				blockNumber  int                          not null  -- 区块
+				blockNumber  int                          not null,  -- 区块
+				state        int             default (0)  not null
 			);
 
 			create table if not exists ledger_release_log_${chain} ( -- 成员分成日志
@@ -214,6 +215,8 @@ async function load_main_db() {
 			`alter table asset_${chain} add categorie            int            default (0)  not null  -- 类别`,
 			`alter table asset_${chain} add retry                int            default (0)  not null  -- 抓取数据重试次数, sync uri data retry count`,
 			`alter table asset_${chain} add retryTime            bigint         default (0)  not null  -- 抓取数据最后重试时间`,
+			// ledger
+			`alter table ledger_${chain} add state               int            default (0)  not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,

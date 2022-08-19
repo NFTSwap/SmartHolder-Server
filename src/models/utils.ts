@@ -105,12 +105,14 @@ async function getAssetCache(chain: ChainType, token: string, tokenId: string) {
 	return asset as Asset;
 }
 
-async function getEventsItems_0(chain: ChainType, host: string, title?: string, created_member_id?: string, limit?: number | number[]) {
+async function getEventsItems_0(chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State, limit?: number | number[]) {
 	let sql = `select * from events where chain=${escape(chain)} and host=${escape(host)} `;
 	if (title)
 		sql += `and title like ${escape(title+'%')} `;
 	if (created_member_id)
 		sql += `and created_member_id=${escape(created_member_id)} `;
+	if (state != undefined)
+		sql += `and state=${escape(state)} `;
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 	let items = await db.query<EventsItemExt>(sql);
@@ -174,9 +176,13 @@ export async function getAssetOrderFrom(chain: ChainType, host: string, fromAddr
 	return order;
 }
 
-export async function getLedgerItemsFromHost(chain: ChainType, host: string, limit?: number | number[]) {
+export async function getLedgerItemsFromHost(chain: ChainType, host: string, state = State.Enable, limit?: number | number[]) {
 	let dao = await getDAONoEmpty(chain, host);
-	return await db.select<Ledger>(`ledger_${chain}`, {address: dao.ledger}, {limit: getLimit(limit)});
+	return await db.select<Ledger>(`ledger_${chain}`, {address: dao.ledger, state}, {limit: getLimit(limit)});
+}
+
+export async function setLedgerState(chain: ChainType, id: number, state: State) {
+	return await db.update(`ledger_${chain}`, {state}, {id});
 }
 
 export function getVoteProposalFrom(chain: ChainType, address: string, proposal_id?: string, limit?: number | number[]) {
@@ -224,10 +230,10 @@ export async function setEventsItem(id: number, title?: string, description?: st
 
 export async function getEventsItems(chain: ChainType, host: string, title?: string, created_member_id?: string, state = State.Enable, limit?: number | number[]) {
 	let dao = await getDAONoEmpty(chain, host);
-	let items = await getEventsItems_0(chain, host, title, created_member_id, limit);
+	let items = await getEventsItems_0(chain, host, title, created_member_id, state, limit);
 	for (let it of items) {
 		if (it.created_member_id) {
-			it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id, state }) || undefined;
+			it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id }) || undefined;
 		}
 	}
 	return items;

@@ -122,6 +122,7 @@ export interface Ledger {
 	balance: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
+	state: State;
 }
 
 export interface LedgerReleaseLog {
