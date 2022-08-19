@@ -89,7 +89,7 @@ export async function getAssetFrom_0(
 	if (selling != undefined)
 		sql += `and selling=${escape(selling)} `;
 	if (limit)
-		sql += `limit ${escape(getLimit(limit).join(','))} `;
+		sql += `limit ${getLimit(limit).join(',')} `;
 	let assets = await db.query<Asset>(sql);
 	return assets;
 }
@@ -112,7 +112,7 @@ async function getEventsItems_0(chain: ChainType, host: string, title?: string, 
 	if (created_member_id)
 		sql += `and created_member_id=${escape(created_member_id)} `;
 	if (limit)
-		sql += `limit ${escape(getLimit(limit).join(','))} `;
+		sql += `limit ${getLimit(limit).join(',')} `;
 	let items = await db.query<EventsItemExt>(sql);
 	return items;
 }
