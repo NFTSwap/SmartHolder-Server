@@ -95,6 +95,18 @@ export default class extends ApiController {
 		return utils.saveTokenURIInfo(info);
 	}
 
+	addEventsItem({chain,title,description,created_member_id}: {chain: ChainType, title: string, description: string, created_member_id: string}) {
+		return utils.addEventsItem(chain,title,description,created_member_id);
+	}
+
+	getEventsItems({chain, host, title, created_member_id, limit}:{chain: ChainType, host: string, title?: string, created_member_id?: string, limit?: number | number[]}) {
+		return utils.getEventsItems(chain, host, title, created_member_id, limit);
+	}
+
+	getEventsItemsTotal({chain, host, title, created_member_id}: {chain: ChainType, host: string, title?: string, created_member_id?: string}) {
+		return utils.getEventsItemsTotal(chain, host, title, created_member_id);
+	}
+
 	// -------------------------- Total -------------------------
 
 	 getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
