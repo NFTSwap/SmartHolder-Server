@@ -71,13 +71,19 @@ async function post(chain: ChainType, path: string, params?: Params) {
 	return JSON.parse(data.toString());
 }
 
+class MySigner extends VoidSigner {
+	async _signTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>) {
+		return '0x';
+	}
+}
+
 export function getSeaport(chain: ChainType) {
 	let sea = seaports.get(chain);
 	if (!sea) {
 		let web3 = web3s(chain);
 		const accountAddress = '0x45d9dB730bac2A2515f107A3c75295E3504faFF7';
 		const provider = new providers.JsonRpcProvider(web3.provider.rpc);
-		const signer = new VoidSigner(accountAddress, provider);
+		const signer = new MySigner(accountAddress, provider);
 		seaports.set(chain, sea = new Seaport(signer));
 	}
 	return sea;
@@ -91,9 +97,12 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	let owner = await methods.ownerOf(tokenId).call() as string;
 	let id = BigInt(tokenId).toString(10);
 
+	let amount_ = BigInt(amount);
 	let amountOpensea = BigInt(amount) / BigInt(1000) * BigInt(25); // opensea 2.5%
 	let amountMy = BigInt(amount) - amountOpensea;
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
+
+	// let sea = getSeaport(chain);
 
 	let data = {
 		primaryType: 'OrderComponents',
@@ -248,7 +257,8 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 					identifierOrCriteria: "0",
 					startAmount: amountOpensea.toString(10),
 					endAmount: amountOpensea.toString(10),
-					recipient: '0x8De9C5A032463C561423387a9648c5C7BCC5BC90', // opensea
+					// recipient: '0x8De9C5A032463C561423387a9648c5C7BCC5BC90', // opensea
+					recipient: '0x0000a26b00c1F0DF003000390027140000fAa719', // opensea
 				}
 			],
 			totalOriginalConsiderationItems: "2",

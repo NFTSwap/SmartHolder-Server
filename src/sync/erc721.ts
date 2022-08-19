@@ -32,12 +32,12 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 	async asset(tokenId: string, blockNumber?: number) {
 		var token = this.address;
 
-		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId, blockNumber }, {limit:1});
+		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
 			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
 			let time = Date.now();
-			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time });
+			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time, blockNumber });
 			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
 		}
 		return asset;
