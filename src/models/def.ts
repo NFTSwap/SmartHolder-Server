@@ -291,5 +291,5 @@ export interface EventsItem {
 export interface AssetJson {
 	id: number;
 	asset_id: number;
-	json: any;
+	json_data: any;
 }

@@ -53,7 +53,7 @@ async function load_main_db() {
 				defaultVoteRate     int          default (0)    not null,
 				defaultVotePassRate int          default (0)    not null,
 				defaultVoteTime     bigint       default (0)    not null,
-				memberBaseName      varchar (32) default ('')    not null,
+				memberBaseName      varchar (32) default ('')   not null,
 				memberTotalLimit    int          default (0)    not null
 			);
 
@@ -96,13 +96,13 @@ async function load_main_db() {
 				backgroundColor        varchar (32)   default ('') not null,  -- 背景
 				categorie              int            default (0)  not null,  -- 类别
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
-				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
+				retryTime              bigint         default (0)  not null   -- 抓取数据最后重试时间
 			);
 
 			create table if not exists asset_json_${chain} (
 				id                     int    primary key auto_increment not null,
 				asset_id               int    not null,
-				json                   json   not null
+				json_data              json       null
 			);
 	
 			create table if not exists asset_order_${chain} (      -- 资产订单 asset from -> to
@@ -202,18 +202,18 @@ async function load_main_db() {
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('')   not null`,
 			`alter table dao_${chain}  add memberTotalLimit      int          default (0)    not null`,
 			// asset
-			`alter table asset_${chain} add name                 varchar (256)  default ('') not null,  -- 名称`,
-			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null,  -- origin image uri`,
-			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null,  -- origin media uri`,
-			`alter table asset_${chain} add description          varchar (2048) default ('') not null,  -- 详细信息`,
-			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null,  -- 外部链接`,
-			`alter table asset_${chain} add properties           json                            null,  -- 附加信息`,
-			`alter table asset_${chain} add blockNumber          int            default (0)  not null,  -- 创建区块号`,
-			`alter table asset_${chain} add created_member_id    varchar (72)   default ('') not null,  -- 创建人成员id`,
-			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null,  -- 背景`,
-			`alter table asset_${chain} add categorie            int            default (0)  not null,  -- 类别`,
-			`alter table asset_${chain} add retry                int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count`,
-			`alter table asset_${chain} add retryTime            bigint         default (0)  not null,  -- 抓取数据最后重试时间`,
+			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
+			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
+			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null  -- origin media uri`,
+			`alter table asset_${chain} add description          varchar (2048) default ('') not null  -- 详细信息`,
+			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null  -- 外部链接`,
+			`alter table asset_${chain} add properties           json                            null  -- 附加信息`,
+			`alter table asset_${chain} add blockNumber          int            default (0)  not null  -- 创建区块号`,
+			`alter table asset_${chain} add created_member_id    varchar (72)   default ('') not null  -- 创建人成员id`,
+			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null  -- 背景`,
+			`alter table asset_${chain} add categorie            int            default (0)  not null  -- 类别`,
+			`alter table asset_${chain} add retry                int            default (0)  not null  -- 抓取数据重试次数, sync uri data retry count`,
+			`alter table asset_${chain} add retryTime            bigint         default (0)  not null  -- 抓取数据最后重试时间`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,

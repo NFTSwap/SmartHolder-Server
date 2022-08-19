@@ -270,12 +270,12 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		var str = String(this._tryParseStrData(String(data_raw)).data);
 
 		try {
-			var json = this._ParseJSON(str);
+			var json_data = this._ParseJSON(str);
 			try {
 				if (await db.selectOne(`asset_json_${chain}`, {asset_id: id})) {
-					await db.update(`asset_json_${chain}`, {json}, {asset_id: id});
+					await db.update(`asset_json_${chain}`, {json_data}, {asset_id: id});
 				} else {
-					await db.insert(`asset_json_${chain}`, {json, asset_id: id});
+					await db.insert(`asset_json_${chain}`, {json_data, asset_id: id});
 				}
 			} catch(err) {
 				console.warn(`AssetMetaDataSync#onSync 3 Cannot save json`, token, tokenId, err);
