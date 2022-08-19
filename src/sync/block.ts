@@ -3,19 +3,17 @@
  * @date 2022-07-21
  */
 
-import './uncaught';
+import '../uncaught';
 import somes from 'somes';
-import errno from './errno';
-import * as cfg from '../config';
-import * as env from './env';
+import * as cfg from '../../config';
 import {WatchCat} from 'bclib/watch';
-import { storage, ChainType, ContractInfo, ContractType } from './db';
-import {MvpWeb3,isRpcLimitRequestAccount,web3s} from './web3+';
-import * as asset from './scaner';
+import { storage, ChainType, ContractInfo, ContractType } from '../db';
+import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
+import make from './mk_scaner';
 import {Transaction, TransactionReceipt, Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
-import {getContractInfo} from './models/contract';
-import msg, {broadcastWatchBlock, Events} from './message';
+import {getContractInfo} from '../models/contract';
+import {broadcastWatchBlock} from '../message';
 
 export class WatchBlock implements WatchCat {
 	private _web3: MvpWeb3;
@@ -69,7 +67,7 @@ export class WatchBlock implements WatchCat {
 				// }
 				var info = await getContractInfo(address, chain);
 				if (info && info.type) {
-					var scaner = asset.make(address, info.type, chain);
+					var scaner = make(address, info.type, chain);
 					await scaner.solveReceiptLog(log, await getTx());
 				}
 			}
@@ -167,74 +165,3 @@ export class WatchBlock implements WatchCat {
 		return true;
 	}
 }
-
-interface WaitPromiseCallback {
-	timeout: number;
-	blockNumber: number;
-	resolve:()=>void;
-	reject:(err:any)=>void;
-}
-
-interface Wait {
-	chain: ChainType;
-	worker: number;
-	callback: WaitPromiseCallback[];
-}
-
-export class Sync {
-
-	private _waits: Dict<Wait> = {};
-
-	readonly watchBlocks: Dict<WatchBlock> = {};
-
-	async initialize(addWatch: (watch: WatchCat)=>void) {
-		if (env.sync_main) {
-			for (var [k,v] of Object.entries(web3s)) {
-				_sync.watchBlocks[k] = env.workers ?
-					new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
-				addWatch(_sync.watchBlocks[k]);
-				await storage.set(`WatchBlock_Workers_${v.chain}`, env.workers ? env.workers.workers: 1);
-			}
-		}
-
-		msg.addEventListener(Events.WatchBlock, async (e)=>{
-			let {worker, blockNumber, chain} = e.data;
-			let wait = this._waits[`${chain}_${worker}`];
-			let now = Date.now();
-			if (!wait) return;
-
-			for (let i = 0; i < wait.callback.length;) {
-				let it = wait.callback[i];
-				if (blockNumber > it.blockNumber) { // ok
-					it.resolve();
-					wait.callback.splice(i, 1); // delete
-				} else if (now > it.timeout) { // timeout
-					it.reject(errno.ERR_SYNC_WAIT_BLOCK_TIMEOUT);
-					wait.callback.splice(i, 1); // delete
-				} else { // wait
-					i++;
-				}
-			}
-		});
-	}
-
-	async waitBlockNumber(chain: ChainType, blockNumber: number, timeout?: number) {
-		somes.assert(web3s[chain], `Not supported ${ChainType[chain]}`);
-
-		let woekers = await storage.get(`WatchBlock_Workers_${chain}`);
-		let worker = blockNumber % woekers;
-		let cur = await storage.get(`WatchBlock_Cat_${worker}_${ChainType[chain]}_`);
-		if (cur > blockNumber) return; // ok
-
-		return await somes.promise<void>((resolve, reject)=>{
-			let wait = this._waits[`${chain}_${worker}`] || (this._waits[`${chain}_${worker}`] = {
-				chain, worker, callback: []
-			});
-			wait.callback.push({ timeout: timeout ? timeout + Date.now(): Infinity, blockNumber, resolve, reject });
-		});
-	}
-}
-
-const _sync = new Sync();
-
-export default _sync;

@@ -20,7 +20,7 @@ export const storage = new Storage();
 // "animation_url": "https://storage.opensea.io/files/059b00a2e3443f5579742e8ae5392b9d.mp4"
 
 export const main_db: DatabaseTools = cfg.mysql ? new MysqlTools(cfg.mysql as any): new sqlite.SQLiteTools(`${paths.var}/shs.db`);
-export const local_db: DatabaseTools = new sqlite.SQLiteTools(`${paths.var}/shs-local.db`); // local db
+export const local_db: DatabaseTools = new sqlite.SQLiteTools(`${paths.var}/mvp-ser-local.db`); // local db
 
 if (pool) {
 	pool.CHAREST_NUMBER = Charsets.UTF8MB4_UNICODE_CI;
@@ -76,17 +76,35 @@ async function load_main_db() {
 			create table if not exists asset_${chain} (
 				id           int primary key auto_increment,
 				token        varchar (64)               not null, -- address
-				tokenId      varchar (72)               not null,
-				uri          varchar (512)              not null,
-				owner        varchar (64)  default ('') not null,
-				author       varchar (64)  default ('') not null,
-				selling      int           default (0)  not null, -- 销售类型: 0未销售,1销售opensea,2其它平台
+				tokenId      varchar (72)               not null, -- id
+				uri          varchar (512)              not null, -- tokenURI
+				owner        varchar (64)  default ('') not null, -- 持有人
+				author       varchar (64)  default ('') not null, -- 作者地址
+				selling      int           default (0)  not null, -- 销售类型: 0未销售,1其它平台,2销售opensea
 				sellPrice    varchar (72)  default ('') not null, -- 销售价格
 				state        int           default (0)  not null, -- 状态: 0正常,1删除
-				time         bigint                     not null,
-				modify       bigint                     not null
+				time         bigint                     not null, -- 数据入库时间
+				modify       bigint                     not null, -- 修改时间（非链上数据修改）
+				name                   varchar (256)  default ('') not null,  -- 名称
+				imageOrigin            varchar (512)  default ('') not null,  -- origin image uri
+				mediaOrigin            varchar (512)  default ('') not null,  -- origin media uri
+				description            varchar (2048) default ('') not null,  -- 详细信息
+				externalLink           varchar (512)  default ('') not null,  -- 外部链接
+				properties             json                            null,  -- 附加信息
+				blockNumber            int            default (0)  not null,  -- 创建区块号
+				created_member_id      varchar (72)   default ('') not null,  -- 创建人成员id
+				backgroundColor        varchar (32)   default ('') not null,  -- 背景
+				categorie              int            default (0)  not null,  -- 类别
+				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
+				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
 			);
 
+			create table if not exists asset_json_${chain} (
+				id                     int    primary key auto_increment not null,
+				asset_id               int    not null,
+				json                   json   not null
+			);
+	
 			create table if not exists asset_order_${chain} (      -- 资产订单 asset from -> to
 				id           int    primary key auto_increment not null,
 				txHash       char    (72)                      not null,  -- tx hash
@@ -175,6 +193,7 @@ async function load_main_db() {
 			);
 
 		`, [
+			// dao
 			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
 			`alter table dao_${chain}  add defaultVoteRate       int          default (0)  not null`,
@@ -182,6 +201,19 @@ async function load_main_db() {
 			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)    not null`,
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('')   not null`,
 			`alter table dao_${chain}  add memberTotalLimit      int          default (0)    not null`,
+			// asset
+			`alter table asset_${chain} add name                 varchar (256)  default ('') not null,  -- 名称`,
+			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null,  -- origin image uri`,
+			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null,  -- origin media uri`,
+			`alter table asset_${chain} add description          varchar (2048) default ('') not null,  -- 详细信息`,
+			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null,  -- 外部链接`,
+			`alter table asset_${chain} add properties           json                            null,  -- 附加信息`,
+			`alter table asset_${chain} add blockNumber          int            default (0)  not null,  -- 创建区块号`,
+			`alter table asset_${chain} add created_member_id    varchar (72)   default ('') not null,  -- 创建人成员id`,
+			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null,  -- 背景`,
+			`alter table asset_${chain} add categorie            int            default (0)  not null,  -- 类别`,
+			`alter table asset_${chain} add retry                int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count`,
+			`alter table asset_${chain} add retryTime            bigint         default (0)  not null,  -- 抓取数据最后重试时间`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
@@ -237,11 +269,23 @@ async function load_main_db() {
 			state        int          default (0)     not null, -- 0进行中,1完成,2失败
 			time         bigint                       not null
 		);
+		create table if not exists events (
+			id                   int primary        key auto_increment, -- 主键id
+			host                 varchar (64)                 not null, -- dao host or self address
+			title                varchar (64)                 not null, --
+			description          varchar (4096)               not null,
+			created_member_id    varchar (72)    default ('') not null,  -- 创建人成员id
+			chain                int                          not null,
+			state                int             default (0)  not null, -- 0正常,1删除
+			time                 bigint                       not null,
+			modify               bigint                       not null
+		);
 		`, [], [
 		`create         index tasks_idx0    on    tasks          (name,state)`,
 		`create         index tasks_idx1    on    tasks          (name)`,
 		`create         index tasks_idx2    on    tasks          (state)`,
 		`create         index tasks_idx3    on    tasks          (user)`,
+		`create         index events_idx0    on   events         (chain,host,title)`,
 	], `shs`);
 }
 

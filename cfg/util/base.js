@@ -35,13 +35,13 @@ module.exports = {
 		'http://152.32.182.155:8001',//
 	],
 	qiniu: {
-		prefix: 'https://mvp-img.stars-mine.com',
+		prefix: 'https://smart-dao-res.stars-mine.com',
 		all_prefix: [
-			'https://mvp-img.stars-mine.com', // hd 华东桶域名
-			'https://nftmvp-img.stars-mine.com', // bm 北美桶域名
+			'https://smart-dao-res.stars-mine.com', // 华北-河北桶域名
+			'https://smart-dao-res-us.stars-mine.com', // 北美-洛杉矶桶域名
 		],
-		scope: 'nftmvp', // 华东桶名
-		zone: 'huadong', // 华东
+		scope: 'smart-dao', // 华北-河北桶域名
+		zone: 'huabei', // 华北
 		accessKey: 'iiMyOZsCAMpDbj2t-JLnLvyEbGMGfRO78NTIUdrO',
 		secretKey: 'HkaFTPPG8zdoUB-xxyYfGXZth2PCNX75oKPFJeL5',
 	},

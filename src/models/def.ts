@@ -52,9 +52,9 @@ export interface Member {
 }
 
 export enum Selling { // 销售类型
-	Unsell,  // 0未销售
-	Opensea, // 1销售opensea
-	Order,   // 2其它平台
+	Unsell  = 0,  // 0未销售
+	Order   = 1 >> 0,   // 2其它平台
+	Opensea = 1 >> 1, // 1销售opensea
 }
 
 export enum State {
@@ -64,27 +64,28 @@ export enum State {
 
 export interface Asset {
 	id: number;
-	token: string;
-	tokenId: string;
-	uri: string;
-	owner: string;
-	author: string;
-	selling: Selling;
-	sellPrice: string;
+	token: string; // 合约地址
+	tokenId: string; // id
+	uri: string; // tokenURI
+	owner: string; // 属主
+	author: string; // 作者地址
+	selling: Selling; // 销售类型: 0未销售,1销售opensea,2其它平台
+	sellPrice: string; // 销售价格
 	state: State; // 状态: 0正常,1删除
-	time: number;
-	modify: number;
-}
-
-export interface AssetExt extends Asset {
-	media: string;
-	mediaOrigin: string;
-	image: string;
-	imageOrigin: string;
-	name: string;
-	info: string; // description
-	externalLink: string;
-	properties: any | null;
+	time: number; // 数据入库时间
+	modify: number; // 修改时间（非链上数据修改）
+	name: string;//                   varchar (256)  default ('') not null,  -- 名称
+	imageOriign: string;//            varchar (512)  default ('') not null,  -- origin image uri
+	mediaOrigin: string;//            varchar (512)  default ('') not null,  -- origin media uri
+	description: string;//            varchar (2048) default ('') not null,  -- 详细信息
+	externalLink: string;//           varchar (512)  default ('') not null,  -- 外部链接
+	properties: any | null;//         json                            null,  -- 附加信息
+	blockNumber: number;//            int            default (0)  not null,  -- 创建区块号
+	created_member_id: string;//      varchar (72)   default ('') not null,  -- 创建人成员id
+	backgroundColor: string;//        varchar (32)   default ('') not null,  -- 背景
+	categorie: number;//              int            default (0)  not null,  -- 类别
+	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
+	retryTime: number;//              bigint         default (0)  not null,  -- 抓取数据最后重试时间
 }
 
 export interface AssetOrder {
@@ -273,4 +274,22 @@ export interface Tasks<Args = any> {
 	user: string; //        varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
 	state: number;//        int        default (0)       not null, -- 0进行中,1完成,2失败
 	time: number;//         bigint                       not null,
+}
+
+export interface EventsItem {
+	id: string;//                   int primary        key auto_increment, -- 主键id
+	host: string; //                varchar (64)                 not null,
+	title: string;//                varchar (64)                 not null, --
+	description: string;//          varchar (4096)               not null,
+	created_member_id: string;//    varchar (72)    default ('') not null,  -- 创建人成员id
+	chain: ChainType;//             int                          not null,
+	state: number;//                int             default (0)  not null, -- 0正常,1删除
+	time: number;//                 bigint                       not null,
+	modify: number;//               bigint                       not null
+}
+
+export interface AssetJson {
+	id: number;
+	asset_id: number;
+	json: any;
 }

@@ -1,7 +1,7 @@
 
 import watch_, {WatchCat} from 'bclib/watch';
 import msg from './message';
-import * as sync from './sync';
+import sync from './sync';
 import * as web3 from '../src/web3+';
 import task from '../src/task';
 import {callbackTask} from 'bclib/utils';
@@ -12,7 +12,7 @@ export async function initialize() {
 	var watch = watch_.impl
 	watch.interval = watch.interval / 10; // 6s
 	await web3.initialize(a=>watch.addWatch(a));
-	await sync.default.initialize(a=>watch.addWatch(a));
+	await sync.initialize(a=>watch.addWatch(a));
 	await task.initialize(a=>watch.addWatch(a));
 
 	if (!env.disableWeb) { // enable web watch

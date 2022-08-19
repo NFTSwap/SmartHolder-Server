@@ -3,8 +3,7 @@
  * @date 2021-09-26
  */
 
-import { Asset, AssetOrder, ContractInfo, ContractType, ChainType } from '../models/def';
-import db from '../db';
+import { ContractInfo, ContractType, ChainType } from '../models/def';
 import {IBcWeb3} from 'bclib/web3_tx';
 import {web3s, MvpWeb3} from '../web3+';
 import {EventData} from 'web3-tx';

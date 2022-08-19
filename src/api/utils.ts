@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State } from '../db';
+import { ChainType, State,Selling } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
 import {TokenURIInfo} from '../models/utils';
@@ -42,8 +42,10 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,state,limit}: { chain: ChainType, host: string, owner?: string, state?: State, limit?: number | number[]}) {
-		return utils.getAssetFrom(chain,host,owner,state,limit);
+	getAssetFrom({chain,host,owner,state,name,time,selling,limit}: {
+		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number], selling?: Selling, limit?: number | number[]
+	}) {
+		return utils.getAssetFrom(chain,host,owner,state,name,time,selling,limit);
 	}
 
 	/**
@@ -51,13 +53,6 @@ export default class extends ApiController {
 	 * */ 
 	setAssetState({chain,token,tokenId,state}: { chain: ChainType, token: string, tokenId: string, state: State}) {
 		return utils.setAssetState(chain,token,tokenId,state);
-	}
-
-	/**
-	 * @method getAssetExt() 通过token、tokenId、获取资产扩展信息
-	 * */ 
-	getAssetExt({chain,token,tokenId}: { chain: ChainType, token: string, tokenId: string}) {
-		return utils.getAssetExt(chain,token,tokenId);
 	}
 
 	/**
@@ -110,8 +105,10 @@ export default class extends ApiController {
 		return utils.getMembersTotalFrom(chain,host,owner);
 	}
 
-	getAssetTotalFrom({chain,host,owner,state}: { chain: ChainType, host: string, state?: State, owner?: string }) {
-		return utils.getAssetTotalFrom(chain,host,owner,state);
+	getAssetTotalFrom({chain,host,owner,state,name,time,selling}: { 
+		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
+	}) {
+		return utils.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
 	}
 
 	 getAssetOrderTotalFrom({chain,host,fromAddres}: { chain: ChainType, host: string, fromAddres?: string}) {

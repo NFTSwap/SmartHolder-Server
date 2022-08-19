@@ -18,7 +18,7 @@ export function makeFrom(info: ContractInfo, chain: ChainType) {
 	return make(info.address, info.type, chain);
 }
 
-export function make(address: string, type: ContractType, chain: ChainType): ContractScaner {
+export default function make(address: string, type: ContractType, chain: ChainType): ContractScaner {
 	var cs: ContractScaner;
 	somes.assert(chain, 'scaner#make chain Invalid');
 

@@ -115,7 +115,7 @@ export function toURINoErr(uri?: string | null, opts?: ToURIOptions) {
 	}
 
 	if (/googleusercontent\.com/i.test(uri)) {
-		uri = uri.replace(/=s\d+$/, '');
+		uri = uri.replace(/\=s\d+$/, '');
 		uri += '=s0';
 	}
 
@@ -245,7 +245,7 @@ export function post(uri: string, params?: Params, _opts?: Options, retry?: numb
 export const downloading: Map<string, WgetIMPL> = new Map();
 
 export function download(www: string, save: string) {
-	var retry301 = 3;
+	let retry301 = 3;
 	return multipleFetch(www, async (url, opts)=>{
 		var location = '';
 		try {

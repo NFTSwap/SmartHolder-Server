@@ -3,12 +3,13 @@
  * @date 2021-09-26
  */
 
- import { Asset, AssetOrder, ContractType, ChainType } from '../models/def';
+import { Asset, ContractType, ChainType } from '../models/def';
 import {ContractScaner, IAssetScaner, formatHex,blockTimeStamp} from './scaner';
 import {EventData} from 'web3-tx';
 import {Transaction} from 'web3-core';
-import * as fetch from '../utils';
+import * as utils from '../utils';
 import db from '../db';
+import _hash from 'somes/hash';
 
 export abstract class AssetScaner extends ContractScaner implements IAssetScaner {
 	abstract uri(tokenId: string): Promise<string>;
@@ -33,7 +34,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 
 		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
-			let uri = await fetch.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
+			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
 			let time = Date.now();
 			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, moify: time });
