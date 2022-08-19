@@ -311,7 +311,7 @@ export class AssetMetaDataUpdate implements WatchCat {
 
 			do {
 				console.log(`NFTAssetDataSync_Offset start ${chain}`, offset);
-				var assetList = await db.query<Asset>(`select * from asset where id > ${offset} limit 1000`);
+				var assetList = await db.query<Asset>(`select * from asset_${chain} where id > ${offset} limit 1000`);
 				for (var asset of assetList) {
 					try {
 						if (asset.retry < 10)
