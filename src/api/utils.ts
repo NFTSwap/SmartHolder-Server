@@ -95,16 +95,28 @@ export default class extends ApiController {
 		return utils.saveTokenURIInfo(info);
 	}
 
-	addEventsItem({chain,title,description,created_member_id}: {chain: ChainType, title: string, description: string, created_member_id: string}) {
-		return utils.addEventsItem(chain,title,description,created_member_id);
+	addEventsItem({chain,host,title,description,created_member_id}: {
+		chain: ChainType, host: string, title: string, description: string, created_member_id: string
+	}) {
+		return utils.addEventsItem(chain,host,title,description,created_member_id);
 	}
 
-	getEventsItems({chain, host, title, created_member_id, limit}:{chain: ChainType, host: string, title?: string, created_member_id?: string, limit?: number | number[]}) {
-		return utils.getEventsItems(chain, host, title, created_member_id, limit);
+	setEventsItem({id,title,description,state}: {
+		id: number, title?: string, description?: string, state?: State
+	}) {
+		return utils.setEventsItem(id,title,description,state);
 	}
 
-	getEventsItemsTotal({chain, host, title, created_member_id}: {chain: ChainType, host: string, title?: string, created_member_id?: string}) {
-		return utils.getEventsItemsTotal(chain, host, title, created_member_id);
+	getEventsItems({chain, host, title, created_member_id, state, limit}:{
+		chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State, limit?: number | number[]
+	}) {
+		return utils.getEventsItems(chain, host, title, created_member_id, state, limit);
+	}
+
+	getEventsItemsTotal({chain, host, title, created_member_id,state}: {
+		chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State
+	}) {
+		return utils.getEventsItemsTotal(chain, host, title, created_member_id, state);
 	}
 
 	// -------------------------- Total -------------------------

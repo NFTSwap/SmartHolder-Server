@@ -214,26 +214,30 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
 	}
 }
 
-export async function addEventsItem(chain: ChainType, title: string, description: string, created_member_id: string) {
-	await db.insert(`events`, { chain, title, description, created_member_id, time: Date.now(), modify: Date.now() });
+export async function addEventsItem(chain: ChainType, host: string, title: string, description: string, created_member_id: string) {
+	await db.insert(`events`, { chain, host, title, description, created_member_id, time: Date.now(), modify: Date.now() });
 }
 
-export async function getEventsItems(chain: ChainType, host: string, title?: string, created_member_id?: string, limit?: number | number[]) {
+export async function setEventsItem(id: number, title?: string, description?: string, state?: State) {
+	await db.update(`events`, { title, description, modify: Date.now(), state }, {id});
+}
+
+export async function getEventsItems(chain: ChainType, host: string, title?: string, created_member_id?: string, state = State.Enable, limit?: number | number[]) {
 	let dao = await getDAONoEmpty(chain, host);
 	let items = await getEventsItems_0(chain, host, title, created_member_id, limit);
 	for (let it of items) {
 		if (it.created_member_id) {
-			it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id }) || undefined;
+			it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id, state }) || undefined;
 		}
 	}
 	return items;
 }
 
-export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string, created_member_id?: string) {
-	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}`;
+export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string, created_member_id?: string, state = State.Enable) {
+	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}_${state}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getEventsItems_0(chain, host, title, created_member_id);
+		let ls = await getEventsItems_0(chain, host, title, created_member_id,state);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
