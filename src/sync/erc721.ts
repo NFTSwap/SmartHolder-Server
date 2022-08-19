@@ -29,10 +29,10 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		return uri;
 	}
 
-	async asset(tokenId: string) {
+	async asset(tokenId: string, blockNumber?: number) {
 		var token = this.address;
 
-		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
+		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId, blockNumber }, {limit:1});
 		if (!asset) {
 			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
@@ -50,7 +50,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		value: string,
 	) {
 		var token = this.address;
-		var asset = await this.asset(tokenId);
+		var asset = await this.asset(tokenId, blockNumber);
 		var time = await blockTimeStamp(this.web3, blockNumber);
 		var data = { owner: to[0], modify: time };
 
