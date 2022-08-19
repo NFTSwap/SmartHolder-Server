@@ -72,7 +72,7 @@ export default class extends ApiController {
 	/**
 	 * @method setLedgerState() 设置财务记录状态
 	 * */ 
-	setLedgerState(chain: ChainType, id: number, state: State) {
+	setLedgerState({chain,id,state}:{chain: ChainType, id: number, state: State}) {
 		return utils.setLedgerState(chain, id, state);
 	}
 	
