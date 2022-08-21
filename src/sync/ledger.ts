@@ -136,7 +136,7 @@ export class Ledger extends ContractScaner {
 						target: to,
 						balance: formatHex(balance),
 						description: log?.log || '',
-						member_id: member,
+						member_id: '0x' + BigInt(member).toString(16),
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: Number(e.blockNumber) || 0,
 					});
