@@ -71,6 +71,7 @@ export class Ledger extends ContractScaner {
 						log,
 						time: await blockTimeStamp(this.web3, e.blockNumber),
 						blockNumber: Number(e.blockNumber) || 0,
+						txHash,
 					});
 					await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
 				}
