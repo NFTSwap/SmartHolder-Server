@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import { ChainType } from "./def";
+import { ChainType, Selling } from "./def";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
 import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
@@ -21,6 +21,7 @@ import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
 import * as redis from 'bclib/redis';
+import db from '../db';
 
 export {OrderComponents};
 
@@ -308,6 +309,21 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 		parameters: order,
 		signature,
 	});
+
+	let sellPrice = BigInt(0);
+	for (let c of order.consideration) {
+		sellPrice += BigInt(c.startAmount);
+	}
+
+	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
+}
+
+export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '') {
+	await db.update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: '0x' + BigInt(tokenId).toString(16) });
+}
+
+export async function maskOrderClose(chain: ChainType, token: string, tokenId: string) {
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '');
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
@@ -333,10 +349,22 @@ export async function getOrders(chain: ChainType, token: string, tokenIds: strin
 			api += `&token_ids=${BigInt(it)}`;
 		let {orders} = await get(chain, api);
 		let ls = [] as OrderComponents[];
+
+		// maskOrderSelling close
+		for (let it of tokenIds) 
+			await maskOrderSelling(chain, token, it, Selling.UnsellOrUnknown, '');
+
 		for (let it of orders) {
 			let order = it?.protocol_data?.parameters as OrderComponents;
-			if (order)
+			if (order) {
+				let tokenId = '0x' + BigInt(order.offer[0].identifierOrCriteria).toString(16);
+				let sellPrice = BigInt(0);
+				for (let c of order.consideration) {
+					sellPrice += BigInt(c.startAmount);
+				}
+				await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 				ls.push(order);
+			}
 		}
 		if (cacheTime)
 			await redis.set(key, ls, cacheTime);

@@ -42,4 +42,8 @@ export default class extends ApiController {
 		return opensea.get_OPENSEA_CONDUIT_ADDRESS();
 	}
 
+	maskOrderClose({chain, token, tokenId}: {chain: ChainType, token: string, tokenId: string}) {
+		return opensea.maskOrderClose(chain, token, tokenId);
+	}
+
 }
