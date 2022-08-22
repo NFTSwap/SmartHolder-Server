@@ -327,7 +327,8 @@ export async function setEventsItem(id: number, title?: string, description?: st
 }
 
 export async function getEventsItems(chain: ChainType, host: string, title?: string,
-	created_member_id?: string, member?: string, state = State.Enable, limit?: number | number[], noMember?: boolean
+	created_member_id?: string, member?: string, time?: [number, number],
+	state = State.Enable, limit?: number | number[], noMember?: boolean
 ) {
 	let dao = await getDAONoEmpty(chain, host);
 	let sql = `select * from events where chain=${escape(chain)} and host=${escape(host)} `;
@@ -341,6 +342,8 @@ export async function getEventsItems(chain: ChainType, host: string, title?: str
 			sql += `and created_member_id in (${escape(m.map(e=>e.id))}) `;
 		else return [];
 	}
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (state != undefined)
 		sql += `and state=${escape(state)} `;
 	if (limit)
@@ -357,11 +360,13 @@ export async function getEventsItems(chain: ChainType, host: string, title?: str
 	return items;
 }
 
-export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, state = State.Enable) {
-	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}_${member}_${state}`;
+export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string,
+	created_member_id?: string, member?: string, time?: [number, number], state = State.Enable
+) {
+	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}_${member}_${time}_${state}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getEventsItems(chain, host, title, created_member_id,member, state, undefined,true);
+		let ls = await getEventsItems(chain, host, title, created_member_id,member, time, state, undefined,true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;

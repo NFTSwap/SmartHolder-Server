@@ -134,17 +134,17 @@ export default class extends ApiController {
 		return utils.setEventsItem(id,title,description,state);
 	}
 
-	getEventsItems({chain, host, title, created_member_id, member, state, limit}:{
+	getEventsItems({chain, host, title, created_member_id, member, time, state, limit}:{
 		chain: ChainType, host: string, title?: string,
-		created_member_id?: string, member?: string, state?: State, limit?: number | number[]
+		created_member_id?: string, member?: string, time?: [number, number], state?: State, limit?: number | number[]
 	}) {
-		return utils.getEventsItems(chain, host, title, created_member_id, member, state, limit);
+		return utils.getEventsItems(chain, host, title, created_member_id, member, time, state, limit);
 	}
 
-	getEventsItemsTotal({chain, host, title, created_member_id,member,state}: {
-		chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, state?: State
+	getEventsItemsTotal({chain, host, title, created_member_id,member,time,state}: {
+		chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, time?: [number, number], state?: State
 	}) {
-		return utils.getEventsItemsTotal(chain, host, title, created_member_id, member, state);
+		return utils.getEventsItemsTotal(chain, host, title, created_member_id, member, time, state);
 	}
 
 	getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
