@@ -179,6 +179,34 @@ export async function getAssetOrderFrom(
 	return order_1;
 }
 
+export async function getAssetOrderTotalFrom(chain: ChainType, host: string, 
+	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+) {
+	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getOrderTotalAmount(chain: ChainType, host: string, time?: [number,number]) {
+	let dao = await getDAONoEmpty(chain, host);
+	let sql = `select value from asset_order_${chain} where token=${escape(dao.assetGlobal)} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	let ls = await db.query<{value: string}>(sql);
+	let total = BigInt(0);
+	for (let it of ls) {
+		total += BigInt(it.value);
+	}
+	return {
+		total: ls.length,
+		amount: total.toString(),
+	};
+}
+
 export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 	type?: LedgerType, time?: [number,number], state = State.Enable, limit?: number | number[]
 ) {
@@ -336,18 +364,6 @@ export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: 
 	return total;
 }
 
-export async function getAssetOrderTotalFrom(chain: ChainType, host: string, 
-	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
-) {
-	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
-	let total = await redis.get<number>(key);
-	if (total === null) {
-		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
-		await redis.set(key, total = ls.length, 1e4);
-	}
-	return total;
-}
-
 export async function getVoteProposalTotalFrom(chain: ChainType, address: string, proposal_id?: string) {
 	let key = `getVoteProposalTotalFrom_${chain}_${address}_${proposal_id}`;
 	let total = await redis.get<number>(key);
@@ -406,20 +422,4 @@ export async function saveTokenURIInfo(info: TokenURIInfo) {
 	// }
 */
 	return await utils.storage(JSON.stringify(info), '.json');
-}
-
-export async function getOrderTotalAmount(chain: ChainType, host: string, time?: [number,number]) {
-	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select value from asset_order_${chain} where token=${escape(dao.assetGlobal)} `;
-	if (time)
-		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
-	let ls = await db.query<{value: string}>(sql);
-	let total = BigInt(0);
-	for (let it of ls) {
-		total += BigInt(it.value);
-	}
-	return {
-		total: ls.length,
-		amount: total.toString(),
-	};
 }

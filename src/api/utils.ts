@@ -79,6 +79,10 @@ export default class extends ApiController {
 		return utils.getLedgerItemsTotalFromHost(chain,host,type,time,state);
 	}
 
+	getLedgerTotalAmount({chain,host,time,state}: {chain: ChainType, host: string, time?: [number,number], state?: State}) {
+		return utils.getLedgerTotalAmount(chain,host,time,state);
+	}
+
 	/**
 	 * @method setLedgerState() 设置财务记录状态
 	 * */ 
