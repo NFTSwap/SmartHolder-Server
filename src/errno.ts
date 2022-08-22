@@ -24,7 +24,7 @@ export class ErrnoList extends SysErrnoList {
 	ERR_TOKEN_TYPE_NOT_MATCH: ErrnoCode = [100334, `任务类型不匹配`]
 	ERR_DAO_NOT_EXIST: ErrnoCode = [100335, `DAO不存在`]
 	ERR_OPENSEA_ORDER_EXIST: ErrnoCode = [100336, `创建Opensea订单重复`, `该资产在Opensea可能已经上架`]
-	ERR_OPENSEA_ORDER_NOT_EXIST: ErrnoCode = [100337, `Opensea订单为空`]
+	ERR_OPENSEA_ORDER_NOT_EXIST: ErrnoCode = [100337, `Opensea订单不存在`]
 	ERR_ASSET_NOT_EXIST: ErrnoCode = [100338, `资产数据找不到`]
 	ERR_OPENSEA_API_ERROR: ErrnoCode = [100339, `OpenseaAPI调用错误`]
 
