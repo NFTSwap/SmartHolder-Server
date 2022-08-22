@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling } from '../db';
+import { ChainType, State,Selling,LedgerType } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
 import {TokenURIInfo} from '../models/utils';
@@ -43,7 +43,8 @@ export default class extends ApiController {
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
 	getAssetFrom({chain,host,owner,state,name,time,selling,limit}: {
-		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number], selling?: Selling, limit?: number | number[]
+		chain: ChainType, host: string, owner?: string, state?: State,
+		name?: string, time?: [number,number], selling?: Selling, limit?: number | number[]
 	}) {
 		return utils.getAssetFrom(chain,host,owner,state,name,time,selling,limit);
 	}
@@ -58,15 +59,24 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetOrderFrom() 通过dao地址与fromAddres地址获订单列表
 	 * */ 
-	getAssetOrderFrom({chain,host,fromAddres,limit}: { chain: ChainType, host: string, fromAddres?: string, limit?: number | number[]}) {
-		return utils.getAssetOrderFrom(chain,host,fromAddres,limit);
+	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit}: {
+		chain: ChainType, host: string, fromAddres?: string,
+		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[]
+	}) {
+		return utils.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,limit);
 	}
 
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,state,limit}: { chain: ChainType, host: string, state?: State, limit?: number | number[]}) {
-		return utils.getLedgerItemsFromHost(chain,host,state,limit);
+	getLedgerItemsFromHost({chain,host,type,time,state,limit}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[]
+	}) {
+		return utils.getLedgerItemsFromHost(chain,host,type,time,state,limit);
+	}
+
+	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string,type?: LedgerType, time?: [number,number], state?: State}) {
+		return utils.getLedgerItemsTotalFromHost(chain,host,type,time,state);
 	}
 
 	/**
@@ -120,21 +130,20 @@ export default class extends ApiController {
 		return utils.setEventsItem(id,title,description,state);
 	}
 
-	getEventsItems({chain, host, title, created_member_id, state, limit}:{
-		chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State, limit?: number | number[]
+	getEventsItems({chain, host, title, created_member_id, member, state, limit}:{
+		chain: ChainType, host: string, title?: string,
+		created_member_id?: string, member?: string, state?: State, limit?: number | number[]
 	}) {
-		return utils.getEventsItems(chain, host, title, created_member_id, state, limit);
+		return utils.getEventsItems(chain, host, title, created_member_id, member, state, limit);
 	}
 
-	getEventsItemsTotal({chain, host, title, created_member_id,state}: {
-		chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State
+	getEventsItemsTotal({chain, host, title, created_member_id,member,state}: {
+		chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, state?: State
 	}) {
-		return utils.getEventsItemsTotal(chain, host, title, created_member_id, state);
+		return utils.getEventsItemsTotal(chain, host, title, created_member_id, member, state);
 	}
 
-	// -------------------------- Total -------------------------
-
-	 getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
+	getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
 		return utils.getDAOsTotalFromOwner(chain,owner);
 	}
 
@@ -148,12 +157,10 @@ export default class extends ApiController {
 		return utils.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
 	}
 
-	 getAssetOrderTotalFrom({chain,host,fromAddres}: { chain: ChainType, host: string, fromAddres?: string}) {
-		return utils.getAssetOrderTotalFrom(chain,host,fromAddres);
-	}
-
-	getLedgerItemsTotalFromHost({chain,host}: { chain: ChainType, host: string}) {
-		return utils.getLedgerItemsTotalFromHost(chain,host);
+	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return utils.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
 	}
 
 	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {
@@ -164,5 +171,8 @@ export default class extends ApiController {
 		return utils.getVotesTotalFrom(chain,address,proposal_id,member_id);
 	}
 
+	getOrderTotalAmount({chain,host,time}: {chain: ChainType, host: string, time?: [number,number]}) {
+		return utils.getOrderTotalAmount(chain,host,time);
+	}
 
 }

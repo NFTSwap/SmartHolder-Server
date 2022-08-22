@@ -4,7 +4,9 @@
  */
 
 import somes from 'somes';
-import db, {DAO, ChainType, Member, Asset, State, AssetOrder, Ledger, Votes, VoteProposal, EventsItem, Selling} from '../db';
+import db, {DAO, ChainType, Member, Asset, State, AssetOrder, 
+	Ledger, LedgerType, Votes, VoteProposal, EventsItem, Selling
+} from '../db';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import errno from '../errno';
@@ -23,6 +25,7 @@ export interface TokenURIInfo {
 }
 
 export interface AssetOrderExt extends AssetOrder {
+	asset_id: number,
 	asset: Asset;
 }
 
@@ -72,53 +75,6 @@ function getLimit(limit?: number|number[]) {
 	return limit;
 }
 
-export async function getAssetFrom_0(
-	chain: ChainType, host: string, owner?: string, 
-	state = State.Enable,
-	name?: string,
-	time?: [number,number],
-	selling?: Selling,
-	limit?: number | number[]
-) {
-	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select * from asset_${chain} where token=${escape(dao.assetGlobal)} and owner=${escape(owner)} and state=${escape(state)} `;
-	if (name)
-		sql += `and title like ${escape(name+'%')} `;
-	if (time)
-		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
-	if (selling != undefined)
-		sql += `and selling=${escape(selling)} `;
-	if (limit)
-		sql += `limit ${getLimit(limit).join(',')} `;
-	let assets = await db.query<Asset>(sql);
-	return assets;
-}
-
-async function getAssetCache(chain: ChainType, token: string, tokenId: string) {
-	let key = `getAssetCache_${chain}_${token}_${tokenId}`;
-	let asset = await redis.get<Asset>(key);
-	if (asset === null) {
-		let asset = await db.selectOne<Asset>(`asset_${chain}`, { token, tokenId }) as Asset;
-		somes.assert(asset, errno.ERR_ASSET_NOT_EXIST);
-		await redis.set(key, asset, 1e4);
-	}
-	return asset as Asset;
-}
-
-async function getEventsItems_0(chain: ChainType, host: string, title?: string, created_member_id?: string, state?: State, limit?: number | number[]) {
-	let sql = `select * from events where chain=${escape(chain)} and host=${escape(host)} `;
-	if (title)
-		sql += `and title like ${escape(title+'%')} `;
-	if (created_member_id)
-		sql += `and created_member_id=${escape(created_member_id)} `;
-	if (state != undefined)
-		sql += `and state=${escape(state)} `;
-	if (limit)
-		sql += `limit ${getLimit(limit).join(',')} `;
-	let items = await db.query<EventsItemExt>(sql);
-	return items;
-}
-
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#utils#getDAO Bad argument. address');
 	return db.selectOne<DAO>(`dao_${chain}`, {address});
@@ -156,10 +112,21 @@ export async function getAssetFrom(
 	name?: string,
 	time?: [number,number],
 	selling?: Selling,
-	limit?: number | number[]
+	limit?: number | number[], noBeautiful?: boolean
 ) {
-	let assets = await getAssetFrom_0(chain, host, owner, state, name, time, selling, limit);
-	await beautifulAsset(assets, chain);
+	let dao = await getDAONoEmpty(chain, host);
+	let sql = `select * from asset_${chain} where token=${escape(dao.assetGlobal)} and owner=${escape(owner)} and state=${escape(state)} `;
+	if (name)
+		sql += `and title like ${escape(name+'%')} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	if (selling != undefined)
+		sql += `and selling=${escape(selling)} `;
+	if (limit)
+		sql += `limit ${getLimit(limit).join(',')} `;
+	let assets = await db.query<Asset>(sql);
+	if (!noBeautiful)
+		await beautifulAsset(assets, chain);
 	return assets;
 }
 
@@ -167,18 +134,89 @@ export function setAssetState(chain: ChainType, token: string, tokenId: string, 
 	return db.update(`asset_${chain}`, {state}, { token, tokenId });
 }
 
-export async function getAssetOrderFrom(chain: ChainType, host: string, fromAddres?: string, limit?: number | number[]) {
+// 作品名称,开始时间/结束时间,作品所属,购买用户
+export async function getAssetOrderFrom(
+	chain: ChainType, host: string, fromAddres?: string, toAddress?: string, tokenId?: string,
+	name?: string, time?: [number,number], limit?: number | number[]
+) {
 	let dao = await getDAONoEmpty(chain, host);
-	let order = await db.select<AssetOrderExt>(`asset_order_${chain}`, {token: dao.assetGlobal, fromAddres}, {limit: getLimit(limit)});
-	for (let it of order)
-		it.asset = await getAssetCache(chain, it.token, it.tokenId);
-	await beautifulAsset(order.map(e=>e.asset), chain);
-	return order;
+	let sql = `
+		select * from asset_order_${chain} as ao 
+		left join 
+			asset_${chain} as a on ao.token=a.token and ao.tokenId=a.tokenId
+		where
+			ao.token=${escape(dao.assetGlobal)} 
+	`;
+	if (tokenId)
+		sql += `and ao.tokenId=${escape(tokenId)} `;
+	if (fromAddres)
+		sql += `and ao.fromAddres=${escape(fromAddres)} `;
+	if (toAddress)
+		sql += `and ao.toAddress=${escape(toAddress)} `;
+	if (name)
+		sql += `and a.name like ${escape(name+'%')} `;
+	if (time)
+		sql += `and ao.time>=${escape(time[0])} and ao.time<=${escape(time[1])} `;
+	if (limit)
+		sql += `limit ${getLimit(limit).join(',')} `;
+
+	let order_1 = await db.query<AssetOrderExt>(sql);
+
+	async function getAssetCache(chain: ChainType, id: number) {
+		let key = `getAssetCache_${chain}_${id}`;
+		let asset = await redis.get<Asset>(key);
+		if (asset === null) {
+			let asset = await db.selectOne<Asset>(`asset_${chain}`, { id }) as Asset;
+			somes.assert(asset, errno.ERR_ASSET_NOT_EXIST);
+			await redis.set(key, asset, 1e4);
+		}
+		return asset as Asset;
+	}
+
+	for (let it of order_1)
+		it.asset = await getAssetCache(chain, it.asset_id);
+	await beautifulAsset(order_1.map(e=>e.asset), chain);
+	return order_1;
 }
 
-export async function getLedgerItemsFromHost(chain: ChainType, host: string, state = State.Enable, limit?: number | number[]) {
+export async function getLedgerItemsFromHost(chain: ChainType, host: string,
+	type?: LedgerType, time?: [number,number], state = State.Enable, limit?: number | number[]
+) {
 	let dao = await getDAONoEmpty(chain, host);
-	return await db.select<Ledger>(`ledger_${chain}`, {address: dao.ledger, state}, {limit: getLimit(limit)});
+	let sql = `select * from ledger_${chain} where address=${escape(dao.ledger)} state=${escape(state)} `
+	if (type !== undefined)
+		sql += `type=${escape(type)} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	if (limit)
+		sql += `limit ${getLimit(limit)} `;
+	return await db.query<Ledger>(sql);
+}
+
+export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {
+	let key = `getLedgerItemsTotalFromHost_${chain}_${host}_${type}_${time}_${state}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let ls = await getLedgerItemsFromHost(chain, host, type, time, state);
+		await redis.set(key, total = ls.length, 1e4);
+	}
+	return total;
+}
+
+export async function getLedgerTotalAmount(chain: ChainType, host: string, time?: [number,number], state = State.Enable) {
+	let dao = await getDAONoEmpty(chain, host);
+	let sql = `select balance from ledger_${chain} where address=${escape(dao.ledger)} state=${escape(state)} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	let ls = await db.query<{balance: string}>(sql);
+	let total = BigInt(0);
+	for (let it of ls) {
+		total += BigInt(it.balance);
+	}
+	return {
+		total: ls.length,
+		amount: total.toString(),
+	};
 }
 
 export async function setLedgerState(chain: ChainType, id: number, state: State) {
@@ -205,7 +243,6 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
 			if (dao) break;
 		}
 	}
-
 	if (dao) {
 		return {
 			name: dao.name, // "OpenSea Creatures",
@@ -228,28 +265,46 @@ export async function setEventsItem(id: number, title?: string, description?: st
 	await db.update(`events`, { title, description, modify: Date.now(), state }, {id});
 }
 
-export async function getEventsItems(chain: ChainType, host: string, title?: string, created_member_id?: string, state = State.Enable, limit?: number | number[]) {
+export async function getEventsItems(chain: ChainType, host: string, title?: string,
+	created_member_id?: string, member?: string, state = State.Enable, limit?: number | number[], noMember?: boolean
+) {
 	let dao = await getDAONoEmpty(chain, host);
-	let items = await getEventsItems_0(chain, host, title, created_member_id, state, limit);
-	for (let it of items) {
-		if (it.created_member_id) {
-			it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id }) || undefined;
+	let sql = `select * from events where chain=${escape(chain)} and host=${escape(host)} `;
+	if (title)
+		sql += `and title like ${escape(title+'%')} `;
+	if (created_member_id)
+		sql += `and created_member_id=${escape(created_member_id)} `;
+	else if (member) {
+		let m = await db.query<{id:number}>(`select id from member_${chain} where name like ${escape(member+'%')}`);
+		if (m.length)
+			sql += `and created_member_id in (${escape(m.map(e=>e.id))}) `;
+		else return [];
+	}
+	if (state != undefined)
+		sql += `and state=${escape(state)} `;
+	if (limit)
+		sql += `limit ${getLimit(limit).join(',')} `;
+	let items = await db.query<EventsItemExt>(sql);
+
+	if (!noMember) {
+		for (let it of items) {
+			if (it.created_member_id) {
+				it.member = await db.selectOne<Member>(`member_${chain}`, { token: dao.member, tokenId: it.created_member_id }) || undefined;
+			}
 		}
 	}
 	return items;
 }
 
-export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string, created_member_id?: string, state = State.Enable) {
-	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}_${state}`;
+export async function getEventsItemsTotal(chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, state = State.Enable) {
+	let key = `getEventsItemsTotal_${chain}_${host}_${title}_${created_member_id}_${member}_${state}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getEventsItems_0(chain, host, title, created_member_id,state);
+		let ls = await getEventsItems(chain, host, title, created_member_id,member, state, undefined,true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
 }
-
-// ----------------------------- Total ------------------------------
 
 export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 	let key = `getDAOsTotalFromOwner_${chain}_${owner}`;
@@ -275,27 +330,19 @@ export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: 
 	let key = `getAssetTotalFrom_${chain}_${owner}_${state}_${name}_${time?.join()}_${selling}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getAssetFrom_0(chain, host, owner, state, name, time, selling);
+		let ls = await getAssetFrom(chain, host, owner, state, name, time, selling, undefined, true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
 }
 
-export async function getAssetOrderTotalFrom(chain: ChainType, host: string, fromAddres?: string) {
-	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}`;
+export async function getAssetOrderTotalFrom(chain: ChainType, host: string, 
+	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+) {
+	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getAssetOrderFrom(chain, host, fromAddres);
-		await redis.set(key, total = ls.length, 1e4);
-	}
-	return total;
-}
-
-export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string) {
-	let key = `getLedgerItemsTotalFromHost_${chain}_${host}`;
-	let total = await redis.get<number>(key);
-	if (total === null) {
-		let ls = await getLedgerItemsFromHost(chain, host);
+		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
@@ -359,4 +406,20 @@ export async function saveTokenURIInfo(info: TokenURIInfo) {
 	// }
 */
 	return await utils.storage(JSON.stringify(info), '.json');
+}
+
+export async function getOrderTotalAmount(chain: ChainType, host: string, time?: [number,number]) {
+	let dao = await getDAONoEmpty(chain, host);
+	let sql = `select value from asset_order_${chain} where token=${escape(dao.assetGlobal)} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	let ls = await db.query<{value: string}>(sql);
+	let total = BigInt(0);
+	for (let it of ls) {
+		total += BigInt(it.value);
+	}
+	return {
+		total: ls.length,
+		amount: total.toString(),
+	};
 }
