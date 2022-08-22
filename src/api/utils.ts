@@ -66,6 +66,13 @@ export default class extends ApiController {
 		return utils.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,limit);
 	}
 
+	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,
+		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return utils.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
+	}
+
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
@@ -75,12 +82,12 @@ export default class extends ApiController {
 		return utils.getLedgerItemsFromHost(chain,host,type,time,state,limit);
 	}
 
-	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string,type?: LedgerType, time?: [number,number], state?: State}) {
+	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
 		return utils.getLedgerItemsTotalFromHost(chain,host,type,time,state);
 	}
 
-	getLedgerTotalAmount({chain,host,time,state}: {chain: ChainType, host: string, time?: [number,number], state?: State}) {
-		return utils.getLedgerTotalAmount(chain,host,time,state);
+	getLedgerTotalAmount({chain,host,type,time,state}: {chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
+		return utils.getLedgerTotalAmount(chain,host,type,time,state);
 	}
 
 	/**
@@ -173,10 +180,6 @@ export default class extends ApiController {
 
 	getVotesTotalFrom({chain,address,proposal_id,member_id}: { chain: ChainType, address: string, proposal_id: string, member_id?: string}) {
 		return utils.getVotesTotalFrom(chain,address,proposal_id,member_id);
-	}
-
-	getOrderTotalAmount({chain,host,time}: {chain: ChainType, host: string, time?: [number,number]}) {
-		return utils.getOrderTotalAmount(chain,host,time);
 	}
 
 }

@@ -215,29 +215,23 @@ export async function getAssetOrderFrom(
 export async function getAssetOrderTotalFrom(chain: ChainType, host: string, 
 	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 ) {
-	let key = `getAssetOrderTotalFrom_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
-	let total = await redis.get<number>(key);
-	if (total === null) {
-		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
-		await redis.set(key, total = ls.length, 1e4);
-	}
-	return total;
+	let total = await getOrderTotalAmount(chain, host, fromAddres, toAddress, tokenId, name, time);
+	return total.total;
 }
 
-export async function getOrderTotalAmount(chain: ChainType, host: string, time?: [number,number]) {
-	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select value from asset_order_${chain} where token=${escape(dao.assetGlobal)} `;
-	if (time)
-		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
-	let ls = await db.query<{value: string}>(sql);
-	let total = BigInt(0);
-	for (let it of ls) {
-		total += BigInt(it.value);
+export async function getOrderTotalAmount(chain: ChainType, host: string,
+	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]) {
+	let key = `getOrderTotalAmount_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
+	let total = await redis.get<{total: number; amount:string}>(key);
+	if (total === null) {
+		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
+		let amount = BigInt(0);
+		for (let it of ls) {
+			amount += BigInt(it.value);
+		}
+		await redis.set(key, total = { total: ls.length, amount: amount.toString() }, 1e4);
 	}
-	return {
-		total: ls.length,
-		amount: total.toString(),
-	};
+	return total;
 }
 
 export async function getLedgerItemsFromHost(chain: ChainType, host: string,
@@ -255,29 +249,21 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 }
 
 export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {
-	let key = `getLedgerItemsTotalFromHost_${chain}_${host}_${type}_${time}_${state}`;
-	let total = await redis.get<number>(key);
-	if (total === null) {
-		let ls = await getLedgerItemsFromHost(chain, host, type, time, state);
-		await redis.set(key, total = ls.length, 1e4);
-	}
-	return total;
+	let total = await getLedgerTotalAmount(chain, host, type, time, state);
+	return total.total;
 }
 
-export async function getLedgerTotalAmount(chain: ChainType, host: string, time?: [number,number], state = State.Enable) {
-	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select balance from ledger_${chain} where address=${escape(dao.ledger)} and state=${escape(state)} `;
-	if (time)
-		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
-	let ls = await db.query<{balance: string}>(sql);
-	let total = BigInt(0);
-	for (let it of ls) {
-		total += BigInt(it.balance);
+export async function getLedgerTotalAmount(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {
+	let key = `getLedgerTotalAmount_${chain}_${host}_${type}_${time}_${state}`;
+	let total = await redis.get<{total: number; amount:string}>(key);
+	if (total === null) {
+		let ls = await getLedgerItemsFromHost(chain, host, type, time, state);
+		let amount = BigInt(0);
+		for (let it of ls)
+			amount += BigInt(it.balance);
+		await redis.set(key, total = { total: ls.length, amount: amount.toString()}, 1e4);
 	}
-	return {
-		total: ls.length,
-		amount: total.toString(),
-	};
+	return total;
 }
 
 export async function setLedgerState(chain: ChainType, id: number, state: State) {
