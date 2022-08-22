@@ -20,7 +20,7 @@ export class ErrnoList extends SysErrnoList {
 	ERR_DAO_NAME_EXISTS: ErrnoCode = [100330, `DAO名称重复`]
 	ERR_DAO_ADDRESS_NOT_EXISTS: ErrnoCode = [100331, `DAO地址不存在`]
 	ERR_DAO_IS_BEING_CREATED: ErrnoCode = [100332, `当前用户有一个DAO正在创建中`, `用户有一个任务正在运行中`]
-	ERR_DAO_HOST_NOT_FOUND: ErrnoCode = [100333, `通过地址不到DAO实体`]
+	ERR_DAO_HOST_NOT_FOUND: ErrnoCode = [100333, `通过地址找不到DAO实体`]
 	ERR_TOKEN_TYPE_NOT_MATCH: ErrnoCode = [100334, `任务类型不匹配`]
 	ERR_DAO_NOT_EXIST: ErrnoCode = [100335, `DAO不存在`]
 	ERR_OPENSEA_ORDER_EXIST: ErrnoCode = [100336, `创建Opensea订单重复`, `该资产在Opensea可能已经上架`]
