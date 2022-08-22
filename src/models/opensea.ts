@@ -19,6 +19,8 @@ import {URL} from 'somes/path';
 import errno from '../errno';
 import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
+import {scopeLock} from 'bclib/atomic_lock';
+import * as redis from 'bclib/redis';
 
 export {OrderComponents};
 
@@ -309,29 +311,37 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
+	let orders = await getOrders(chain, token, [tokenId]);
+	return orders[0];
+}
+
+export async function getOrders(chain: ChainType, token: string, tokenIds: string[], cacheTime?: number) {
 		// https://api.opensea.io/v2/orders/ethereum/seaport/listings
 	// rinkeby/seaport/listings?limit=1
 	// asset_contract_address=
 	// limit=
 	// token_ids=1&token_ids=209
-	let {orders:[order]} = await get(chain, `orders/{0}/seaport/listings?asset_contract_address=${token}&token_ids=${BigInt(tokenId)}&limit=1`);
-	let parameters = order?.protocol_data?.parameters as OrderComponents;
-	if (!parameters) return null;
-	return parameters;
-}
-
-export async function getOrders(chain: ChainType, token: string, tokenIds: string[]) {
-	let api = `orders/{0}/seaport/listings?asset_contract_address=${token}&limit=${tokenIds.length}`;
-	for (let it of tokenIds)
-		api += `&token_ids=${BigInt(it)}`;
-	let {orders} = await get(chain, api);
-	let ls = [] as OrderComponents[];
-	for (let it of orders) {
-		let order = it?.protocol_data?.parameters as OrderComponents;
-		if (order)
-			ls.push(order);
-	}
-	return ls;
+	let key = `Opensea_getOrders_${chain}_${token}_${tokenIds}`;
+	return scopeLock(key, async()=>{
+		if (cacheTime) {
+			let orders_0 = await redis.get<OrderComponents[]>(key);
+			if (orders_0)
+				return orders_0;
+		}
+		let api = `orders/{0}/seaport/listings?asset_contract_address=${token}&limit=${tokenIds.length}`;
+		for (let it of tokenIds)
+			api += `&token_ids=${BigInt(it)}`;
+		let {orders} = await get(chain, api);
+		let ls = [] as OrderComponents[];
+		for (let it of orders) {
+			let order = it?.protocol_data?.parameters as OrderComponents;
+			if (order)
+				ls.push(order);
+		}
+		if (cacheTime)
+			await redis.set(key, ls, cacheTime);
+		return ls;
+	});
 }
 
 export async function getOrderState(chain: ChainType, token: string, tokenId: string) {

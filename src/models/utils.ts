@@ -129,42 +129,36 @@ export async function getAssetFrom(
 	if (!noBeautiful) {
 		await beautifulAsset(assets, chain);
 	}
-	if (!noOrder) {
+	while(!noOrder) {
 		let tokenIds = assets.map(e=>e.tokenId);
-		let key = `getAssetFrom_getOrders_${chain}_${host}_${tokenIds}`;
-		let dict = await redis.get<Dict<{ sellPrice: string; tokenId: string }>>(key);
-		do {
-			if (dict === null) {
-				dict = {} as Dict<{ sellPrice: string; tokenId: string }>;
-				let orders = [] as OrderComponents[];
-				try {
-					orders = await getOrders(chain, dao.assetGlobal, tokenIds);
-				} catch(err) {
-					break;
+		let dict = {} as Dict<{ sellPrice: string; tokenId: string }>;
+		let orders = [] as OrderComponents[];
+		try {
+			orders = await getOrders(chain, dao.assetGlobal, tokenIds, 1e5);
+		} catch(err) {
+			break;
+		}
+		for (let it of orders) {
+			let tokenId = '0x' + BigInt(it.offer[0].identifierOrCriteria).toString(16);
+			let sellPrice = BigInt(0);
+			for (let it of orders) {
+				for (let c of it.consideration) {
+					sellPrice += BigInt(c.startAmount);
 				}
-				for (let it of orders) {
-					let tokenId = '0x' + BigInt(it.offer[0].identifierOrCriteria).toString(16);
-					let sellPrice = BigInt(0);
-					for (let it of orders) {
-						for (let c of it.consideration) {
-							sellPrice += BigInt(c.startAmount);
-						}
-						dict[tokenId] = {
-							tokenId: tokenId,
-							sellPrice: sellPrice.toString(),
-						};
-						await redis.set(key, dict, 1e5);
-					}
-				}
+				dict[tokenId] = {
+					tokenId: tokenId,
+					sellPrice: sellPrice.toString(),
+				};
 			}
-			for (let it of assets) {
-				let o = dict[it.tokenId];
-				if (o) {
-					it.selling = Selling.Opensea;
-					it.sellPrice = o.sellPrice;
-				}
+		}
+		for (let it of assets) {
+			let o = dict[it.tokenId];
+			if (o) {
+				it.selling = Selling.Opensea;
+				it.sellPrice = o.sellPrice;
 			}
-		} while(0);
+		}
+		break;
 	}
 	return assets;
 }
