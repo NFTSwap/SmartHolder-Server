@@ -141,7 +141,7 @@ export class WatchBlock implements WatchCat {
 		var blockNumber = await storage.get(key, Math.max(0, key0_height - this._workers));
 
 		this._blockNumber = blockNumber;
-		var delay = this._web3.chain == ChainType.BSN || this._web3.chain == ChainType.MATIC ? 4: 1;
+		var delay = this._web3.chain == ChainType.BSN || this._web3.chain == ChainType.MATIC ? 2: 0;
 		var blockNumberCur = await this._web3.getBlockNumber() - delay; // 延迟查询块
 
 		try {
