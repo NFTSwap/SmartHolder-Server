@@ -14,6 +14,7 @@ import _hash from 'somes/hash';
 export abstract class AssetScaner extends ContractScaner implements IAssetScaner {
 	abstract uri(tokenId: string): Promise<string>;
 	abstract balanceOf(owner: string, tokenId: string): Promise<number>;
+	abstract exists(id: string): Promise<boolean>;
 
 	asAsset(): IAssetScaner | null {
 		return this;
@@ -31,7 +32,6 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 
 	async asset(tokenId: string, blockNumber?: number) {
 		var token = this.address;
-
 		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
 			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
@@ -44,21 +44,23 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 	}
 
 	async assetTransaction(
-		txHash: string, blockNumber: number, count: string, tokenId: string,
+		txHash: string, blockNumber: number,
+		count: string, tokenId: string,
 		from: [string, number], // from address/total
 		to: [string, number], // to address/total
 		value: string,
 	) {
-		var token = this.address;
-		var asset = await this.asset(tokenId, blockNumber);
 		var time = await blockTimeStamp(this.web3, blockNumber);
-		var data = { owner: to[0], modify: time };
-
-		if (!asset.author && !BigInt(from[0]) && BigInt(to[0])) { // update author
-			Object.assign(data, { author: to[0], modify: time });
+		var token = this.address;
+		let exists = await this.exists(tokenId);
+		if (exists) {
+			var asset = await this.asset(tokenId, blockNumber);
+			var data = { owner: to[0], modify: time };
+			if (!asset.author && !BigInt(from[0]) && BigInt(to[0])) { // update author
+				Object.assign(data, { author: to[0], modify: time });
+			}
+			await db.update(`asset_${this.chain}`, data, { id: asset.id });
 		}
-
-		await db.update(`asset_${this.chain}`, data, { id: asset.id });
 
 		var order = await db.selectOne(`asset_order_${this.chain}`, { txHash, token, tokenId });
 		if (! order ) {
@@ -88,8 +90,7 @@ export class AssetERC721 extends AssetScaner {
 				if (e.returnValues.tokenId) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
-					let owner = await this.ownerOf(tokenId);
-					await this.assetTransaction(e.transactionHash, blockNumber, '1', tokenId, [from, 0], [owner, 1], tx.value);
+					await this.assetTransaction(e.transactionHash, blockNumber, '1', tokenId, [from, 0], [to, 1], tx.value);
 				} else {
 					console.warn(`AssetERC721#Transfer, token=${this.address}, returnValues.tokenId=`, e.returnValues.tokenId, e.returnValues);
 				}
@@ -105,6 +106,21 @@ export class AssetERC721 extends AssetScaner {
 		var c = await this.contract();
 		var uri = await c.methods.tokenURI(tokenId).call() as string;
 		return uri;
+	}
+
+	async exists(id: string) {
+		var c = await this.contract();
+		try {
+			return await c.methods.exists(id).call() as boolean;
+		} catch (err: any) {
+			try {
+				await c.methods.ownerOf(id).call() as string;
+			} catch(err: any) {
+				if (err.message.indexOf('exist') != -1)
+					return false;
+			}
+		}
+		return true;
 	}
 
 	async balanceOf(owner: string, id: string): Promise<number> {
