@@ -14,10 +14,13 @@ import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
 import {rng} from 'somes/rng';
 import {get as get_ ,post as post_} from '../utils';
-import {Params} from 'somes/request';
+import {Params,Result} from 'somes/request';
 import {URL} from 'somes/path';
 import errno from '../errno';
 import {SeaportABI} from '../../abi/Seaport';
+import * as cfg from '../../config';
+
+export {OrderComponents};
 
 const seaports: Map<ChainType, Seaport> = new Map();
 export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
@@ -52,23 +55,41 @@ function getPrefix(chain: ChainType) {
 	}
 }
 
-async function get(chain: ChainType, path: string, params?: Params) {
+function _handleStatusCode(r: Result) {
+	r.data = r.data.toString('utf8');
+	if (r.statusCode != 200) {
+		if (r.statusCode == 404) {
+			throw Error.new(errno.ERR_HTTP_STATUS_404).ext(r);
+		} else if (r.statusCode == 400) { // logic error
+			let data = JSON.parse(r.data);
+			r.data = Array.isArray(data) ? data: [data];
+			throw Error.new([errno.ERR_OPENSEA_API_ERROR, ...r.data]).ext({r, abort: true, ...data});
+		}
+		throw Error.new(errno.ERR_HTTP_STATUS_NO_200).ext(r);
+	} else {
+		r.data = JSON.parse(r.data);
+	}
+}
+
+async function get<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
 	let url = new URL(`${prefix}/${String.format(path, network)}`);
 	if (params)
 		url.params = params;
-	let {data} = await get_(url.href, {
-		headers: { 'X-API-KEY': '2f6f419a083c46de9d83ce3dbe7db601' },
-	}, 2);
-	return JSON.parse(data.toString());
+	let r = await get_(url.href, {
+		handleStatusCode: _handleStatusCode,
+		headers: { 'X-API-KEY': cfg.opensea_api_key },
+	}, true, 2);
+	return r.data as any as T;
 }
 
-async function post(chain: ChainType, path: string, params?: Params) {
+async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
-	let {data} = await post_(`${prefix}/${String.format(path, network)}`, params, {
-		headers: { 'X-API-KEY': '2f6f419a083c46de9d83ce3dbe7db601' },
-	}, 2);
-	return JSON.parse(data.toString());
+	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
+		handleStatusCode: _handleStatusCode,
+		headers: { 'X-API-KEY': cfg.opensea_api_key },
+	}, true, 2);
+	return r.data as any as T;
 }
 
 class MySigner extends VoidSigner {
@@ -293,10 +314,24 @@ export async function getOrder(chain: ChainType, token: string, tokenId: string)
 	// asset_contract_address=
 	// limit=
 	// token_ids=1&token_ids=209
-	let {orders:[order]} = await get(chain, `orders/{0}/seaport/listings?asset_contract_address=${token}&token_ids=${tokenId}&limit=1`);
+	let {orders:[order]} = await get(chain, `orders/{0}/seaport/listings?asset_contract_address=${token}&token_ids=${BigInt(tokenId)}&limit=1`);
 	let parameters = order?.protocol_data?.parameters as OrderComponents;
 	if (!parameters) return null;
 	return parameters;
+}
+
+export async function getOrders(chain: ChainType, token: string, tokenIds: string[]) {
+	let api = `orders/{0}/seaport/listings?asset_contract_address=${token}&limit=${tokenIds.length}`;
+	for (let it of tokenIds)
+		api += `&token_ids=${BigInt(it)}`;
+	let {orders} = await get(chain, api);
+	let ls = [] as OrderComponents[];
+	for (let it of orders) {
+		let order = it?.protocol_data?.parameters as OrderComponents;
+		if (order)
+			ls.push(order);
+	}
+	return ls;
 }
 
 export async function getOrderState(chain: ChainType, token: string, tokenId: string) {

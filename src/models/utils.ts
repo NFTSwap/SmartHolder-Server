@@ -14,6 +14,7 @@ import {web3s} from '../web3+';
 import * as cfg from '../../config';
 import * as redis from 'bclib/redis';
 import * as utils from '../utils';
+import {getOrders,OrderComponents} from './opensea';
 
 export interface TokenURIInfo {
 	name: string;
@@ -112,7 +113,7 @@ export async function getAssetFrom(
 	name?: string,
 	time?: [number,number],
 	selling?: Selling,
-	limit?: number | number[], noBeautiful?: boolean
+	limit?: number | number[], noBeautiful?: boolean, noOrder?: boolean
 ) {
 	let dao = await getDAONoEmpty(chain, host);
 	let sql = `select * from asset_${chain} where token=${escape(dao.assetGlobal)} and owner=${escape(owner)} and state=${escape(state)} `;
@@ -125,8 +126,46 @@ export async function getAssetFrom(
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 	let assets = await db.query<Asset>(sql);
-	if (!noBeautiful)
+	if (!noBeautiful) {
 		await beautifulAsset(assets, chain);
+	}
+	if (!noOrder) {
+		let tokenIds = assets.map(e=>e.tokenId);
+		let key = `getAssetFrom_getOrders_${chain}_${host}_${tokenIds}`;
+		let dict = await redis.get<Dict<{ sellPrice: string; tokenId: string }>>(key);
+		do {
+			if (dict === null) {
+				dict = {} as Dict<{ sellPrice: string; tokenId: string }>;
+				let orders = [] as OrderComponents[];
+				try {
+					orders = await getOrders(chain, dao.assetGlobal, tokenIds);
+				} catch(err) {
+					break;
+				}
+				for (let it of orders) {
+					let tokenId = '0x' + BigInt(it.offer[0].identifierOrCriteria).toString(16);
+					let sellPrice = BigInt(0);
+					for (let it of orders) {
+						for (let c of it.consideration) {
+							sellPrice += BigInt(c.startAmount);
+						}
+						dict[tokenId] = {
+							tokenId: tokenId,
+							sellPrice: sellPrice.toString(),
+						};
+						await redis.set(key, dict, 1e5);
+					}
+				}
+			}
+			for (let it of assets) {
+				let o = dict[it.tokenId];
+				if (o) {
+					it.selling = Selling.Opensea;
+					it.sellPrice = o.sellPrice;
+				}
+			}
+		} while(0);
+	}
 	return assets;
 }
 
@@ -211,7 +250,7 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 	type?: LedgerType, time?: [number,number], state = State.Enable, limit?: number | number[]
 ) {
 	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select * from ledger_${chain} where address=${escape(dao.ledger)} state=${escape(state)} `
+	let sql = `select * from ledger_${chain} where address=${escape(dao.ledger)} and state=${escape(state)} `
 	if (type !== undefined)
 		sql += `type=${escape(type)} `;
 	if (time)
@@ -233,7 +272,7 @@ export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string
 
 export async function getLedgerTotalAmount(chain: ChainType, host: string, time?: [number,number], state = State.Enable) {
 	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select balance from ledger_${chain} where address=${escape(dao.ledger)} state=${escape(state)} `;
+	let sql = `select balance from ledger_${chain} where address=${escape(dao.ledger)} and state=${escape(state)} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	let ls = await db.query<{balance: string}>(sql);
@@ -358,7 +397,7 @@ export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: 
 	let key = `getAssetTotalFrom_${chain}_${owner}_${state}_${name}_${time?.join()}_${selling}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getAssetFrom(chain, host, owner, state, name, time, selling, undefined, true);
+		let ls = await getAssetFrom(chain, host, owner, state, name, time, selling, undefined, true, true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;

@@ -65,7 +65,7 @@ export async function multipleFetch<T>(url: string,
 				return await fetch(opts.url, opts);
 			}
 		} catch(err: any) {
-			if (err.errno == errno.ERR_HTTP_STATUS_404[0])
+			if (err.errno == errno.ERR_HTTP_STATUS_404[0] || err.abort)
 				throw err;
 			if (opts.retry == retryLimit)
 				throw err;
@@ -234,12 +234,12 @@ export async function getString(uri: string, _opts?: Options) {
 	return str;
 }
 
-export function get(uri: string, _opts?: Options, retry?: number) {
-	return request(uri, { ..._opts, method: 'GET'}, undefined, retry);
+export function get(uri: string, _opts?: Options, onlyProxy?: boolean, retry?: number) {
+	return request(uri, { ..._opts, method: 'GET'}, onlyProxy, retry);
 }
 
-export function post(uri: string, params?: Params, _opts?: Options, retry?: number) {
-	return request(uri, { ..._opts, params, method: 'POST'}, undefined, retry);
+export function post(uri: string, params?: Params, _opts?: Options, onlyProxy?: boolean, retry?: number) {
+	return request(uri, { ..._opts, params, method: 'POST'}, onlyProxy, retry);
 }
 
 export const downloading: Map<string, WgetIMPL> = new Map();

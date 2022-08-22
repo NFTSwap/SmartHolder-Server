@@ -52,9 +52,9 @@ export interface Member {
 }
 
 export enum Selling { // 销售类型
-	Unsell  = 0,  // 0未销售
-	Order   = 1 >> 0,   // 2其它平台
-	Opensea = 1 >> 1, // 1销售opensea
+	UnsellOrUnknown  = 0,  // 0未销售or未知
+	Order   = 1 << 0,   // 2其它平台
+	Opensea = 1 << 1, // 1销售opensea
 }
 
 export enum State {

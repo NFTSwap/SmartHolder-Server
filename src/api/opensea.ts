@@ -22,6 +22,10 @@ export default class extends ApiController {
 		return opensea.getOrder(chain,token,tokenId);
 	}
 
+	getOrders({chain, token, tokenIds}: {chain: ChainType, token: string, tokenIds: string[]}) {
+		return opensea.getOrders(chain,token,tokenIds);
+	}
+
 	getOrderState({chain, token, tokenId}: {chain: ChainType, token: string, tokenId: string}) {
 		return opensea.getOrderState(chain,token,tokenId);
 	}

@@ -34,6 +34,7 @@ module.exports = {
 		'http://152.32.150.90:8001',
 		'http://152.32.182.155:8001',//
 	],
+	opensea_api_key: '2f6f419a083c46de9d83ce3dbe7db601',
 	qiniu: {
 		prefix: 'https://smart-dao-res.stars-mine.com',
 		all_prefix: [
