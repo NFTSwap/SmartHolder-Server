@@ -150,7 +150,7 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		return true;
 	}
 
-	private async _SyncFromData(data: any, asset: Asset, chain: ChainType, _uri: string) {
+	private async _SyncFromData(data: any, asset: Asset, chain: ChainType, _uri: string) {debugger
 		const {id, token, tokenId, uri} = asset;
 
 		var {

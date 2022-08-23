@@ -14,7 +14,6 @@ import {web3s} from '../web3+';
 import * as cfg from '../../config';
 import * as redis from 'bclib/redis';
 import * as utils from '../utils';
-import {getOrders,OrderComponents} from './opensea';
 
 export interface TokenURIInfo {
 	name: string;
@@ -35,10 +34,10 @@ export interface EventsItemExt extends EventsItem {
 }
 
 async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
-	if (!asset.uri || !asset.mediaOrigin) {
+	if (!asset.name || !asset.uri || !asset.mediaOrigin) {
 		await somes.scopeLock(`asset_${asset.id}`, async ()=>{
 			var [it] = await db.select<Asset>(`asset_${chain}`, {id:asset.id});
-			if (!it.uri || !asset.mediaOrigin) {
+			if (!it.name || !it.uri || !it.mediaOrigin) {
 				await sync.assetMetaDataSync.sync(asset, chain);
 			} else {
 				Object.assign(asset, it);
@@ -51,7 +50,7 @@ async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
 export async function beautifulAsset(asset: Asset[], chain: ChainType) {
 	var timeout = false;
 	try {
-		await somes.timeout(async () =>{
+		await somes.timeout((async () =>{
 			for (var a of asset) {
 				if (timeout) {
 					break;
@@ -59,8 +58,10 @@ export async function beautifulAsset(asset: Asset[], chain: ChainType) {
 					await tryBeautifulAsset(a, chain);
 				}
 			}
-		}, 1e4);
-	} catch(err) {}
+		})(), 1e4);
+	} catch(err) {
+		console.warn(err);
+	}
 	timeout = true;
 }
 
