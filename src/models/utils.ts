@@ -108,17 +108,17 @@ export async function getMembersFrom(chain: ChainType, host: string, owner?: str
 }
 
 export async function getAssetFrom(
-	chain: ChainType, host: string, owner?: string, 
+	chain: ChainType, host: string, owner?: string,
 	state = State.Enable,
 	name?: string,
 	time?: [number,number],
 	selling?: Selling,
-	limit?: number | number[], noBeautiful?: boolean, noOrder?: boolean
+	limit?: number | number[], noBeautiful?: boolean
 ) {
 	let dao = await getDAONoEmpty(chain, host);
 	let sql = `select * from asset_${chain} where token=${escape(dao.assetGlobal)} and owner=${escape(owner)} and state=${escape(state)} `;
 	if (name)
-		sql += `and title like ${escape(name+'%')} `;
+		sql += `and name like ${escape(name+'%')} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (selling != undefined)
@@ -129,37 +129,6 @@ export async function getAssetFrom(
 	if (!noBeautiful) {
 		await beautifulAsset(assets, chain);
 	}
-	// while(!noOrder) {
-	// 	let tokenIds = assets.map(e=>e.tokenId);
-	// 	let dict = {} as Dict<{ sellPrice: string; tokenId: string }>;
-	// 	let orders = [] as OrderComponents[];
-	// 	try {
-	// 		orders = await getOrders(chain, dao.assetGlobal, tokenIds, 1e5);
-	// 	} catch(err) {
-	// 		break;
-	// 	}
-	// 	for (let it of orders) {
-	// 		let tokenId = '0x' + BigInt(it.offer[0].identifierOrCriteria).toString(16);
-	// 		let sellPrice = BigInt(0);
-	// 		for (let it of orders) {
-	// 			for (let c of it.consideration) {
-	// 				sellPrice += BigInt(c.startAmount);
-	// 			}
-	// 			dict[tokenId] = {
-	// 				tokenId: tokenId,
-	// 				sellPrice: sellPrice.toString(),
-	// 			};
-	// 		}
-	// 	}
-	// 	for (let it of assets) {
-	// 		let o = dict[it.tokenId];
-	// 		if (o) {
-	// 			it.selling = Selling.Opensea;
-	// 			it.sellPrice = o.sellPrice;
-	// 		}
-	// 	}
-	// 	break;
-	// }
 	return assets;
 }
 
