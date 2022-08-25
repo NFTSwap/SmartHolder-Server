@@ -53,8 +53,10 @@ export interface OrderParametersAll {
 function getPrefix(chain: ChainType) {
 	if (chain == ChainType.ETHEREUM) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
+		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
 	} else {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		// return { prefix: 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
 	}
 }
 
@@ -82,7 +84,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	let r = await get_(url.href, {
 		handleStatusCode: _handleStatusCode,
 		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, true, 2);
+	}, false, 2);
 	return r.data as any as T;
 }
 
@@ -91,7 +93,7 @@ async function post<T = any>(chain: ChainType, path: string, params?: Params): P
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, true, 2);
+	}, false, 2);
 	return r.data as any as T;
 }
 
@@ -119,14 +121,27 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600);
 	let methods = web3.createContract(token, abi.abi as any).methods;
 	let owner = await methods.ownerOf(tokenId).call() as string;
+	// let owner = '0x4ab17f69d1225eD66DE25A6C3c69f3F83766CBea';
 	let id = BigInt(tokenId).toString(10);
-
-	let amount_ = BigInt(amount);
-	let amountOpensea = BigInt(amount) / BigInt(1000) * BigInt(25); // opensea 2.5%
-	let amountMy = BigInt(amount) - amountOpensea;
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
 
 	// let sea = getSeaport(chain);
+
+	let taxs = {
+		'0x0000a26b00c1F0DF003000390027140000fAa719': 25, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
+	};
+
+	let amount_ = BigInt(amount);
+	let amountMy = amount_;
+	let recipients: {amount: bigint; recipient: string; }[] = [
+		...Object.entries(taxs).map(([recipient,tax])=>{
+			let amount = BigInt(1000) * BigInt(tax);
+			amountMy -= amount;
+			return { recipient, amount };
+		}),
+		{ amount: amountMy, recipient: owner },
+	];
 
 	let data = {
 		primaryType: 'OrderComponents',
@@ -252,7 +267,8 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		},
 		value: {
 			offerer: owner,
-			zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e",
+			// zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e",
+			zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00',
 			zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			startTime: String(now),
 			endTime: String(lastTime),
@@ -267,23 +283,14 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 				}
 			],
 			consideration: [
-				{
-						itemType: ItemType.NATIVE,
-						token: "0x0000000000000000000000000000000000000000",
-						identifierOrCriteria: "0",
-						startAmount: amountMy.toString(10),
-						endAmount: amountMy.toString(10),
-						recipient: owner,
-				},
-				{
+				...recipients.map(e=>({
 					itemType: ItemType.NATIVE,
-					token: "0x0000000000000000000000000000000000000000",
-					identifierOrCriteria: "0",
-					startAmount: amountOpensea.toString(10),
-					endAmount: amountOpensea.toString(10),
-					// recipient: '0x8De9C5A032463C561423387a9648c5C7BCC5BC90', // opensea
-					recipient: '0x0000a26b00c1F0DF003000390027140000fAa719', // opensea
-				}
+					token: '0x0000000000000000000000000000000000000000',
+					identifierOrCriteria: '0',
+					startAmount: e.amount.toString(10),
+					endAmount: e.amount.toString(10),
+					recipient: e.recipient,
+				})),
 			],
 			totalOriginalConsiderationItems: "2",
 			salt: BigInt('0x' + rng(16).toString('hex')).toString(10),// "36980727087255389",
@@ -298,6 +305,27 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 }
 
 export async function createOrder(chain: ChainType, order: OrderComponents, signature: string): Promise<void> {
+
+	/*
+		curl 'https://element-api.eossql.com/bridge/opensea/v2/orders/ethereum/seaport/listings' \
+		-H 'authority: element-api.eossql.com' \
+		-H 'accept: application/json' \
+		-H 'accept-language: en,en-US;q=0.9,zh-CN;q=0.8,zh;q=0.7,ja;q=0.6,zh-TW;q=0.5,da;q=0.4' \
+		-H 'content-type: application/json' \
+		-H 'dnt: 1' \
+		-H 'origin: https://element.market' \
+		-H 'referer: https://element.market/' \
+		-H 'sec-ch-ua: "Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"' \
+		-H 'sec-ch-ua-mobile: ?0' \
+		-H 'sec-ch-ua-platform: "macOS"' \
+		-H 'sec-fetch-dest: empty' \
+		-H 'sec-fetch-mode: cors' \
+		-H 'sec-fetch-site: cross-site' \
+		-H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36' \
+		-H 'x-api-key: 2f6f419a083c46de9d83ce3dbe7db601' \
+		--data-raw '{"parameters":{"offerer":"0x4ab17f69d1225ed66de25a6c3c69f3f83766cbea","zone":"0x004C00500000aD104D7DBd00e3ae0A5C00560C00","orderType":2,"startTime":"1661399993","endTime":"1662004792","zoneHash":"0x0000000000000000000000000000000000000000000000000000000000000000","salt":"38386380151470404","offer":[{"itemType":2,"token":"0x12073c130ee0612219a0b54e56582ce24155dfa8","identifierOrCriteria":"2202","startAmount":"1","endAmount":"1"}],"consideration":[{"itemType":0,"token":"0x0000000000000000000000000000000000000000","identifierOrCriteria":"0","startAmount":"905000000000000000","endAmount":"905000000000000000","recipient":"0x4ab17f69d1225ed66de25a6c3c69f3f83766cbea"},{"itemType":0,"token":"0x0000000000000000000000000000000000000000","identifierOrCriteria":"0","startAmount":"25000000000000000","endAmount":"25000000000000000","recipient":"0x0000a26b00c1F0DF003000390027140000fAa719"},{"itemType":0,"token":"0x0000000000000000000000000000000000000000","identifierOrCriteria":"0","startAmount":"70000000000000000","endAmount":"70000000000000000","recipient":"0xabb7635910c4d7e8a02bd9ad5b036a089974bf88"}],"conduitKey":"0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000","counter":0,"totalOriginalConsiderationItems":3},"signature":"0xdeac9eb868515e06aa98b578fca4466cb18c92fb8a3ef5f72f8e7ff053e664f460296f705d7ac99a82a18e889c2a729b423d979e742b71930228463f4a82cf7c1b"}' \
+		--compressed
+	*/
 
 	let token = order.offer[0].token;
 	let tokenId = order.offer[0].identifierOrCriteria;
