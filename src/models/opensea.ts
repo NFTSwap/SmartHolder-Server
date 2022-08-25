@@ -84,7 +84,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	let r = await get_(url.href, {
 		handleStatusCode: _handleStatusCode,
 		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, false, 2);
+	}, true, 2);
 	return r.data as any as T;
 }
 
@@ -93,7 +93,7 @@ async function post<T = any>(chain: ChainType, path: string, params?: Params): P
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, false, 2);
+	}, true, 2);
 	return r.data as any as T;
 }
 
