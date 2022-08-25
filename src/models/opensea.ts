@@ -50,13 +50,17 @@ export interface OrderParametersAll {
 	OPENSEA_CONDUIT_ADDRESS: string;
 }
 
-function getPrefix(chain: ChainType) {
+function getPrefix(chain: ChainType, isGet?: boolean) {
+	let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
 	if (chain == ChainType.ETHEREUM) {
-		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
+		// return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
 		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
+		// https://opensea15.p.rapidapi.com
+		return { prefix, network: 'ethereum' };
 	} else {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		// return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
 		// return { prefix: 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
+		return { prefix, network: 'rinkeby' };
 	}
 }
 
@@ -77,14 +81,18 @@ function _handleStatusCode(r: Result) {
 }
 
 async function get<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
-	let {prefix, network} = getPrefix(chain);
+	let {prefix, network} = getPrefix(chain, true);
 	let url = new URL(`${prefix}/${String.format(path, network)}`);
 	if (params)
 		url.params = params;
 	let r = await get_(url.href, {
 		handleStatusCode: _handleStatusCode,
-		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, true, 2);
+		headers: {
+			// 'X-API-KEY': cfg.opensea_api_key,
+			'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
+			'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
+		},
+	}, false, 2);
 	return r.data as any as T;
 }
 
@@ -92,8 +100,12 @@ async function post<T = any>(chain: ChainType, path: string, params?: Params): P
 	let {prefix, network} = getPrefix(chain);
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
-		headers: { 'X-API-KEY': cfg.opensea_api_key },
-	}, true, 2);
+		headers: {
+			// 'X-API-KEY': cfg.opensea_api_key,
+			'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
+			'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
+		},
+	}, false, 2);
 	return r.data as any as T;
 }
 
@@ -124,7 +136,6 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	// let owner = '0x4ab17f69d1225eD66DE25A6C3c69f3F83766CBea';
 	let id = BigInt(tokenId).toString(10);
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
-
 	// let sea = getSeaport(chain);
 
 	let taxs = {
@@ -377,6 +388,8 @@ export async function getOrders(chain: ChainType, token: string, tokenIds: strin
 			api += `&token_ids=${BigInt(it)}`;
 		let {orders} = await get(chain, api);
 		let ls = [] as OrderComponents[];
+
+		orders = Array.isArray(orders) ? orders: [];
 
 		// maskOrderSelling close
 		for (let it of tokenIds) 
