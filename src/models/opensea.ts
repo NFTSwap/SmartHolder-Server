@@ -51,16 +51,16 @@ export interface OrderParametersAll {
 }
 
 function getPrefix(chain: ChainType, isGet?: boolean) {
-	let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
+	// let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
 	if (chain == ChainType.ETHEREUM) {
 		// return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
-		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
+		return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
 		// https://opensea15.p.rapidapi.com
-		return { prefix, network: 'ethereum' };
+		// return { prefix, network: 'ethereum' };
 	} else {
-		// return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
 		// return { prefix: 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
-		return { prefix, network: 'rinkeby' };
+		// return { prefix, network: 'rinkeby' };
 	}
 }
 
@@ -77,6 +77,10 @@ function _handleStatusCode(r: Result) {
 		throw Error.new(errno.ERR_HTTP_STATUS_NO_200).ext(r);
 	} else {
 		r.data = JSON.parse(r.data);
+		// {"code":1006,"status":"error","message":"not found api"}
+		if (r.data.error || r.data.code) {
+			throw Error.new(r.data).ext({r, abort: true});
+		}
 	}
 }
 
@@ -147,7 +151,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	let amountMy = amount_;
 	let recipients: {amount: bigint; recipient: string; }[] = [
 		...Object.entries(taxs).map(([recipient,tax])=>{
-			let amount = BigInt(1000) * BigInt(tax);
+			let amount = BigInt(100) * BigInt(tax);
 			amountMy -= amount;
 			return { recipient, amount };
 		}),
@@ -278,8 +282,8 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		},
 		value: {
 			offerer: owner,
-			// zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e",
-			zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00',
+			zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
+			// zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00', // element
 			zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			startTime: String(now),
 			endTime: String(lastTime),
