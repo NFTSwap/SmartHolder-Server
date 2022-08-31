@@ -221,6 +221,7 @@ async function load_main_db() {
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
 			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
+			`create         index dao_${chain}_idx3              on dao_${chain}                    (assetGlobal)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,

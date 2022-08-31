@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import { ChainType, Selling, DAO } from "./def";
+import db, { ChainType, Selling, DAO } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
 import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
@@ -21,7 +21,7 @@ import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
 import * as redis from 'bclib/redis';
-import db from '../db';
+import {formatHex} from '../sync/scaner';
 
 export {OrderComponents};
 
@@ -262,20 +262,27 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
 	// let sea = getSeaport(chain);
 
-	let taxs = {
+	let taxs: [[string,number]] = [
 		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
-		'0x0000a26b00c1F0DF003000390027140000fAa719': 26, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
-	};
+		['0x0000a26b00c1F0DF003000390027140000fAa719', 25], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+	];
+
+	let json = await getOpenseaContractJSONFromAssetGlobal(token, chain);
+	if (json) {
+		// seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
+		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
+		// taxs.unshift([json.fee_recipient, json.seller_fee_basis_points / 10]);
+	}
 
 	let amount_ = BigInt(amount);
 	let amountMy = amount_;
 	let recipients: {amount: bigint; recipient: string; }[] = [
-		...Object.entries(taxs).map(([recipient,tax])=>{
+		...taxs.map(([recipient,tax])=>{
 			let amount = amount_ * BigInt(tax) / BigInt(1000);
 			amountMy -= amount;
 			return { recipient, amount };
 		}),
-		{ amount: amountMy, recipient: owner },
+		{ recipient: owner, amount: amountMy },
 	];
 
 	let data = {
@@ -369,7 +376,10 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 }
 
 export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '') {
-	await db.update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: '0x' + BigInt(tokenId).toString(16) });
+	let id = formatHex(tokenId, 32);
+	let num = await db.update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: id });
+	// somes.assert(num == 1);
+	// console.log('maskOrderSelling', num, token, id);
 }
 
 export async function maskOrderClose(chain: ChainType, token: string, tokenId: string) {
@@ -409,7 +419,7 @@ export async function getOrders(chain: ChainType, token: string, tokenIds: strin
 		for (let it of orders) {
 			let order = it?.protocol_data?.parameters as OrderComponents;
 			if (order) {
-				let tokenId = '0x' + BigInt(order.offer[0].identifierOrCriteria).toString(16);
+				let tokenId = formatHex(order.offer[0].identifierOrCriteria, 32);
 				let sellPrice = BigInt(0);
 				for (let c of order.consideration) {
 					sellPrice += BigInt(c.startAmount);
@@ -451,16 +461,7 @@ export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权�
 	return OPENSEA_CONDUIT_ADDRESS;
 }
 
-export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
-	let dao: DAO | null = null;
-	if (chain) {
-		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
-	} else {
-		for (let chain of Object.keys(web3s)) {
-			dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
-			if (dao) break;
-		}
-	}
+function getOpenseaContractJSONFromDAO(dao?: DAO | null) {
 	if (dao) {
 		return {
 			name: dao.name, // "OpenSea Creatures",
@@ -473,4 +474,22 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
 	} else {
 		return null;
 	}
+}
+
+export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
+	let dao: DAO | null = null;
+	if (chain) {
+		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+	} else {
+		for (let chain of Object.keys(web3s)) {
+			dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+			if (dao) break;
+		}
+	}
+	return getOpenseaContractJSONFromDAO(dao);
+}
+
+export async function getOpenseaContractJSONFromAssetGlobal(assetGlobal: string, chain: ChainType) {
+	let dao = await db.selectOne<DAO>(`dao_${chain}`, { assetGlobal });
+	return getOpenseaContractJSONFromDAO(dao);
 }
