@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import { ChainType, Selling } from "./def";
+import { ChainType, Selling, DAO } from "./def";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
 import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
@@ -27,6 +27,121 @@ export {OrderComponents};
 
 const seaports: Map<ChainType, Seaport> = new Map();
 export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
+
+const orderTypes = {
+	"EIP712Domain": [
+		{
+			"name": "name",
+			"type": "string"
+		},
+		{
+			"name": "version",
+			"type": "string"
+		},
+		{
+			"name": "chainId",
+			"type": "uint256"
+		},
+		{
+			"name": "verifyingContract",
+			"type": "address"
+		}
+	],
+	"OrderComponents": [
+		{
+			"name": "offerer",
+			"type": "address"
+		},
+		{
+			"name": "zone",
+			"type": "address"
+		},
+		{
+			"name": "offer",
+			"type": "OfferItem[]"
+		},
+		{
+			"name": "consideration",
+			"type": "ConsiderationItem[]"
+		},
+		{
+			"name": "orderType",
+			"type": "uint8"
+		},
+		{
+			"name": "startTime",
+			"type": "uint256"
+		},
+		{
+			"name": "endTime",
+			"type": "uint256"
+		},
+		{
+			"name": "zoneHash",
+			"type": "bytes32"
+		},
+		{
+			"name": "salt",
+			"type": "uint256"
+		},
+		{
+			"name": "conduitKey",
+			"type": "bytes32"
+		},
+		{
+			"name": "counter",
+			"type": "uint256"
+		}
+	],
+	"OfferItem": [
+			{
+					"name": "itemType",
+					"type": "uint8"
+			},
+			{
+					"name": "token",
+					"type": "address"
+			},
+			{
+					"name": "identifierOrCriteria",
+					"type": "uint256"
+			},
+			{
+					"name": "startAmount",
+					"type": "uint256"
+			},
+			{
+					"name": "endAmount",
+					"type": "uint256"
+			}
+	],
+	"ConsiderationItem": [
+			{
+					"name": "itemType",
+					"type": "uint8"
+			},
+			{
+					"name": "token",
+					"type": "address"
+			},
+			{
+					"name": "identifierOrCriteria",
+					"type": "uint256"
+			},
+			{
+					"name": "startAmount",
+					"type": "uint256"
+			},
+			{
+					"name": "endAmount",
+					"type": "uint256"
+			},
+			{
+					"name": "recipient",
+					"type": "address"
+			}
+	]
+};
 
 export type TypedDataDomain = {
 	name?: string;
@@ -53,14 +168,13 @@ export interface OrderParametersAll {
 function getPrefix(chain: ChainType, isGet?: boolean) {
 	// let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
 	if (chain == ChainType.ETHEREUM) {
-		// return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
-		return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
+		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
+		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
 		// https://opensea15.p.rapidapi.com
 		// return { prefix, network: 'ethereum' };
 	} else {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
-		// return { prefix: 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
-		// return { prefix, network: 'rinkeby' };
+		// return { prefix: isGet ? 'https://testnets-api.opensea.io/v2': 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
 	}
 }
 
@@ -71,8 +185,10 @@ function _handleStatusCode(r: Result) {
 			throw Error.new(errno.ERR_HTTP_STATUS_404).ext(r);
 		} else if (r.statusCode == 400) { // logic error
 			let data = JSON.parse(r.data);
-			r.data = Array.isArray(data) ? data: [data];
-			throw Error.new([errno.ERR_OPENSEA_API_ERROR, ...r.data]).ext({r, abort: true, ...data});
+			// errors: ["['Invalid order signature']"]
+			r.data = data.errors ? data.errors: data;
+			r.data = Array.isArray(r.data) ? r.data: [r.data];
+			throw Error.new(errno.ERR_OPENSEA_API_ERROR.concat(r.data[0])).ext({r, abort: true, ...data});
 		}
 		throw Error.new(errno.ERR_HTTP_STATUS_NO_200).ext(r);
 	} else {
@@ -89,27 +205,31 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	let url = new URL(`${prefix}/${String.format(path, network)}`);
 	if (params)
 		url.params = params;
-	let r = await get_(url.href, {
+	let href = url.href;
+	let isOpensea = href.indexOf('opensea') != -1;
+	let r = await get_(href, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
 			// 'X-API-KEY': cfg.opensea_api_key,
-			'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
+			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
+			// 'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
 		},
-	}, false, 2);
+	}, isOpensea, 2);
 	return r.data as any as T;
 }
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
+	let href = `${prefix}/${String.format(path, network)}`;
+	let isOpensea = href.indexOf('opensea') != -1;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
 			// 'X-API-KEY': cfg.opensea_api_key,
-			'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
+			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
+			// 'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
 		},
-	}, false, 2);
+	}, isOpensea, 2);
 	return r.data as any as T;
 }
 
@@ -143,15 +263,15 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	// let sea = getSeaport(chain);
 
 	let taxs = {
-		'0x0000a26b00c1F0DF003000390027140000fAa719': 25, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
+		'0x0000a26b00c1F0DF003000390027140000fAa719': 25, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	};
 
 	let amount_ = BigInt(amount);
 	let amountMy = amount_;
 	let recipients: {amount: bigint; recipient: string; }[] = [
 		...Object.entries(taxs).map(([recipient,tax])=>{
-			let amount = BigInt(100) * BigInt(tax);
+			let amount = amount_ * BigInt(tax) / BigInt(1000);
 			amountMy -= amount;
 			return { recipient, amount };
 		}),
@@ -166,120 +286,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 			verifyingContract: "0x00000000006c3852cbEf3e08E8dF289169EdE581",
 			version: "1.1"
 		},
-		types: {
-			"EIP712Domain": [
-				{
-					"name": "name",
-					"type": "string"
-				},
-				{
-					"name": "version",
-					"type": "string"
-				},
-				{
-					"name": "chainId",
-					"type": "uint256"
-				},
-				{
-					"name": "verifyingContract",
-					"type": "address"
-				}
-			],
-			"OrderComponents": [
-				{
-					"name": "offerer",
-					"type": "address"
-				},
-				{
-					"name": "zone",
-					"type": "address"
-				},
-				{
-					"name": "offer",
-					"type": "OfferItem[]"
-				},
-				{
-					"name": "consideration",
-					"type": "ConsiderationItem[]"
-				},
-				{
-					"name": "orderType",
-					"type": "uint8"
-				},
-				{
-					"name": "startTime",
-					"type": "uint256"
-				},
-				{
-					"name": "endTime",
-					"type": "uint256"
-				},
-				{
-					"name": "zoneHash",
-					"type": "bytes32"
-				},
-				{
-					"name": "salt",
-					"type": "uint256"
-				},
-				{
-					"name": "conduitKey",
-					"type": "bytes32"
-				},
-				{
-					"name": "counter",
-					"type": "uint256"
-				}
-			],
-			"OfferItem": [
-					{
-							"name": "itemType",
-							"type": "uint8"
-					},
-					{
-							"name": "token",
-							"type": "address"
-					},
-					{
-							"name": "identifierOrCriteria",
-							"type": "uint256"
-					},
-					{
-							"name": "startAmount",
-							"type": "uint256"
-					},
-					{
-							"name": "endAmount",
-							"type": "uint256"
-					}
-			],
-			"ConsiderationItem": [
-					{
-							"name": "itemType",
-							"type": "uint8"
-					},
-					{
-							"name": "token",
-							"type": "address"
-					},
-					{
-							"name": "identifierOrCriteria",
-							"type": "uint256"
-					},
-					{
-							"name": "startAmount",
-							"type": "uint256"
-					},
-					{
-							"name": "endAmount",
-							"type": "uint256"
-					},
-					{
-							"name": "recipient",
-							"type": "address"
-					}
-			]
-		},
+		types: orderTypes,
 		value: {
 			offerer: owner,
 			zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
@@ -298,7 +305,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 				}
 			],
 			consideration: [
-				...recipients.map(e=>({
+				...recipients.reverse().map(e=>({
 					itemType: ItemType.NATIVE,
 					token: '0x0000000000000000000000000000000000000000',
 					identifierOrCriteria: '0',
@@ -307,7 +314,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 					recipient: e.recipient,
 				})),
 			],
-			totalOriginalConsiderationItems: "2",
+			totalOriginalConsiderationItems: recipients.length + '',
 			salt: BigInt('0x' + rng(16).toString('hex')).toString(10),// "36980727087255389",
 			conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
 			counter: 0
@@ -442,4 +449,28 @@ export function get_CROSS_CHAIN_SEAPORT_ABI() {
 
 export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
 	return OPENSEA_CONDUIT_ADDRESS;
+}
+
+export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
+	let dao: DAO | null = null;
+	if (chain) {
+		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+	} else {
+		for (let chain of Object.keys(web3s)) {
+			dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
+			if (dao) break;
+		}
+	}
+	if (dao) {
+		return {
+			name: dao.name, // "OpenSea Creatures",
+			description: dao.description, // desc
+			image: `${cfg.publicURL}/image.png`, //"external-link-url/image.png",
+			external_link: cfg.publicURL, // "external-link-url",
+			seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
+			fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
+		};
+	} else {
+		return null;
+	}
 }

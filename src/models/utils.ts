@@ -250,30 +250,6 @@ export function getVotesFrom(chain: ChainType, address: string, proposal_id: str
 	return db.select<Votes>(`votes_${chain}`, {address, proposal_id, member_id}, {limit: getLimit(limit)});
 }
 
-export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
-	let dao: DAO | null = null;
-	if (chain) {
-		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
-	} else {
-		for (let chain of Object.keys(web3s)) {
-			dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
-			if (dao) break;
-		}
-	}
-	if (dao) {
-		return {
-			name: dao.name, // "OpenSea Creatures",
-			description: dao.description, // desc
-			image: `${cfg.publicURL}/image.png`, //"external-link-url/image.png",
-			external_link: cfg.publicURL, // "external-link-url",
-			seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
-			fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
-		};
-	} else {
-		return null;
-	}
-}
-
 export async function addEventsItem(chain: ChainType, host: string, title: string, description: string, created_member_id: string) {
 	await db.insert(`events`, { chain, host, title, description, created_member_id, time: Date.now(), modify: Date.now() });
 }

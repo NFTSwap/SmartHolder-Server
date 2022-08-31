@@ -10,6 +10,7 @@ import {Transaction} from 'web3-core';
 import * as utils from '../utils';
 import db from '../db';
 import _hash from 'somes/hash';
+import * as opensea from '../models/opensea';
 
 export abstract class AssetScaner extends ContractScaner implements IAssetScaner {
 	abstract uri(tokenId: string): Promise<string>;
@@ -76,6 +77,8 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 				time: time,
 			});
 		}
+
+		await opensea.maskOrderClose(this.chain, token, tokenId);
 	}
 
 }

@@ -8,8 +8,23 @@ import { ChainType, State,Selling,LedgerType } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
 import {TokenURIInfo} from '../models/utils';
+import * as opensea from '../models/opensea';
+import { RuleResult } from 'deps/bclib/deps/somes/router';
+
+const non_auth_apis = [
+	'getOpenseaContractJSON',
+];
 
 export default class extends ApiController {
+
+	onAuth(info: RuleResult) {
+		if (non_auth_apis.indexOf(info.action) == -1) { // not auth
+			return super.onAuth(info);
+		} else {
+			return Promise.resolve(true);
+		}
+	}
+
 	/**
 	 * @method getDAO() 通过地址获取dao对像
 	 * */ 
@@ -112,7 +127,7 @@ export default class extends ApiController {
 	}
 
 	getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
-		return utils.getOpenseaContractJSON(host, chain);
+		return opensea.getOpenseaContractJSON(host, chain);
 	}
 
 	/**

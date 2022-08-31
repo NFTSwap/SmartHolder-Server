@@ -46,4 +46,8 @@ export default class extends ApiController {
 		return opensea.maskOrderClose(chain, token, tokenId);
 	}
 
+	getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
+		return opensea.getOpenseaContractJSON(host, chain);
+	}
+
 }
