@@ -264,7 +264,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 
 	let taxs = {
 		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
-		'0x0000a26b00c1F0DF003000390027140000fAa719': 25, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+		'0x0000a26b00c1F0DF003000390027140000fAa719': 26, // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	};
 
 	let amount_ = BigInt(amount);
