@@ -271,7 +271,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	if (json) {
 		// seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
 		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
-		// taxs.unshift([json.fee_recipient, json.seller_fee_basis_points / 10]);
+		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points / 10]);
 	}
 
 	let amount_ = BigInt(amount);
