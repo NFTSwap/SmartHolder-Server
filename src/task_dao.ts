@@ -97,21 +97,47 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		};
 	}
 
+	private async getAccount(part_key: string, opts: {isSave: boolean, accounts: Dict<string>}) {
+		let acc = opts.accounts[part_key];
+		if (!acc) {
+			let {data} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			opts.isSave = true;
+			opts.accounts[part_key] = acc = data;
+		}
+		return acc;
+	}
+
+	private async getAccounts() {
+		let opts = {
+			isSave: false,
+			accounts: await storage.get<Dict<string>>('keys_genSecretKeyFromPartKey_getAccounts') || {},
+		};
+		let a1 = await this.getAccount('test', opts);
+		let a2 = await this.getAccount('a2', opts);
+		let a3 = await this.getAccount('a3', opts);
+		let a4 = await this.getAccount('a4', opts);
+		let a5 = await this.getAccount('a5', opts);
+		let a6 = await this.getAccount('a6', opts);
+		if (opts.isSave) {
+			await storage.set('keys_genSecretKeyFromPartKey_getAccounts', opts.accounts);
+		}
+		return { a1,a2,a3,a4,a5,a6 };
+	}
+
 	exec(args: MakeDaoArgs) {
 		type Result = PostResult & { taskId: string, flags: string };
 		let web3 = getWeb3(args.chain);
-		let part_key = 'test';
 
 		// deploy
 		this.step(async ()=>{
-			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let acc = await this.getAccounts();
 			let impls = (cfg.contractImpls as Dict)[ChainType[web3.chain]];
-			await this.deploy(web3, impls.DAO, from, ContextProxyDAO, 'DAO');
-			await this.deploy(web3, impls.Asset, from, ContextProxyAsset, 'Asset');
-			await this.deploy(web3, impls.AssetGlobal, from, ContextProxyAssetGlobal, 'AssetGlobal');
-			await this.deploy(web3, impls.Ledger, from, ContextProxyLedger, 'Ledger');
-			await this.deploy(web3, impls.Member, from, ContextProxyMember, 'Member');
-			await this.deploy(web3, impls.VotePool, from, ContextProxyVotePool, 'VotePool');
+			await this.deploy(web3, impls.DAO, acc.a1, ContextProxyDAO, 'DAO');
+			await this.deploy(web3, impls.Asset, acc.a2, ContextProxyAsset, 'Asset');
+			await this.deploy(web3, impls.AssetGlobal, acc.a3, ContextProxyAssetGlobal, 'AssetGlobal');
+			await this.deploy(web3, impls.Ledger, acc.a4, ContextProxyLedger, 'Ledger');
+			await this.deploy(web3, impls.Member, acc.a5, ContextProxyMember, 'Member');
+			await this.deploy(web3, impls.VotePool, acc.a6, ContextProxyVotePool, 'VotePool');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{ // 使用分布式原子锁
 			if (result.error) return Error.new(result.error);
 			// let tableName = `contract_info_${web3.chain}`;
@@ -144,9 +170,9 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 
 		// DAO.InitInterfaceID
 		this.step(async ()=>{
-			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let acc = await this.getAccounts();
 			let DAO = await storage.get(`MakeDAO_${this.id}_address_DAO`);
-			await this.callContract(web3, DAO, from, (await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
+			await this.callContract(web3, DAO, acc.a1, (await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags != 'InitInterfaceID') return false;
 			if (result.error) return Error.new(result.error);
@@ -155,14 +181,14 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 
 		// Init
 		this.step(async()=>{
-			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let acc = await this.getAccounts();
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let operator = '0x0000000000000000000000000000000000000000';
 			let contractURI = `${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?host=${DAO}&chain=${args.chain}`;
 
-			await this.callContract(web3, Asset, from, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
-			await this.callContract(web3, AssetGlobal, from, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator, contractURI).encodeABI(), 'Init_AssetGlobal');
-			await this.callContract(web3, Ledger, from, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
+			await this.callContract(web3, Asset, acc.a1, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
+			await this.callContract(web3, AssetGlobal, acc.a2, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator, contractURI).encodeABI(), 'Init_AssetGlobal');
+			await this.callContract(web3, Ledger, acc.a3, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
 
 			let members = [];
 			for (let it of args.members || []) {
@@ -182,8 +208,8 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			}
 			let initMemberCode = (await web3.contract(Member)).methods.initMember(DAO, args.memberBaseName || '', operator, members).encodeABI();
 
-			await this.callContract(web3, Member, from, initMemberCode, 'Init_Member');
-			await this.callContract(web3, VotePool, from, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
+			await this.callContract(web3, Member, acc.a4, initMemberCode, 'Init_Member');
+			await this.callContract(web3, VotePool, acc.a5, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
 
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags.indexOf('Init_') != 0) return false;
@@ -198,7 +224,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 
 		// InitDAO
 		this.step(async()=>{
-			let {data:from} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let acc = await this.getAccounts();
 			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let data = (await web3.contract(DAO)).methods.initDAO(
 				args.name,
@@ -206,7 +232,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 				args.operator, VotePool,
 				Member, Ledger, AssetGlobal, Asset,
 			).encodeABI();
-			await this.callContract(web3, DAO, from, data, 'Init_DAO');
+			await this.callContract(web3, DAO, acc.a1, data, 'Init_DAO');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags != 'Init_DAO') return false;
 			if (result.error) return Error.new(result.error);
