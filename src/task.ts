@@ -118,12 +118,14 @@ export abstract class Task<T = any> {
 		// state        int          default (0)     not null, -- 0进行中,1完成,2失败
 		// time         bigint                       not null,
 
-		let id = await db.insert(`tasks`, {
-			name, args: args || {}, state: 0, user, time: Date.now(), modify: Date.now()
+		let task = await db.transaction(async function(db) {
+			let id = await db.insert(`tasks`, {
+				name, args: args || {}, state: 0, user, time: Date.now(), modify: Date.now()
+			});
+			let tasks = await db.selectOne<Tasks>(`tasks`, {id});
+			return new Constructor(tasks!);
 		});
-		let tasks = await db.selectOne<Tasks>(`tasks`, {id});
-
-		return new Constructor(tasks!);
+		return task;
 	}
 
 	static async task<T = any>(this: TaskConstructor<T>, id: number) {
