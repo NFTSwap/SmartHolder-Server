@@ -144,7 +144,7 @@ export async function getAssetOrderFrom(
 ) {
 	let dao = await getDAONoEmpty(chain, host);
 	let sql = `
-		select ad.*, a.id as asset_id from asset_order_${chain} as ao 
+		select ao.*, a.id as asset_id from asset_order_${chain} as ao 
 		left join 
 			asset_${chain} as a on ao.token=a.token and ao.tokenId=a.tokenId
 		where
