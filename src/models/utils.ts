@@ -169,7 +169,7 @@ export async function getAssetOrderFrom(
 		let key = `getAssetCache_${chain}_${id}`;
 		let asset = await redis.get<Asset>(key);
 		if (asset === null) {
-			let asset = await db.selectOne<Asset>(`asset_${chain}`, { id }) as Asset;
+			asset = await db.selectOne<Asset>(`asset_${chain}`, { id }) as Asset;
 			somes.assert(asset, errno.ERR_ASSET_NOT_EXIST);
 			await redis.set(key, asset, 1e4);
 		}
