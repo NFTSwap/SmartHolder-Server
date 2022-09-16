@@ -172,9 +172,13 @@ function getPrefix(chain: ChainType, isGet?: boolean) {
 		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
 		// https://opensea15.p.rapidapi.com
 		// return { prefix, network: 'ethereum' };
-	} else {
+	} else if (chain == ChainType.GOERLI) {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli' };
 		// return { prefix: isGet ? 'https://testnets-api.opensea.io/v2': 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
+	} else if (chain == ChainType.RINKEBY) {
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+	} else {
+		throw Error.new(`unsupported network chain=${chain}`);
 	}
 }
 
