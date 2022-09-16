@@ -6,7 +6,7 @@ var impl = require('./util/impl');
 module.exports = {
 	...base,
 	web3s: {
-		// RINKEBY: rpc.RINKEBY,
+		RINKEBY: rpc.RINKEBY,
 		GOERLI: rpc.GOERLI,
 	},
 	contractImpls: impl,
