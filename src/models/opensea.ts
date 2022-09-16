@@ -173,7 +173,7 @@ function getPrefix(chain: ChainType, isGet?: boolean) {
 		// https://opensea15.p.rapidapi.com
 		// return { prefix, network: 'ethereum' };
 	} else {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli' };
 		// return { prefix: isGet ? 'https://testnets-api.opensea.io/v2': 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
 	}
 }

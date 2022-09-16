@@ -6,11 +6,11 @@ var impl = require('./util/impl');
 module.exports = {
 	...base,
 	web3s: {
-		RINKEBY: rpc.RINKEBY,
-		HCETH: rpc.HCETH,
+		// RINKEBY: rpc.RINKEBY,
+		GOERLI: rpc.GOERLI,
 	},
 	contractImpls: impl,
-	mvp_ser_api: 'https://mvp.stars-mine.com/service-api',
+	tx_api: 'http://127.0.0.1:8002/service-api',
 	// ssh -f -N -g -R 8002:0.0.0.0:8002 root@dttyd.stars-mine.com
 	publicURL: 'https://smart-dao-rel.stars-mine.com',
 	mbus: 'mqtt://mqtt-test.stars-mine.com:2883',

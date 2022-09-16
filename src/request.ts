@@ -16,8 +16,8 @@ class MVPSer extends req.BcRequest {
 	protected shareKey = 'a4dd53f2fefde37c07ac4824cf7085439633e1a357daacc3aaa16418275a9e40';
 }
 
-export const mvpApi = new MVPSer(cfg.mvp_ser_api || 'https://mvp.stars-mine.com/service-api');
+export const txApi = new MVPSer(cfg.tx_api || 'https://mvp.stars-mine.com/service-api');
 
-mvpApi.urlencoded = false;
+txApi.urlencoded = false;
 
-export default mvpApi;
+export default txApi;

@@ -45,7 +45,6 @@ function runWebForwardServer() {
 
 export async function startWeb(workers?: number) {
 	workers = workers || (cfg.env == 'dev' ? 2: 8);
-
 	await initialize();
 	await runWebForwardServer();
 
@@ -67,7 +66,6 @@ export async function startWeb(workers?: number) {
 export async function startWatch(workers?: number) {
 	workers =  workers || (cfg.env == 'dev' ? 2: 8);
 	workers = Math.pow(2, Math.ceil(Math.log2(workers)));
-
 	await initialize();
 
 	for (var i = 0; i < workers; i++) {
@@ -84,6 +82,25 @@ export async function startWatch(workers?: number) {
 			PROC_TYPE: 'watch',
 			RUN_DAEMON: '',
 			DISABLE_WEB: true,
+		});
+		daemons.push(dea);
+	}
+}
+
+export async function startWeb3TxDequeue(workers?: number) {
+	workers = workers || (cfg.env == 'dev' ? 2: 8);
+	await initialize();
+
+	for (var i = 0; i < workers; i++) {
+		var dea = new Daemon(`shs-tx_${i}`);
+		await dea.start(process.execPath, [`--inspect=${9340+i}`, `${__dirname}/../`], {
+			__WORKERS: workers,
+			__WORKER: i,
+			PROC_TYPE: 'tx',
+			RUN_DAEMON: '',
+			WATCH_SYNC_MAIN: 0,
+			DISABLE_WEB: true,
+			WEB3_TX_DEQUEUE: true,
 		});
 		daemons.push(dea);
 	}

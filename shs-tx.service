@@ -1,0 +1,15 @@
+[Unit]
+Description=shs
+Documentation=http://gitlab.stars-mine.com/hardware/shs
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+Environment=RUN_DAEMON=1 RUN_WORKERS=4 RUN_TARGET=tx
+ExecStart=/usr/local/bin/node /data/src/shs/out/shs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
