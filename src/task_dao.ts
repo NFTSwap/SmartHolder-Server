@@ -7,7 +7,7 @@ import somes from 'somes';
 import {Task} from './task';
 import {Tasks} from './models/def';
 import {ChainType} from './models/def';
-import {mvpApi} from './request';
+import {txApi} from './request';
 import getWeb3, {MvpWeb3} from './web3+';
 import {PostResult} from 'bclib/web3_tx';
 import * as cfg from '../config';
@@ -63,7 +63,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	private async deploy(web3: MvpWeb3, impl: string, from: string, abi: {bytecode: string, abi: any}, flags: string) {
 		let addr = '0x0000000000000000000000000000000000000000';
 		let id = this.tasks.id;
-		let {data:review} = await mvpApi.post<string>('tx/send', {
+		let {data:review} = await txApi.post<string>('tx/send', {
 			chain: web3.chain,
 			tx: {
 				from: from,
@@ -78,7 +78,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	}
 
 	private async callContract(web3: MvpWeb3, address: string, from: string, data: string, flags: string) {
-		let {data:review} = await mvpApi.post<string>('tx/send', {
+		let {data:review} = await txApi.post<string>('tx/send', {
 			chain: web3.chain,
 			tx: { from, to: address, data },
 			callback: `${cfg.publicURL}/service-api/tasks/makeDAO_Next__?taskId=${this.id}&flags=${flags}`,
@@ -100,7 +100,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 	private async getAccount(part_key: string, opts: {isSave: boolean, accounts: Dict<string>}) {
 		let acc = opts.accounts[part_key];
 		if (!acc) {
-			let {data} = await mvpApi.post('keys/genSecretKeyFromPartKey', {part_key});
+			let {data} = await txApi.post('keys/genSecretKeyFromPartKey', {part_key});
 			opts.isSave = true;
 			opts.accounts[part_key] = acc = data;
 		}
