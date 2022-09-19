@@ -283,6 +283,11 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			});
 		}
 
+		// insert members
+		for (let m of args.members || []) {
+			// TODO ...
+		}
+
 		return DAO as string;
 	}
 
