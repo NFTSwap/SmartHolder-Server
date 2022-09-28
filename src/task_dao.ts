@@ -209,7 +209,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let initMemberCode = (await web3.contract(Member)).methods.initMember(DAO, args.memberBaseName || '', operator, members).encodeABI();
 
 			await this.callContract(web3, Member, acc.a4, initMemberCode, 'Init_Member');
-			await this.callContract(web3, VotePool, acc.a5, (await web3.contract(VotePool)).methods.initVotePool(DAO, '').encodeABI(), 'Init_VotePool');
+			await this.callContract(web3, VotePool, acc.a5, (await web3.contract(VotePool)).methods.initVotePool(DAO, 5000, '').encodeABI(), 'Init_VotePool');
 
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags.indexOf('Init_') != 0) return false;

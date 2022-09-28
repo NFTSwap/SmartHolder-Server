@@ -60,8 +60,8 @@ export class DAO extends ContractScaner {
 				else if (tag == 'Ledger') {
 					await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
 				}
-				else if (tag == 'AssetGlobal') {
-					await db.update(`dao_${this.chain}`, { assetGlobal: await m.assetGlobal().call(), modify: time }, { address: this.address });
+				else if (tag == 'AssetShell') {
+					await db.update(`dao_${this.chain}`, { assetGlobal: await m.assetShell().call(), modify: time }, { address: this.address });
 				}
 				else if (tag == 'Asset') {
 					await db.update(`dao_${this.chain}`, { asset: await m.asset().call(), modify: time }, { address: this.address });
