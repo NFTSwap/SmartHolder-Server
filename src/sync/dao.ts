@@ -24,7 +24,8 @@ export class DAO extends ContractScaner {
 				// operator: string;//     varchar (64)   not null,
 				// member: string;//       varchar (64)   not null,
 				// ledger: string;//       varchar (64)   not null,
-				// assetGlobal: string;//  varchar (64)   not null,
+				// openseaFirst: string;//  varchar (64)   not null,
+				// openseaSecond: string;//  varchar (64)   not null,
 				// asset: string;//        varchar (64)   not null,
 				// time: number;//         bigint         not null,
 				// modify: number;//       bigint         not null
@@ -44,7 +45,8 @@ export class DAO extends ContractScaner {
 							root: await m.root().call(),
 							member: await m.member().call(),
 							ledger: await m.ledger().call(),
-							assetGlobal: await m.assetGlobal().call(),
+							openseaFirst: await m.openseaFirst().call(),
+							openseaSecond: await m.openseaSecond().call(),
 							asset: await m.asset().call(),
 							time: time,
 							modify: time,
@@ -60,8 +62,11 @@ export class DAO extends ContractScaner {
 				else if (tag == 'Ledger') {
 					await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
 				}
-				else if (tag == 'AssetShell') {
-					await db.update(`dao_${this.chain}`, { assetGlobal: await m.assetShell().call(), modify: time }, { address: this.address });
+				else if (tag == 'OpenseaFirst') {
+					await db.update(`dao_${this.chain}`, { openseaFirst: await m.openseaFirst().call(), modify: time }, { address: this.address });
+				}
+				else if (tag == 'OpenseaSecond') {
+					await db.update(`dao_${this.chain}`, { openseaSecond: await m.openseaSecond().call(), modify: time }, { address: this.address });
 				}
 				else if (tag == 'Asset') {
 					await db.update(`dao_${this.chain}`, { asset: await m.asset().call(), modify: time }, { address: this.address });

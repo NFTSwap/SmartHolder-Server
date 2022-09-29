@@ -25,13 +25,13 @@ export default function make(address: string, type: ContractType, chain: ChainTy
 	if (type == ContractType.DAO) {
 		cs = new DAO(address, type, chain);
 	}
-	else if (type == ContractType.ERC721) {
+	else if (type == ContractType.ERC721) { // 721
 		cs = new AssetERC721(address, type, chain);
 	}
-	else if (type == ContractType.Asset) {
+	else if (type == ContractType.Asset) { // 721
 		cs = new AssetERC721(address, type, chain);
 	}
-	else if (type == ContractType.AssetGlobal) {
+	else if (type == ContractType.AssetShell) { // 721
 		cs = new AssetERC721(address, type, chain);
 	}
 	else if (type == ContractType.Ledger) {

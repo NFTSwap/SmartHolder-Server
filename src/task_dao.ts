@@ -11,7 +11,7 @@ import {txApi} from './request';
 import getWeb3, {MvpWeb3} from './web3+';
 import {PostResult} from 'bclib/web3_tx';
 import * as cfg from '../config';
-import db, {storage, ContractType} from './db';
+import db, {storage, ContractType,SaleType} from './db';
 import errno from './errno';
 import {escape} from 'somes/db';
 import {scopeLock} from 'bclib/atomic_lock';
@@ -19,7 +19,7 @@ import {getContractInfo, insert as insertC, update as updateC} from './models/co
 // abis
 import * as ContextProxyDAO from '../abi/ContextProxyDAO.json';
 import * as ContextProxyAsset from '../abi/ContextProxyAsset.json';
-import * as ContextProxyAssetGlobal from '../abi/ContextProxyAssetGlobal.json';
+import * as ContextProxyAssetShell from '../abi/ContextProxyAssetShell.json';
 import * as ContextProxyLedger from '../abi/ContextProxyLedger.json';
 import * as ContextProxyMember from '../abi/ContextProxyMember.json';
 import * as ContextProxyVotePool from '../abi/ContextProxyVotePool.json';
@@ -44,7 +44,6 @@ export interface MakeDaoArgs {
 	members?: MakeMemberArgs[];
 	assetIssuanceTax?: number; // 资产发行税
 	assetCirculationTax?: number; // 资产流转税
-	defaultVoteRate?: number; // 投票参与率小于 50%，默认50%=0.5
 	defaultVotePassRate?: number; // 投票通过率不小于 50%，默认50%=0.5
 	defaultVoteTime?: number; // 默认投票时间
 	memberBaseName?: string; // 成员base名称
@@ -88,12 +87,13 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 
 	private async getStorageAddr() {
 		return {
-			DAO: await storage.get(`MakeDAO_${this.id}_address_DAO`),
-			Asset: await storage.get(`MakeDAO_${this.id}_address_Asset`),
-			AssetGlobal: await storage.get(`MakeDAO_${this.id}_address_AssetGlobal`),
-			Ledger: await storage.get(`MakeDAO_${this.id}_address_Ledger`),
-			Member: await storage.get(`MakeDAO_${this.id}_address_Member`),
-			VotePool: await storage.get(`MakeDAO_${this.id}_address_VotePool`),
+			DAO: await storage.get(`MakeDAO_${this.id}_address_DAO`) as string,
+			Asset: await storage.get(`MakeDAO_${this.id}_address_Asset`) as string,
+			openseaFirst: await storage.get(`MakeDAO_${this.id}_address_AssetShell.openseaFirst`) as string,
+			openseaSecond: await storage.get(`MakeDAO_${this.id}_address_AssetShell.openseaSecond`) as string,
+			Ledger: await storage.get(`MakeDAO_${this.id}_address_Ledger`) as string,
+			Member: await storage.get(`MakeDAO_${this.id}_address_Member`) as string,
+			VotePool: await storage.get(`MakeDAO_${this.id}_address_VotePool`) as string,
 		};
 	}
 
@@ -118,10 +118,11 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		let a4 = await this.getAccount('a4', opts);
 		let a5 = await this.getAccount('a5', opts);
 		let a6 = await this.getAccount('a6', opts);
+		let a7 = await this.getAccount('a7', opts);
 		if (opts.isSave) {
 			await storage.set('keys_genSecretKeyFromPartKey_getAccounts', opts.accounts);
 		}
-		return { a1,a2,a3,a4,a5,a6 };
+		return { a1,a2,a3,a4,a5,a6,a7 };
 	}
 
 	exec(args: MakeDaoArgs) {
@@ -134,90 +135,114 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let impls = (cfg.contractImpls as Dict)[ChainType[web3.chain]];
 			await this.deploy(web3, impls.DAO, acc.a1, ContextProxyDAO, 'DAO');
 			await this.deploy(web3, impls.Asset, acc.a2, ContextProxyAsset, 'Asset');
-			await this.deploy(web3, impls.AssetGlobal, acc.a3, ContextProxyAssetGlobal, 'AssetGlobal');
-			await this.deploy(web3, impls.Ledger, acc.a4, ContextProxyLedger, 'Ledger');
-			await this.deploy(web3, impls.Member, acc.a5, ContextProxyMember, 'Member');
-			await this.deploy(web3, impls.VotePool, acc.a6, ContextProxyVotePool, 'VotePool');
+			await this.deploy(web3, impls.AssetShell, acc.a3, ContextProxyAssetShell, 'AssetShell.openseaFirst');
+			await this.deploy(web3, impls.AssetShell, acc.a4, ContextProxyAssetShell, 'AssetShell.openseaSecond');
+			await this.deploy(web3, impls.Ledger, acc.a5, ContextProxyLedger, 'Ledger');
+			await this.deploy(web3, impls.Member, acc.a6, ContextProxyMember, 'Member');
+			await this.deploy(web3, impls.VotePool, acc.a7, ContextProxyVotePool, 'VotePool');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{ // 使用分布式原子锁
 			if (result.error) return Error.new(result.error);
-			// let tableName = `contract_info_${web3.chain}`;
 			let time = Date.now();
 			let blockNumber = result.receipt!.blockNumber;
 			let address = result.receipt!.contractAddress!;
-			let type = ContractType[result.flags as any] as any as ContractType;
+			let [flags] = result.flags.split('.');
+			let type = ContractType[flags as any] as any as ContractType;
 
 			await storage.set(`MakeDAO_${this.id}_address_${result.flags}`, result.receipt!.contractAddress);
 			if (! await getContractInfo(address, web3.chain)) {
-				// await db.insert(tableName, { address, type, blockNumber, time });
 				await insertC({ address, type, blockNumber, time }, web3.chain);
 			}
 
-			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
+			for (let i of [
+				'DAO', 'Asset',
+				'AssetShell.openseaFirst',
+				'AssetShell.openseaSecond', 'Ledger', 'Member', 'VotePool'
+			]) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
 				if (!addr) return;
 			}
 			let host = await storage.get(`MakeDAO_${this.id}_address_DAO`);
 
 			// update host
-			for (let i of ['DAO', 'Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
+			for (let i of [
+				'DAO', 'Asset',
+				'AssetShell.openseaFirst',
+				'AssetShell.openseaSecond', 'Ledger', 'Member', 'VotePool'
+			]) {
 				let addr = await storage.get(`MakeDAO_${this.id}_address_${i}`);
-				// await db.update(tableName, { host }, { address: addr });
 				await updateC({host}, addr, web3.chain);
 			}
 
 			return true;
 		}));
 
-		// DAO.InitInterfaceID
-		this.step(async ()=>{
-			let acc = await this.getAccounts();
-			let DAO = await storage.get(`MakeDAO_${this.id}_address_DAO`);
-			await this.callContract(web3, DAO, acc.a1, (await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
-		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
-			if (result.flags != 'InitInterfaceID') return false;
-			if (result.error) return Error.new(result.error);
-			return result.receipt;
-		}));
-
 		// Init
 		this.step(async()=>{
 			let acc = await this.getAccounts();
-			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
+			let {DAO,Asset,openseaFirst,openseaSecond,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let operator = '0x0000000000000000000000000000000000000000';
-			let contractURI = `${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?host=${DAO}&chain=${args.chain}`;
+			let days7 = 7 * 24 * 3600;
 
-			await this.callContract(web3, Asset, acc.a1, (await web3.contract(Asset)).methods.initAsset(DAO, '', operator).encodeABI(), 'Init_Asset');
-			await this.callContract(web3, AssetGlobal, acc.a2, (await web3.contract(AssetGlobal)).methods.initAssetGlobal(DAO, '', operator, contractURI).encodeABI(), 'Init_AssetGlobal');
-			await this.callContract(web3, Ledger, acc.a3, (await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
+			await this.callContract(web3, DAO, acc.a1, 
+				(await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
 
-			let members = [];
-			for (let it of args.members || []) {
-				members.push({
-					owner: it.owner,
-					info: {
-						id: it.id,
-						name: it.name || '',
-						description: it.description || '',
-						avatar: it.avatar || '', // TODO random avatar ?
-						role: 0,
-						votes: it.votes || 1,
-						idx: 0,
-						__ext: [0, 0],
-					},
-				});
-			}
-			let initMemberCode = (await web3.contract(Member)).methods.initMember(DAO, args.memberBaseName || '', operator, members).encodeABI();
+			await this.callContract(web3, Asset, acc.a2, (await web3.contract(Asset))
+				.methods.initAsset(
+					DAO, '', operator, 
+					`${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?\
+host=${DAO}&chain=${args.chain}&address=${Ledger}`
+				).encodeABI(), 'Init_Asset');
 
-			await this.callContract(web3, Member, acc.a4, initMemberCode, 'Init_Member');
-			await this.callContract(web3, VotePool, acc.a5, (await web3.contract(VotePool)).methods.initVotePool(DAO, 5000, '').encodeABI(), 'Init_VotePool');
+			await this.callContract(web3, openseaFirst, acc.a3, (await web3.contract(openseaFirst))
+				.methods.initAssetShell(
+					DAO, '', operator, 
+					`${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?\
+host=${DAO}&chain=${args.chain}&address=${openseaFirst}&first=1`, SaleType.kOpenseaFirst // kOpenseaFirst
+				).encodeABI(),
+			'Init_AssetShell.openseaFirst');
+
+			await this.callContract(web3, openseaSecond, acc.a4, (await web3.contract(openseaSecond))
+				.methods.initAssetShell(
+					DAO, '', operator, 
+					`${cfg.publicURL}/service-api/utils/getOpenseaContractJSON?\
+host=${DAO}&chain=${args.chain}&address=${openseaSecond}`, SaleType.kOpenseaSecond // kOpenseaSecond
+				).encodeABI(),
+			'Init_AssetShell.openseaSecond');
+
+			await this.callContract(web3, Ledger, acc.a5, 
+				(await web3.contract(Ledger)).methods.initLedger(DAO, '', operator).encodeABI(), 'Init_Ledger');
+
+			await this.callContract(web3, Member, acc.a6, (await web3.contract(Member))
+				.methods.initMember(DAO, args.memberBaseName || '', operator, (args.members || []).map(it=>{
+					return {
+						owner: it.owner,
+						info: {
+							id: it.id,
+							name: it.name || '',
+							description: it.description || '',
+							avatar: it.avatar || '', // TODO random avatar ?
+							role: 0,
+							votes: it.votes || 1,
+							idx: 0,
+							__ext: [0, 0],
+						},
+					};
+				})).encodeABI(),
+			'Init_Member');
+
+			await this.callContract(web3, VotePool, acc.a7, 
+				(await web3.contract(VotePool)).methods.initVotePool(DAO, 5000, '', days7).encodeABI(), 'Init_VotePool');
 
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags.indexOf('Init_') != 0) return false;
 			if (result.error) return Error.new(result.error);
 			await storage.set(`MakeDAO_${this.id}_${result.flags}`, result.receipt!.to);
-			for (let i of ['Asset', 'AssetGlobal', 'Ledger', 'Member', 'VotePool']) {
-				let addr = await storage.get(`MakeDAO_${this.id}_Init_${i}`);
-				if (!addr) return;
+			for (let i of [
+				'InitInterfaceID', 'Asset',
+				'AssetShell.openseaFirst', 'AssetShell.openseaSecond', 'Ledger', 'Member', 'VotePool'
+			]) {
+				let ok = await storage.get(`MakeDAO_${this.id}_Init_${i}`);
+				if (!ok) return;
 			}
 			return true;
 		}));
@@ -225,12 +250,12 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		// InitDAO
 		this.step(async()=>{
 			let acc = await this.getAccounts();
-			let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
+			let {DAO,Asset,openseaFirst,openseaSecond,Ledger,Member,VotePool} = await this.getStorageAddr();
 			let data = (await web3.contract(DAO)).methods.initDAO(
 				args.name,
 				args.mission, args.description,
 				args.operator, VotePool,
-				Member, Ledger, AssetGlobal, Asset,
+				Member, Ledger, openseaFirst, openseaSecond, Asset,
 			).encodeABI();
 			await this.callContract(web3, DAO, acc.a1, data, 'Init_DAO');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
@@ -243,13 +268,13 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 
 	private async _InsertDAO(args: MakeDaoArgs, blockNumber?: number) {
 		let web3 = getWeb3(args.chain);
-		let {DAO,Asset,AssetGlobal,Ledger,Member,VotePool} = await this.getStorageAddr();
+		let {DAO,Asset,openseaFirst,openseaSecond,Ledger,Member,VotePool} = await this.getStorageAddr();
 
 		if ( await db.selectOne(`dao_${web3.chain}`, { address: DAO }) ) {
 			await db.update(`dao_${web3.chain}`, {
 				assetIssuanceTax: args.assetIssuanceTax,
 				assetCirculationTax: args.assetCirculationTax,
-				defaultVoteRate: args.defaultVoteRate,
+				defaultVoteRate: 5000, // (delete prop)
 				defaultVotePassRate: args.defaultVotePassRate,
 				defaultVoteTime: args.defaultVoteTime,
 				memberBaseName: args.memberBaseName,
@@ -268,14 +293,15 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 				operator: args.operator,
 				member: Member,
 				ledger: Ledger,
-				assetGlobal: AssetGlobal,
+				openseaFirst: openseaFirst,
+				openseaSecond: openseaSecond,
 				asset: Asset,
 				time: Date.now(),
 				modify: Date.now(),
 				blockNumber: blockNumber || 0,
 				assetIssuanceTax: args.assetIssuanceTax, // 资产发行税
 				assetCirculationTax: args.assetCirculationTax, // 资产流转税
-				defaultVoteRate: args.defaultVoteRate, // 投票参与率小于 50%，默认50%=0.5
+				defaultVoteRate: 5000, // (delete prop)
 				defaultVotePassRate: args.defaultVotePassRate, // 投票通过率不小于 50%，默认50%=0.5
 				defaultVoteTime: args.defaultVoteTime,  // 默认投票时间
 				memberBaseName: args.memberBaseName, // 成员base名称

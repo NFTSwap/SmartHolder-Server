@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling,LedgerType } from '../db';
+import { ChainType, State,Selling,LedgerType,SaleType } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
 import {TokenURIInfo} from '../models/utils';
@@ -126,10 +126,10 @@ export default class extends ApiController {
 		return utils.getVotesFrom(chain,address,proposal_id,member_id,limit);
 	}
 
-	async getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
-		let json = await opensea.getOpenseaContractJSON(host, chain);
-		var type = this.server.getMime('json');
-		this.returnString(JSON.stringify(json), type);
+	async getOpenseaContractJSON({host, chain, type, address}: {host: string, chain?: ChainType, type?: SaleType, address?: string}) {
+		let json = await opensea.getOpenseaContractJSON(host, chain, type, address);
+		var mine = this.server.getMime('json');
+		this.returnString(JSON.stringify(json), mine);
 	}
 
 	/**

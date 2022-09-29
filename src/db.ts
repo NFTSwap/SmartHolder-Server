@@ -43,14 +43,14 @@ async function load_main_db() {
 				operator     varchar (64)                       not null,
 				member       varchar (64)                       not null,
 				ledger       varchar (64)                       not null,
-				assetGlobal  varchar (64)                       not null,
+				openseaFirst  varchar (64)                      not null,
+				openseaSecond varchar (64)                      not null,
 				asset        varchar (64)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
 				assetIssuanceTax    int          default (0)    not null,
 				assetCirculationTax int          default (0)    not null,
-				defaultVoteRate     int          default (0)    not null,
 				defaultVotePassRate int          default (0)    not null,
 				defaultVoteTime     bigint       default (0)    not null,
 				memberBaseName      varchar (32) default ('')   not null,
@@ -130,8 +130,22 @@ async function load_main_db() {
 				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (72)                 not null, -- 金额
 				time         bigint                       not null, -- 时间
-				blockNumber  int                          not null,  -- 区块
-				state        int             default (0)  not null
+				blockNumber  int                          not null, -- 区块
+				state        int             default (0)  not null,
+				assetIncome_id int           default (0)  not null  -- ext data
+			);
+
+			create table if not exists ledger_asset_income_${chain} ( -- 财务记录-资产销售收
+				id           int primary key auto_increment,
+				ledger_id    int                          not null, -- ledger_id
+				token        varchar (64)                 not null, -- 原始资产合约地址
+				tokenId      char    (66)                 not null, -- 原始资产id
+				source       varchar (64)                 not null, -- 进账来源
+				balance      varchar (72)                 not null, -- 金额
+				to           varchar (64)                 not null, -- 资产转移目标地址
+				saleType     int             default (0)  not null,
+				blockNumber  int                          not null, -- 区块
+				time         bigint                       not null  -- 时间
 			);
 
 			create table if not exists ledger_release_log_${chain} ( -- 成员分成日志
@@ -157,7 +171,6 @@ async function load_main_db() {
 				data         text                         not null, -- 执行参数数据
 				lifespan     bigint                       not null, -- 投票生命周期(minutes)
 				expiry       bigint                       not null, -- 过期时间（区块链时间单位）
-				voteRate     int                          not null, -- 投票率不小于全体票数50% (0-10000)
 				passRate     int                          not null, -- 通过率不小于全体票数50% (0-10000)
 				loopCount    int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
 				loopTime     bigint           default (0) not null, -- 执行循环间隔时间
@@ -197,11 +210,11 @@ async function load_main_db() {
 			// dao
 			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
-			`alter table dao_${chain}  add defaultVoteRate       int          default (0)  not null`,
 			`alter table dao_${chain}  add defaultVotePassRate   int          default (0)  not null`, // 
-			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)    not null`,
-			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('')   not null`,
-			`alter table dao_${chain}  add memberTotalLimit      int          default (0)    not null`,
+			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
+			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
+			`alter table dao_${chain}  add openseaFirst          varchar (64) default ('')  not null`,
+			`alter table dao_${chain}  add openseaSecond         varchar (64) default ('')  not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
@@ -217,11 +230,14 @@ async function load_main_db() {
 			`alter table asset_${chain} add retryTime            bigint         default (0)  not null  -- 抓取数据最后重试时间`,
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
+			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
 			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
-			`create         index dao_${chain}_idx3              on dao_${chain}                    (assetGlobal)`,
+			`create         index dao_${chain}_idx2              on dao_${chain}                    (asset)`,
+			`create         index dao_${chain}_idx3              on dao_${chain}                    (openseaFirst)`,
+			`create         index dao_${chain}_idx4              on dao_${chain}                    (openseaSecond)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,
@@ -246,6 +262,11 @@ async function load_main_db() {
 			`create         index ledger_${chain}_idx2           on ledger_${chain}                 (address,type)`,
 			`create         index ledger_${chain}_idx3           on ledger_${chain}                 (address,target,type)`,
 			`create         index ledger_${chain}_idx4           on ledger_${chain}                 (address,txHash,type,member_id)`,
+			// ledger_asset_income
+			`create unique  index ledger_asset_income_${chain}_idx0   on ledger_asset_income_${chain}  (ledger_id)`,
+			`create         index ledger_asset_income_${chain}_idx1   on ledger_asset_income_${chain}  (token)`,
+			`create         index ledger_asset_income_${chain}_idx2   on ledger_asset_income_${chain}  (token,tokenId)`,
+			`create         index ledger_asset_income_${chain}_idx3   on ledger_asset_income_${chain}  (source)`,
 			// ledger_release_log
 			`create unique  index ledger_release_log_${chain}_idx0  on ledger_release_log_${chain}  (address,txHash)`,
 			// vote_proposl
