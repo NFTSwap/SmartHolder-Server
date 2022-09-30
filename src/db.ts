@@ -142,7 +142,7 @@ async function load_main_db() {
 				tokenId      char    (66)                 not null, -- 原始资产id
 				source       varchar (64)                 not null, -- 进账来源
 				balance      varchar (72)                 not null, -- 金额
-				to           varchar (64)                 not null, -- 资产转移目标地址
+				toAddress    varchar (64)                 not null, -- 资产转移目标地址
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
 				time         bigint                       not null  -- 时间

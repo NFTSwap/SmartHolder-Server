@@ -129,7 +129,16 @@ export interface Ledger {
 }
 
 export interface LedgerAssetIncome {
-	id: number;
+	id: number;//           int primary key auto_increment,
+	ledger_id: number;//    int                          not null, -- ledger_id
+	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
+	tokenId: string;//      char    (66)                 not null, -- 原始资产id
+	source: string;//       varchar (64)                 not null, -- 进账来源
+	balance: string;//      varchar (72)                 not null, -- 金额
+	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
+	saleType: SaleType;//     int             default (0)  not null,
+	blockNumber: number;//  int                          not null, -- 区块
+	time: number;//         bigint                       not null  -- 时间
 }
 
 export interface LedgerReleaseLog {

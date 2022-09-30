@@ -128,7 +128,7 @@ export class Ledger extends ContractScaner {
 					});
 
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						ledger_id, token, tokenId, source, balance, to, saleType, blockNumber, time
+						ledger_id, token, tokenId, source, balance, toAddress: to, saleType, blockNumber, time
 					});
 
 					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});

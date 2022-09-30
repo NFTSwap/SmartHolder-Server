@@ -184,7 +184,7 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 			let days7 = 7 * 24 * 3600;
 
 			await this.callContract(web3, DAO, acc.a1, 
-				(await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'InitInterfaceID');
+				(await web3.contract(DAO)).methods.initInterfaceID().encodeABI(), 'Init_DAO_InterfaceID');
 
 			await this.callContract(web3, Asset, acc.a2, (await web3.contract(Asset))
 				.methods.initAsset(
@@ -231,14 +231,14 @@ host=${DAO}&chain=${args.chain}&address=${openseaSecond}`, SaleType.kOpenseaSeco
 			'Init_Member');
 
 			await this.callContract(web3, VotePool, acc.a7, 
-				(await web3.contract(VotePool)).methods.initVotePool(DAO, 5000, '', days7).encodeABI(), 'Init_VotePool');
+				(await web3.contract(VotePool)).methods.initVotePool(DAO, '', days7).encodeABI(), 'Init_VotePool');
 
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags.indexOf('Init_') != 0) return false;
 			if (result.error) return Error.new(result.error);
 			await storage.set(`MakeDAO_${this.id}_${result.flags}`, result.receipt!.to);
 			for (let i of [
-				'InitInterfaceID', 'Asset',
+				'DAO_InterfaceID', 'Asset',
 				'AssetShell.openseaFirst', 'AssetShell.openseaSecond', 'Ledger', 'Member', 'VotePool'
 			]) {
 				let ok = await storage.get(`MakeDAO_${this.id}_Init_${i}`);
@@ -257,7 +257,7 @@ host=${DAO}&chain=${args.chain}&address=${openseaSecond}`, SaleType.kOpenseaSeco
 				args.operator, VotePool,
 				Member, Ledger, openseaFirst, openseaSecond, Asset,
 			).encodeABI();
-			await this.callContract(web3, DAO, acc.a1, data, 'Init_DAO');
+			await this.callContract(web3, DAO,  (acc as any)[`a${somes.random(1, 7)}`], data, 'Init_DAO');
 		}, (result: Result)=>scopeLock(`tasks_${this.id}`, async ()=>{
 			if (result.flags != 'Init_DAO') return false;
 			if (result.error) return Error.new(result.error);
@@ -293,6 +293,7 @@ host=${DAO}&chain=${args.chain}&address=${openseaSecond}`, SaleType.kOpenseaSeco
 				operator: args.operator,
 				member: Member,
 				ledger: Ledger,
+				assetGlobal: openseaFirst, // (delete prop)
 				openseaFirst: openseaFirst,
 				openseaSecond: openseaSecond,
 				asset: Asset,

@@ -45,6 +45,7 @@ export class DAO extends ContractScaner {
 							root: await m.root().call(),
 							member: await m.member().call(),
 							ledger: await m.ledger().call(),
+							assetGlobal: await m.openseaFirst().call(), // (delete prop)
 							openseaFirst: await m.openseaFirst().call(),
 							openseaSecond: await m.openseaSecond().call(),
 							asset: await m.asset().call(),
