@@ -107,7 +107,7 @@ export class Ledger extends ContractScaner {
 			use: async (e: EventData)=>{
 				let {token,source,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
-				let type = LedgerType.Deposit;
+				let type = LedgerType.AssetIncome;
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
