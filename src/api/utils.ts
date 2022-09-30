@@ -126,8 +126,8 @@ export default class extends ApiController {
 		return utils.getVotesFrom(chain,address,proposal_id,member_id,limit);
 	}
 
-	async getOpenseaContractJSON({host, chain, type, address}: {host: string, chain?: ChainType, type?: SaleType, address?: string}) {
-		let json = await opensea.getOpenseaContractJSON(host, chain, type, address);
+	async getOpenseaContractJSON({host, chain, type, first,address}: {host: string, chain?: ChainType, type?: SaleType, first?: SaleType, address?: string}) {
+		let json = await opensea.getOpenseaContractJSON(host, chain, type || first, address);
 		var mine = this.server.getMime('json');
 		this.returnString(JSON.stringify(json), mine);
 	}

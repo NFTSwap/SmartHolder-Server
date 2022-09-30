@@ -220,15 +220,15 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 
 	let ls = await db.query<Ledger>(sql);
 	let IDs = ls.filter(e=>e.assetIncome_id).map(e=>e.assetIncome_id);
-	let assetIncomes: Dict<LedgerAssetIncome> = {};
 
-	for (let it of await db.query<LedgerAssetIncome>(
-		`select * from ledger_asset_income_${chain} where id in (${IDs.join(',')})`)
-	) {
-		assetIncomes[it.id] = it;
-	}
-	for (let it of ls) {
-		it.assetIncome = assetIncomes[it.assetIncome_id];
+	if (IDs.length) {
+		let assetIncomes: Dict<LedgerAssetIncome> = {};
+		let sql = `select * from ledger_asset_income_${chain} where id in (${IDs.join(',')})`;
+		for (let it of await db.query<LedgerAssetIncome>(sql))
+			assetIncomes[it.id] = it;
+		for (let it of ls) {
+			it.assetIncome = assetIncomes[it.assetIncome_id];
+		}
 	}
 
 	return ls;
