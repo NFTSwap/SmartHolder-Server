@@ -75,7 +75,7 @@ export abstract class Task<T = any> {
 				data = await stepExec.verify(data);
 				if (data) {
 					if (data instanceof Error) {
-						await throwError('Task#next', data.message);
+						await throwError('Task#next', data);
 						return;
 					}
 				} else return;
@@ -92,7 +92,7 @@ export abstract class Task<T = any> {
 				try {
 					await stepExec.func(data);
 				} catch (err: any) {
-					await throwError('Task#next1', err.message);
+					await throwError('Task#next1', err);
 				}
 			}
 		} else if (step == this._steps.length) { // complete
