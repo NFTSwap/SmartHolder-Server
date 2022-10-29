@@ -61,6 +61,10 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 				Object.assign(data, { author: to[0], modify: time });
 			}
 			await db.update(`asset_${this.chain}`, data, { id: asset.id });
+		} else {
+			await db.update(`asset_${this.chain}`, {
+				owner: '0x0000000000000000000000000000000000000000', modify: time,
+			}, { token, tokenId });
 		}
 
 		var order = await db.selectOne(`asset_order_${this.chain}`, { txHash, token, tokenId });

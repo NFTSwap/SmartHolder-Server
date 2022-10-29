@@ -21,14 +21,14 @@ export interface DAO {
 	operator: string;//     varchar (64)   not null,
 	member: string;//       varchar (64)   not null,
 	ledger: string;//       varchar (64)   not null,
-	assetGlobal: string;//  varchar (64)   not null,
+	openseaFirst: string;//  varchar (64)   not null,
+	openseaSecond: string;// varchar (64)   not null,
 	asset: string;//        varchar (64)   not null,
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
 	blockNumber: number;//  int            not null,
 	assetIssuanceTax: number;//    int default (0)   not null, // 发行税
 	assetCirculationTax: number;// int default (0)   not null, // 流转税
-	defaultVoteRate: number;//     int default (0)   not null, // 默认最小参与率
 	defaultVotePassRate: number;// int default (0)   not null  // 默认最小投票率
 	defaultVoteTime: number; // bigint         default (0)    not null,
 	memberBaseName: string; // varchar (32)   default ('')   not null,
@@ -107,6 +107,7 @@ export enum LedgerType {
 	Deposit, // 2进账-存入
 	Withdraw,// 3出账-取出
 	Release,// 4出账-成员分成
+	AssetIncome, // 5进账-资产销售收入
 }
 
 export interface Ledger {
@@ -123,6 +124,21 @@ export interface Ledger {
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
+	assetIncome_id: number;
+	assetIncome?: LedgerAssetIncome;
+}
+
+export interface LedgerAssetIncome {
+	id: number;//           int primary key auto_increment,
+	ledger_id: number;//    int                          not null, -- ledger_id
+	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
+	tokenId: string;//      char    (66)                 not null, -- 原始资产id
+	source: string;//       varchar (64)                 not null, -- 进账来源
+	balance: string;//      varchar (72)                 not null, -- 金额
+	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
+	saleType: SaleType;//     int             default (0)  not null,
+	blockNumber: number;//  int                          not null, -- 区块
+	time: number;//         bigint                       not null  -- 时间
 }
 
 export interface LedgerReleaseLog {
@@ -148,7 +164,6 @@ export interface VoteProposal {
 	data: string;//         text                         not null, -- 执行参数数据
 	lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）
 	expiry: number;//       bigint                       not null, -- 过期时间（区块链时间单位）
-	voteRate: number;//     int                          not null, -- 投票率不小于全体票数50% (0-10000)
 	passRate: number;//     int                          not null, -- 通过率不小于全体票数50% (0-10000)
 	loopCount: number;//    int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
 	loopTime: number;//     bigint           default (0) not null, -- 执行循环间隔时间
@@ -181,7 +196,7 @@ export enum ContractType {
 	Ledger,
 	VotePool,
 	Asset,
-	AssetGlobal,
+	AssetShell,
 }
 
 export interface ContractInfo {
@@ -293,4 +308,10 @@ export interface AssetJson {
 	id: number;
 	asset_id: number;
 	json_data: any;
+}
+
+export enum SaleType {
+	kDefault,
+	kOpenseaFirst,
+	kOpenseaSecond
 }

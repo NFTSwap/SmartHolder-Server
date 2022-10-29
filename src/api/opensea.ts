@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import {ChainType} from '../models/def';
+import {ChainType,SaleType} from '../models/def';
 import * as opensea from '../models/opensea';
 import { OrderComponents } from "seaport-smart/types";
 
@@ -46,8 +46,8 @@ export default class extends ApiController {
 		return opensea.maskOrderClose(chain, token, tokenId);
 	}
 
-	getOpenseaContractJSON({host, chain}: {host: string, chain?: ChainType}) {
-		return opensea.getOpenseaContractJSON(host, chain);
+	getOpenseaContractJSON({host, chain, type, address}: {host: string, chain?: ChainType, type?: SaleType, address?: string}) {
+		return opensea.getOpenseaContractJSON(host, chain, type, address);
 	}
 
 }

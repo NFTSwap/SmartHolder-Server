@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import db, { ChainType, Selling, DAO } from "../db";
+import db, { ChainType, Selling, DAO,SaleType } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
 import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
@@ -271,7 +271,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		['0x0000a26b00c1F0DF003000390027140000fAa719', 25], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	];
 
-	let json = await getOpenseaContractJSONFromAssetGlobal(token, chain);
+	let json = await getOpenseaContractJSONFromToken(token, chain);
 	if (json) {
 		// seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
 		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
@@ -300,12 +300,14 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		types: orderTypes,
 		value: {
 			offerer: owner,
-			zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
+			zone: "0x0000000000000000000000000000000000000000", // opensea
+			// zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
 			// zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00', // element
 			zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			startTime: String(now),
 			endTime: String(lastTime),
-			orderType: OrderType.PARTIAL_RESTRICTED,
+			// orderType: OrderType.PARTIAL_RESTRICTED,
+			orderType: OrderType.FULL_OPEN,
 			offer: [
 				{
 					itemType: ItemType.ERC721,
@@ -465,22 +467,22 @@ export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权�
 	return OPENSEA_CONDUIT_ADDRESS;
 }
 
-function getOpenseaContractJSONFromDAO(dao?: DAO | null) {
-	if (dao) {
-		return {
-			name: dao.name, // "OpenSea Creatures",
-			description: dao.description, // desc
-			image: `${cfg.publicURL}/image.png`, //"external-link-url/image.png",
-			external_link: cfg.publicURL, // "external-link-url",
-			seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
-			fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
-		};
-	} else {
-		return null;
-	}
+function getOpenseaContractJSONFromDAO(dao?: DAO | null, type?: SaleType, address?: string) {
+	if (!dao) return null;
+	type = Number(type) || 0;
+	return {
+		name: dao.name, // "OpenSea Creatures",
+		description: dao.description, // desc
+		image: `${cfg.publicURL}/image.png`, //"external-link-url/image.png",
+		external_link: cfg.publicURL, // "external-link-url",
+		seller_fee_basis_points: Number(type == 1 ? dao.assetIssuanceTax: dao.assetCirculationTax) || 1000,// 1000 # Indicates a 10% seller fee.
+		fee_recipient: address ? address: // # Where seller fees will be paid to.
+			type == 1 ? dao.openseaFirst: 
+			type == 2 ? dao.openseaSecond: dao.ledger,
+	};
 }
 
-export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
+export async function getOpenseaContractJSON(host: string, chain?: ChainType, type?: SaleType, address?: string) {
 	let dao: DAO | null = null;
 	if (chain) {
 		dao = await db.selectOne<DAO>(`dao_${chain}`, { address: host });
@@ -490,10 +492,17 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType) {
 			if (dao) break;
 		}
 	}
-	return getOpenseaContractJSONFromDAO(dao);
+	return getOpenseaContractJSONFromDAO(dao, type, address);
 }
 
-export async function getOpenseaContractJSONFromAssetGlobal(assetGlobal: string, chain: ChainType) {
-	let dao = await db.selectOne<DAO>(`dao_${chain}`, { assetGlobal });
-	return getOpenseaContractJSONFromDAO(dao);
+export async function getOpenseaContractJSONFromToken(asset: string, chain: ChainType) {
+	let dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaFirst: asset });
+	if (dao) {
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaFirst);
+	}
+	dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaSecond: asset });
+	if (dao) {
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaSecond);
+	}
+	return null;
 }

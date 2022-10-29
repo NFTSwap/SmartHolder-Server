@@ -78,7 +78,7 @@ export class VotePool extends ContractScaner {
 				data: proposal.data,
 				lifespan: proposal.lifespan,
 				expiry: proposal.expiry,
-				voteRate: proposal.voteRate,
+				voteRate: 5000, // (delete props)
 				passRate: proposal.passRate,
 				loopCount: proposal.loopCount,
 				loopTime: proposal.loopTime,
@@ -122,7 +122,6 @@ export class VotePool extends ContractScaner {
 		// data: string;//         text                         not null, -- 执行参数数据
 		// lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）
 		// expiry: number;//       bigint                       not null, -- 过期时间（区块链时间单位）
-		// voteRate: number;//     int                          not null, -- 投票率不小于全体票数50% (0-10000)
 		// passRate: number;//     int                          not null, -- 通过率不小于全体票数50% (0-10000)
 		// loop: number;//         int              default (0) not null, -- 执行循环次数: -1无限循环,0不循环
 		// loopTime: number;//     bigint           default (0) not null, -- 执行循环间隔时间
@@ -144,7 +143,6 @@ export class VotePool extends ContractScaner {
 		// 	address target; // 目标合约
 		// 	uint256 lifespan; // 投票生命周期
 		// 	uint256 expiry; // 过期时间
-		// 	uint256 voteRate; // 投票率不小于全体票数50%
 		// 	uint256 passRate; // 通过率不小于全体票数50%
 		// 	int256  loop; // 执行循环次数
 		// 	uint256 loopTime; // 执行循环间隔时间

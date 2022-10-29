@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import db, {DAO, ChainType, Member, Asset, State, AssetOrder, 
-	Ledger, LedgerType, Votes, VoteProposal, EventsItem, Selling
+	Ledger, LedgerType, Votes, VoteProposal, EventsItem, Selling,LedgerAssetIncome
 } from '../db';
 import {escape} from 'somes/db';
 import sync from '../sync';
@@ -117,7 +117,9 @@ export async function getAssetFrom(
 	limit?: number | number[], noBeautiful?: boolean
 ) {
 	let dao = await getDAONoEmpty(chain, host);
-	let sql = `select * from asset_${chain} where token=${escape(dao.assetGlobal)} and owner=${escape(owner)} and state=${escape(state)} `;
+	let sql = `select * from asset_${chain} where 
+		token in (${escape(dao.openseaFirst)},${escape(dao.openseaSecond)}) \
+		and owner=${escape(owner)} and state=${escape(state)} `;
 	if (name)
 		sql += `and name like ${escape(name+'%')} `;
 	if (time)
@@ -148,7 +150,7 @@ export async function getAssetOrderFrom(
 		left join 
 			asset_${chain} as a on ao.token=a.token and ao.tokenId=a.tokenId
 		where
-			ao.token=${escape(dao.assetGlobal)} 
+			ao.token in (${escape(dao.openseaFirst)},${escape(dao.openseaSecond)}) 
 	`;
 	if (tokenId)
 		sql += `and ao.tokenId=${escape(tokenId)} `;
@@ -215,7 +217,21 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (limit)
 		sql += `limit ${getLimit(limit)} `;
-	return await db.query<Ledger>(sql);
+
+	let ls = await db.query<Ledger>(sql);
+	let IDs = ls.filter(e=>e.assetIncome_id).map(e=>e.assetIncome_id);
+
+	if (IDs.length) {
+		let assetIncomes: Dict<LedgerAssetIncome> = {};
+		let sql = `select * from ledger_asset_income_${chain} where id in (${IDs.join(',')})`;
+		for (let it of await db.query<LedgerAssetIncome>(sql))
+			assetIncomes[it.id] = it;
+		for (let it of ls) {
+			it.assetIncome = assetIncomes[it.assetIncome_id];
+		}
+	}
+
+	return ls;
 }
 
 export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {

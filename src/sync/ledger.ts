@@ -15,6 +15,9 @@ export class Ledger extends ContractScaner {
 		// event Deposit(address indexed from, uint256 balance, string name, string description);
 		// event Withdraw(address indexed target, uint256 balance, string description);
 		// event Release(uint256 indexed member, address indexed to, uint256 balance);
+		// event AssetIncome(address indexed token, uint256 indexed tokenId, 
+		// 	address indexed source, uint256 balance, address to, IAssetShell.SaleType saleType
+		// );
 
 		Receive: {
 			use: async (e: EventData)=>{
@@ -99,7 +102,40 @@ export class Ledger extends ContractScaner {
 				}
 			},
 		},
-		
+
+		AssetIncome: {
+			use: async (e: EventData)=>{
+				let {token,source,to,saleType} = e.returnValues;
+				let txHash = e.transactionHash;
+				let type = LedgerType.AssetIncome;
+				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
+					let tokenId = formatHex(e.returnValues.tokenId, 32);
+					let blockNumber = Number(e.blockNumber) || 0;
+					let time = await blockTimeStamp(this.web3, blockNumber);
+					let balance = formatHex(e.returnValues.balance);
+
+					let ledger_id = await db.insert(`ledger_${this.chain}`, {
+						host: await this.host(),
+						address: this.address,
+						txHash: txHash,
+						type: type,
+						target: source,
+						balance,
+						name: '',
+						description: '',
+						time,
+						blockNumber,
+					});
+
+					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
+						ledger_id, token, tokenId, source, balance, toAddress: to, saleType, blockNumber, time
+					});
+
+					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
+				}
+			},
+		},
+
 		Withdraw: {
 			use: async (e: EventData)=>{
 				let {target,balance,description} = e.returnValues;
