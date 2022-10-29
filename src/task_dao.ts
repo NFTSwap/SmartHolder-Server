@@ -339,7 +339,8 @@ host=${DAO}&chain=${args.chain}&address=${openseaSecond}`, SaleType.kOpenseaSeco
 	}
 
 	static async getTask(id: number) {
-		return this.task(id);
+		let task = await this.task(id);
+		return task.tasks;
 	}
 
 	static async next(data: any) {
