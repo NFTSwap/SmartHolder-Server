@@ -306,6 +306,10 @@ export class MakeDAO extends Task<MakeDaoArgs> {
 		return task.tasks;
 	}
 
+	static async getTask(id: number) {
+		return this.task(id);
+	}
+
 	static async next(data: any) {
 		let task = await this.task(data.taskId);
 		await task.next(null, data);
