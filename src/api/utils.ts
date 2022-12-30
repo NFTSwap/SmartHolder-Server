@@ -25,6 +25,19 @@ export default class extends ApiController {
 		}
 	}
 
+	async getOpenseaContractJSON({host, chain, type, first,address}: {host: string, chain?: ChainType, type?: SaleType, first?: SaleType, address?: string}) {
+		let json = await opensea.getOpenseaContractJSON(host, chain, type || first, address);
+		var mine = this.server.getMime('json');
+		this.returnString(JSON.stringify(json), mine);
+	}
+
+	async printJSON(data: any) {
+		let json = {} as Dict;
+		for (let [k,v] of Object.entries<string>(data))
+			json[k] = v=='true'?true:v=='false'?false:v.match(/^\d+$/)?Number(v):v;
+		this.returnString(JSON.stringify(json), this.server.getMime('json'));
+	}
+
 	/**
 	 * @method getDAO() 通过地址获取dao对像
 	 * */ 
@@ -124,12 +137,6 @@ export default class extends ApiController {
 	 * */ 
 	getVotesFrom({chain,address,proposal_id,member_id,limit}: { chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[]}) {
 		return utils.getVotesFrom(chain,address,proposal_id,member_id,limit);
-	}
-
-	async getOpenseaContractJSON({host, chain, type, first,address}: {host: string, chain?: ChainType, type?: SaleType, first?: SaleType, address?: string}) {
-		let json = await opensea.getOpenseaContractJSON(host, chain, type || first, address);
-		var mine = this.server.getMime('json');
-		this.returnString(JSON.stringify(json), mine);
 	}
 
 	/**
