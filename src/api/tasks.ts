@@ -30,4 +30,8 @@ export default class extends ApiController {
 		return MakeDAO.makeDAO(args, this.userName);
 	}
 
+	getTaskData({id}: {id: number}) {
+		return MakeDAO.getTaskData(id);
+	}
+
 }
