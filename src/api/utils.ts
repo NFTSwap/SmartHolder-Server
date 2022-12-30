@@ -38,7 +38,8 @@ export default class extends ApiController {
 				v == 'true' ? true:
 				v == 'false' ? false:
 				v.match(/^\d+$/) ? Number(v):
-				v.substring(0,4) == 'b64,' ? Buffer.from(v.substring(4), 'base64').toString() : v
+				v.substring(0,4) == 'b64,' ? Buffer.from(v.substring(4), 'base64').toString() :
+				v.substring(0,4) == 'hex,' ? Buffer.from(v.substring(4), 'hex').toString() : v
 			);
 		this.returnString(JSON.stringify(json), this.server.getMime('json'));
 	}
