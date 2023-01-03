@@ -12,7 +12,7 @@ import * as opensea from '../models/opensea';
 import { RuleResult } from 'deps/bclib/deps/somes/router';
 
 const non_auth_apis = [
-	'getOpenseaContractJSON',
+	'getOpenseaContractJSON', 'printJSON',
 ];
 
 export default class extends ApiController {
