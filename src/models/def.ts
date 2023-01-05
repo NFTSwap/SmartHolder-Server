@@ -16,13 +16,13 @@ export interface DAO {
 	address: string;//      varchar (64)   not null,
 	name: string;//         varchar (64)   not null,
 	mission: string;//      varchar (1024) not null,
-	description: string;//     varchar (1024) not null,
+	description: string;//  varchar (1024) not null,
 	root: string;//         varchar (64)   not null,
 	operator: string;//     varchar (64)   not null,
 	member: string;//       varchar (64)   not null,
 	ledger: string;//       varchar (64)   not null,
-	openseaFirst: string;//  varchar (64)   not null,
-	openseaSecond: string;// varchar (64)   not null,
+	first: string;//        varchar (64)   not null,
+	second: string;//       varchar (64)   not null,
 	asset: string;//        varchar (64)   not null,
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
@@ -197,6 +197,7 @@ export enum ContractType {
 	VotePool,
 	Asset,
 	AssetShell,
+	DAOs,
 }
 
 export interface ContractInfo {
@@ -280,18 +281,6 @@ export class ChainTraits {
 
 export const chainTraits = new ChainTraits();
 
-export interface Tasks<Args = any> {
-	id: number;//           int primary        key auto_increment, -- 主键id
-	name: string;//         varchar (64)                 not null, -- 任务名称
-	args: Args;//            json,                                  -- 执行参数
-	data: any;
-	step: number;//         int        default (0)       not null, -- 当前执行步骤
-	stepTime: number;//     int          default (0)     not null, -- 当前执行步骤
-	user: string; //        varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
-	state: number;//        int        default (0)       not null, -- 0进行中,1完成,2失败
-	time: number;//         bigint                       not null,
-}
-
 export interface EventsItem {
 	id: string;//                   int primary        key auto_increment, -- 主键id
 	host: string; //                varchar (64)                 not null,
@@ -314,4 +303,13 @@ export enum SaleType {
 	kDefault,
 	kOpenseaFirst,
 	kOpenseaSecond
+}
+
+export interface TokenURIInfo {
+	name: string;
+	description: string;
+	image: string;
+	animation_url?: string;
+	external_link?: string;
+	attributes?: {trait_type: string; value: string}[]
 }

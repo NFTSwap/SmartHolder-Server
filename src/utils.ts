@@ -265,8 +265,3 @@ export function download(www: string, save: string) {
 		}
 	}, true);
 }
-
-// download file and upload to qiniu
-export function downloadToQiniu(www: string, save?: string) {
-	// TODO ...
-}

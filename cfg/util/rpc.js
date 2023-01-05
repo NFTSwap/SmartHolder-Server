@@ -7,7 +7,7 @@ module.exports = {
 		'https://mainnet.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://mainnet.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
 		'https://mainnet.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
-		'https://mainnet.infura.io/v3/c782e504a32b4070b414a037167ae8ff', // louis.tru@gmail.com
+		// 'https://mainnet.infura.io/v3/c782e504a32b4070b414a037167ae8ff', // louis.tru@gmail.com
 		'https://mainnet.infura.io/v3/5fad8ac4c3c946f489e0a5fec628d40e', // louistru@live.com
 		'https://mainnet.infura.io/v3/1ad04dd9dfa3421ca28519a575c959d9', // jfm.s@163.com
 		'https://mainnet.infura.io/v3/dde6a07efab74ec2998d48ff4a77ec03', // 97071932@qq.com
@@ -36,30 +36,12 @@ module.exports = {
 		'https://rpc-mainnet.maticvigil.com/v1/b706532e6bd03d1b5c93ba66d91a50aebf212dde', // louistru2@tom.com
 		'https://rpc-mainnet.maticvigil.com/v1/368d0a19a1108e223d0dca757a342716f403dbb6', // moqi.reg@gmail.com
 	],
-	RINKEBY: [
-		'14/http://152.32.172.175:8545', // PUBLIC HK inner 10.8.2.241
-		//'http://192.168.0.65:8545', // hard-chain
-		'https://rinkeby.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
-		'https://rinkeby.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
-		'https://rinkeby.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
-		'https://rinkeby.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
-		'https://rinkeby.infura.io/v3/c782e504a32b4070b414a037167ae8ff', // louis.tru@gmail.com
-		'https://rinkeby.infura.io/v3/5fad8ac4c3c946f489e0a5fec628d40e', // louistru@live.com
-		'https://rinkeby.infura.io/v3/1ad04dd9dfa3421ca28519a575c959d9', // jfm.s@163.com
-		'https://rinkeby.infura.io/v3/dde6a07efab74ec2998d48ff4a77ec03', // 97071932@qq.com
-		'https://rinkeby.infura.io/v3/09e23dcd17934ab0b88c9e091789193e', // 2357779577@qq.com
-		'https://rinkeby.infura.io/v3/faf06a5d35454aeaad87969b0aba90a8', // louistru@tom.com
-		'https://rinkeby.infura.io/v3/96af19f43a3d4e7cac531d93c431f5cf', // louistru2@tom.com
-		'https://rinkeby.infura.io/v3/81e184a58fd04f8ea6c7d026f26c34d5', // yuyongpeng@hotmail.com
-		'https://rinkeby.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
-		'https://rinkeby.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
-	],
 	GOERLI: [
 		'https://goerli.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://goerli.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://goerli.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
 		'https://goerli.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
-		'https://goerli.infura.io/v3/c782e504a32b4070b414a037167ae8ff', // louis.tru@gmail.com
+		// 'https://goerli.infura.io/v3/c782e504a32b4070b414a037167ae8ff', // louis.tru@gmail.com
 		'https://goerli.infura.io/v3/5fad8ac4c3c946f489e0a5fec628d40e', // louistru@live.com
 		'https://goerli.infura.io/v3/1ad04dd9dfa3421ca28519a575c959d9', // jfm.s@163.com
 		'https://goerli.infura.io/v3/dde6a07efab74ec2998d48ff4a77ec03', // 97071932@qq.com

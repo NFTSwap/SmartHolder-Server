@@ -11,10 +11,8 @@ module.exports = {
 	// 1多模式：在多个节点中自动切换，当前一个节点出现故障时，会随机切换到下一个节点
 	web3Mode: {}, // web3模式 default use kMultiple_Fixed
 	web3PriceLimit: {},
-	contractImpls: {},
 	keys_auto_unlock: true,
 	web3_tx_dequeue: false,
-	mvp_ser_api: 'https://mvp.stars-mine.com/service-api',
 	enable_auth: true, // 启用web服务访问认证
 	mbus: 'mqtt://mqtt.stars-mine.com:1883', // Disable mbus when empty, mbus为空时禁用消息总线
 	mbus_auth: '', // user:password
@@ -24,6 +22,7 @@ module.exports = {
 	tests: [`${__dirname}/../../test/test`],
 	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
 	root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
+	tx_api: 'https://mvp.stars-mine.com/service-api',
 	publicURL: 'https://smartholder.stars-mine.com',
 	httpProxy: [
 		// 资源下载服务器列表,这需服务器建议使用 cfg/glob_us_meta.js 中的配置
@@ -51,5 +50,5 @@ module.exports = {
 	},
 	fastStart: false, // 是否快速启动,快速启动不检测数据库结构
 	logs: { event: 1, sync: 1, block_no_resolve: 1, rpc: 0 }, // 日志输出开关
-	redis: 'redis://127.0.0.1:6379/0', // redis cfg
+	redis: 'redis://127.0.0.1:6379/1', // redis cfg
 };

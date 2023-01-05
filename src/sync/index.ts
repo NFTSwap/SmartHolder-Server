@@ -10,7 +10,7 @@ import * as env from '../env';
 import {WatchCat} from 'bclib/watch';
 import { storage, ChainType } from '../db';
 import {web3s} from '../web3+';
-import msg, {Events} from '../message';
+import msg, {EventWatchBlock} from '../message';
 import {WatchBlock} from './block';
 import {QiniuSync} from './qiniu';
 import {AssetMetaDataSync,AssetMetaDataUpdate} from './asset_meta';
@@ -56,7 +56,7 @@ export class Sync {
 			addWatch(this.assetMetaDataSync);
 		}
 
-		msg.addEventListener(Events.WatchBlock, async (e)=>{
+		msg.addEventListener(EventWatchBlock, async (e)=>{
 			let {worker, blockNumber, chain} = e.data;
 			let wait = this._waits[`${chain}_${worker}`];
 			let now = Date.now();

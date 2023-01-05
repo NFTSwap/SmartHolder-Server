@@ -5,9 +5,6 @@
 
 import * as req from 'bclib/request';
 import * as cfg from '../config';
-// import {IBuffer} from 'somes/buffer';
-// import {Result} from 'somes/request';
-// import errno from './errno';
 
 export * from 'bclib/request';
 

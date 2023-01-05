@@ -4,25 +4,15 @@
  */
 
 import somes from 'somes';
-import db, {DAO, ChainType, Member, Asset, State, AssetOrder, 
-	Ledger, LedgerType, Votes, VoteProposal, EventsItem, Selling,LedgerAssetIncome
+import db, {
+	DAO, ChainType, Member, Asset, State, AssetOrder,
+	Ledger, LedgerType, Votes, VoteProposal, EventsItem, Selling,LedgerAssetIncome, TokenURIInfo
 } from '../db';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import errno from '../errno';
-import {web3s} from '../web3+';
-import * as cfg from '../../config';
 import * as redis from 'bclib/redis';
 import * as utils from '../utils';
-
-export interface TokenURIInfo {
-	name: string;
-	description: string;
-	image: string;
-	animation_url?: string;
-	external_link?: string;
-	attributes?: {trait_type: string; value: string}[]
-}
 
 export interface AssetOrderExt extends AssetOrder {
 	asset_id: number,
@@ -118,7 +108,7 @@ export async function getAssetFrom(
 ) {
 	let dao = await getDAONoEmpty(chain, host);
 	let sql = `select * from asset_${chain} where 
-		token in (${escape(dao.openseaFirst)},${escape(dao.openseaSecond)}) \
+		token in (${escape(dao.first)},${escape(dao.second)}) \
 		and owner=${escape(owner)} and state=${escape(state)} `;
 	if (name)
 		sql += `and name like ${escape(name+'%')} `;
@@ -150,7 +140,7 @@ export async function getAssetOrderFrom(
 		left join 
 			asset_${chain} as a on ao.token=a.token and ao.tokenId=a.tokenId
 		where
-			ao.token in (${escape(dao.openseaFirst)},${escape(dao.openseaSecond)}) 
+			ao.token in (${escape(dao.first)},${escape(dao.second)}) 
 	`;
 	if (tokenId)
 		sql += `and ao.tokenId=${escape(tokenId)} `;

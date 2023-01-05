@@ -8,7 +8,7 @@ import web3s from '../web3+';
 import db, { ChainType, Selling, DAO,SaleType } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
+import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from 'seaport-smart/constants';
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -477,8 +477,8 @@ function getOpenseaContractJSONFromDAO(dao?: DAO | null, type?: SaleType, addres
 		external_link: cfg.publicURL, // "external-link-url",
 		seller_fee_basis_points: Number(type == 1 ? dao.assetIssuanceTax: dao.assetCirculationTax) || 1000,// 1000 # Indicates a 10% seller fee.
 		fee_recipient: address ? address: // # Where seller fees will be paid to.
-			type == 1 ? dao.openseaFirst: 
-			type == 2 ? dao.openseaSecond: dao.ledger,
+			type == 1 ? dao.first: 
+			type == 2 ? dao.second: dao.ledger,
 	};
 }
 

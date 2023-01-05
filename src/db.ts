@@ -43,8 +43,8 @@ async function load_main_db() {
 				operator     varchar (64)                       not null,
 				member       varchar (64)                       not null,
 				ledger       varchar (64)                       not null,
-				openseaFirst  varchar (64)                      not null,
-				openseaSecond varchar (64)                      not null,
+				first        varchar (64)                      not null, -- opensea first
+				second       varchar (64)                      not null, -- opensea second
 				asset        varchar (64)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
@@ -105,7 +105,7 @@ async function load_main_db() {
 				json_data              json       null
 			);
 	
-			create table if not exists asset_order_${chain} (      -- 资产订单 asset from -> to
+			create table if not exists asset_order_${chain} (           -- 资产订单 asset from -> to
 				id           int    primary key auto_increment not null,
 				txHash       char    (72)                      not null,  -- tx hash
 				blockNumber  int                               not null,
@@ -281,37 +281,6 @@ async function load_main_db() {
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
 		], `shs_${chain}`);
 	}
-
-	await main_db.load(`
-		create table if not exists tasks (
-			id           int primary        key auto_increment, -- 主键id
-			name         varchar (64)                 not null, -- 任务名称, MekeDAO#Name
-			args         json,                                  -- 执行参数数据
-			data         json,                                  -- 成功或失败的数据 {data, error}
-			step         int          default (0)     not null, -- 当前执行步骤
-			stepTime     bigint       default (0)     not null, -- 当前执行步骤的超时时间,可用于执行超时检查
-			user         varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
-			state        int          default (0)     not null, -- 0进行中,1完成,2失败
-			time         bigint                       not null
-		);
-		create table if not exists events (
-			id                   int primary        key auto_increment, -- 主键id
-			host                 varchar (64)                 not null, -- dao host or self address
-			title                varchar (64)                 not null, --
-			description          varchar (4096)               not null,
-			created_member_id    varchar (72)    default ('') not null,  -- 创建人成员id
-			chain                int                          not null,
-			state                int             default (0)  not null, -- 0正常,1删除
-			time                 bigint                       not null,
-			modify               bigint                       not null
-		);
-		`, [], [
-		`create         index tasks_idx0    on    tasks          (name,state)`,
-		`create         index tasks_idx1    on    tasks          (name)`,
-		`create         index tasks_idx2    on    tasks          (state)`,
-		`create         index tasks_idx3    on    tasks          (user)`,
-		`create         index events_idx0    on   events         (chain,host,title)`,
-	], `shs`);
 }
 
 export async function initialize() {

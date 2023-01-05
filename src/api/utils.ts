@@ -4,15 +4,13 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling,LedgerType,SaleType } from '../db';
+import { ChainType, State,Selling,LedgerType,TokenURIInfo } from '../db';
 import * as utils from '../models/utils';
 import * as qn from 'bclib/qn';
-import {TokenURIInfo} from '../models/utils';
-import * as opensea from '../models/opensea';
-import { RuleResult } from 'deps/bclib/deps/somes/router';
+import { RuleResult } from 'somes/router';
 
 const non_auth_apis = [
-	'getOpenseaContractJSON', 'printJSON',
+	'printJSON',
 ];
 
 export default class extends ApiController {
@@ -23,12 +21,6 @@ export default class extends ApiController {
 		} else {
 			return Promise.resolve(true);
 		}
-	}
-
-	async getOpenseaContractJSON({host, chain, type, first,address}: {host: string, chain?: ChainType, type?: SaleType, first?: SaleType, address?: string}) {
-		let json = await opensea.getOpenseaContractJSON(host, chain, type || first, address);
-		var mine = this.server.getMime('json');
-		this.returnString(JSON.stringify(json), mine);
 	}
 
 	async printJSON(data: any) {
@@ -43,6 +35,8 @@ export default class extends ApiController {
 			);
 		this.returnString(JSON.stringify(json), this.server.getMime('json'));
 	}
+
+	// ------------------------ more apis ------------------------
 
 	/**
 	 * @method getDAO() 通过地址获取dao对像
