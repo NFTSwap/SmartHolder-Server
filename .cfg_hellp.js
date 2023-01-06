@@ -7,8 +7,7 @@ var rpc = require('./cfg/util/rpc');
 module.exports = {
 	...base,
 	web3s: { // web3 cfg
-		RINKEBY: rpc.RINKEBY,
-		//BSN_TEST: rpc.BSN_TEST,
+		RINKEBY: rpc.GOERLI,
 	},
 	mbus: 'mqtt://172.16.20.47:1883', // Disable mbus when empty, mbus为空时禁用消息总线
 	mbus_auth: '', // user:password
