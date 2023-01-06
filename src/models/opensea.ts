@@ -498,11 +498,11 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType, ty
 export async function getOpenseaContractJSONFromToken(asset: string, chain: ChainType) {
 	let dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaFirst: asset });
 	if (dao) {
-		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaFirst);
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kFirst);
 	}
 	dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaSecond: asset });
 	if (dao) {
-		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaSecond);
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kSecond);
 	}
 	return null;
 }

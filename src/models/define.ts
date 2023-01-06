@@ -310,8 +310,8 @@ export interface AssetJson {
 
 export enum SaleType {
 	kDefault,
-	kOpenseaFirst,
-	kOpenseaSecond
+	kFirst, // kOpenseaFirst,
+	kSecond, // kOpenseaSecond,
 }
 
 export interface TokenURIInfo {
