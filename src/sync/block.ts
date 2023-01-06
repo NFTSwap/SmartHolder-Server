@@ -12,7 +12,7 @@ import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
 import {Transaction, TransactionReceipt, Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
-import {getContractInfo} from '../models/contract';
+import * as contract from '../models/contract';
 import {broadcastWatchBlock} from '../message';
 
 export class WatchBlock implements WatchCat {
@@ -70,7 +70,7 @@ export class WatchBlock implements WatchCat {
 				// 		debugger;
 				// 	}
 				// }
-				let info = await getContractInfo(address, chain);
+				let info = await contract.select(address, chain);
 				if (info && info.type) {
 					let scaner = mk_scaner(address, info.type, chain);
 					scaner.lastBlockNumber = lastBlockNumber;

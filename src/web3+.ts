@@ -6,7 +6,7 @@ import {ContractType,ChainType} from './models/define';
 import * as cfg from '../config';
 import somes from 'somes';
 import {AbiInterface} from 'bclib/abi';
-import {getContractInfo} from './models/contract';
+import * as contract from './models/contract';
 import {WatchCat} from 'bclib/watch';
 import { env } from './env';
 
@@ -26,7 +26,7 @@ abi.FetchAbiFunList.pop(); // delete default fetch fun
 
 abi.FetchAbiFunList.push(async (addr, chain)=>{
 	somes.assert(addr, '#shs#web3+#FetchAbiFunList fetchAbiFunList address Cannot be empty');
-	var info = await getContractInfo(addr, chain);
+	var info = await contract.select(addr, chain);
 
 	if (info && info.abi) {
 		try {
