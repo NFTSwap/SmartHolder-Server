@@ -12,7 +12,7 @@ module.exports = {
 	publicURL: 'https://smart-dao-rel.stars-mine.com',
 	mbus: 'mqtt://mqtt-test.stars-mine.com:2883',
 	mbus_auth: 'nft_hardware_test:nft_hardware_test', // user:password
-	mbus_topic: 'shs_default_rel_v2',
+	mbus_topic: 'shs_default_rel',
 	enable_auth: true,
 	env: 'dev',
 	mysql: {

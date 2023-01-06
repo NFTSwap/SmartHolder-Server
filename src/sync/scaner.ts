@@ -3,7 +3,7 @@
  * @date 2021-09-26
  */
 
-import { ContractInfo, ContractType, ChainType } from '../models/def';
+import { ContractInfo, ContractType, ChainType } from '../models/define';
 import {IBcWeb3} from 'bclib/web3_tx';
 import {web3s, MvpWeb3} from '../web3+';
 import {EventData} from 'web3-tx';
@@ -15,7 +15,7 @@ import {AbiInput} from 'web3-utils';
 import * as cfg from '../../config';
 import {AbiItem} from 'web3-utils';
 import uncaught from '../uncaught';
-import {getContractInfo} from '../models/contract';
+import * as contract from '../models/contract';
 
 const cryptoTx = require('crypto-tx');
 
@@ -34,11 +34,11 @@ export function formatHex(hex_str: string | number | bigint, btyes: number = 32)
 	}
 }
 
-export async function blockTimeStamp(web3: IBcWeb3, blockNumber: number) {
-	var cur = await web3.getBlockNumber();
+export async function blockTimeStamp(web3: IBcWeb3, blockNumber: number, last: number = 0) {
+	last = last || await web3.getBlockNumber();
 	// var block = await web3.impl.eth.getBlock(blockNumber);
 	// var time0 = Number(block.timestamp) * 1e3;
-	return parseInt((Date.now() - (cur - blockNumber) * 13.545 * 1e3) as any);
+	return parseInt((Date.now() - (last - blockNumber) * 13.545 * 1e3) as any);
 }
 
 export function getNumber(num: number | string) {
@@ -49,8 +49,15 @@ export function getNumber(num: number | string) {
 	return num;
 }
 
+export interface HandleEventData {
+	event: EventData;
+	tx: Transaction;
+	blockTime: number;
+	blockNumber: number;
+}
+
 export interface ResolveEvent {
-	use(this: ContractScaner, e: EventData, tx: Transaction): Promise<void>;
+	handle(this: ContractScaner, e: HandleEventData): Promise<void>;
 	test?(this: ContractScaner, e: EventData, abi: AbiInterface): Promise<void>;
 }
 
@@ -67,6 +74,8 @@ export abstract class ContractScaner {
 	readonly address: string;
 	readonly type: ContractType;
 	readonly chain: ChainType;
+
+	lastBlockNumber = 0;
 
 	abstract readonly events: Dict<ResolveEvent>;
 
@@ -85,8 +94,7 @@ export abstract class ContractScaner {
 
 	async info() {
 		if (!this._info) {
-			// var [info] = await db.select(`contract_info_${this.chain}`, { address: this.address, chain: this.chain }) as ContractInfo[];
-			let info = await getContractInfo(this.address, this.chain) as ContractInfo;
+			let info = (await contract.select(this.address, this.chain))!;
 			somes.assert(info, `No match the ${this.address} contract_info_${this.chain}`);
 			this._info = info;
 		}
@@ -97,7 +105,7 @@ export abstract class ContractScaner {
 		return (await this.info()).host;
 	}
 
-	async contract() {
+	contract() {
 		return this.web3.contract(this.address);
 	}
 
@@ -142,20 +150,8 @@ export abstract class ContractScaner {
 		return logs.length;
 	}
 
-	async scan(fromBlock: number, toBlock: number): Promise<number> {
-		if (cfg.logs.sync) {
-			console.log(`Asset Sync:`, fromBlock, '->', toBlock, ChainType[this.chain], ':', ContractType[this.type], this.address);
-		}
-		var events = 0;
-		for (var [event, watch] of Object.entries(this.events)) {
-			events += await this.scanEvent(fromBlock, toBlock, event, watch);
-		}
-		return events;
-	}
-
 	private async solveReceiptLogFrom(
-		event: string, signature: string, abiItem: AbiItem,
-		log: Log, tx: Transaction, resolve: ResolveEvent, noErr?: boolean
+		event: string, signature: string, abiItem: AbiItem, log: Log, tx: Transaction, resolve: ResolveEvent
 	) {
 		try {
 			var returnValues = 
@@ -181,19 +177,31 @@ export abstract class ContractScaner {
 		};
 
 		try {
-			await resolve.use.call(this, e, tx);
+			// await blockTimeStamp(this.web3, e.blockNumber)
+			if (this.lastBlockNumber == 0) {
+				this.lastBlockNumber = await this.web3.getBlockNumber()
+				let blockTime = await blockTimeStamp(this.web3, e.blockNumber, this.lastBlockNumber);
+				await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
+			}
 		} catch(err:any) {
-			uncaught[noErr ? 'warn': 'fault']('ContractScaner#solveReceiptLogFrom',
+			uncaught.fault('ContractScaner#solveReceiptLogFrom',
 				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
-			if (noErr) {
-				return false;
-			} else {
-				throw err;
-			}
+			throw err;
 		}
 
 		return true;
+	}
+
+	async scan(fromBlock: number, toBlock: number): Promise<number> {
+		if (cfg.logs.sync) {
+			console.log(`Asset Sync:`, fromBlock, '->', toBlock, ChainType[this.chain], ':', ContractType[this.type], this.address);
+		}
+		var events = 0;
+		for (var [event, watch] of Object.entries(this.events)) {
+			events += await this.scanEvent(fromBlock, toBlock, event, watch);
+		}
+		return events;
 	}
 
 	async solveReceiptLog(log: Log, tx: Transaction) {

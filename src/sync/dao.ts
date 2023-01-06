@@ -3,80 +3,72 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,blockTimeStamp} from './scaner';
-import {EventData} from 'web3-tx';
+import {ContractScaner,HandleEventData} from './scaner';
+import * as constants from './constants';
 import db from '../db';
 
 export class DAO extends ContractScaner {
 
 	events = {
-		// event Change(string tag);
+		// event Change(uint256 indexed tag, uint256 value);
+		// event SetModule(uint256 indexed id, address addr);
 
 		Change: {
-			use: async (e: EventData)=>{
-				// id: number;//           int primary key auto_increment,
-				// host: string;//         varchar (64)   not null, -- dao host or self address
-				// address: string;//      varchar (64)   not null,
-				// name: string;//         varchar (64)   not null,
-				// mission: string;//      varchar (1024) not null,
-				// description: string;//     varchar (1024) not null,
-				// root: string;//         varchar (64)   not null,
-				// operator: string;//     varchar (64)   not null,
-				// member: string;//       varchar (64)   not null,
-				// ledger: string;//       varchar (64)   not null,
-				// openseaFirst: string;//  varchar (64)   not null,
-				// openseaSecond: string;//  varchar (64)   not null,
-				// asset: string;//        varchar (64)   not null,
-				// time: number;//         bigint         not null,
-				// modify: number;//       bigint         not null
+			handle: async ({event:e,blockTime: modify}: HandleEventData)=>{
+				let tag = e.returnValues.tag as number;
+				let methods = await this.methods();
+				let {address,chain} = this;
 
-				let tag = e.returnValues.tag;
-				let m = await this.methods();
-				let time = await blockTimeStamp(this.web3, e.blockNumber);
-
-				if (tag == 'Init') {
-					if (! await db.selectOne(`dao_${this.chain}`, { address: this.address }) ) {
-						await db.insert(`dao_${this.chain}`, {
-							host: await this.host(),
-							address: this.address,
-							name: await m.name().call(),
-							mission: await m.mission().call(),
-							description: await m.description().call(),
-							root: await m.root().call(),
-							member: await m.member().call(),
-							ledger: await m.ledger().call(),
-							assetGlobal: await m.openseaFirst().call(), // (delete prop)
-							openseaFirst: await m.openseaFirst().call(),
-							openseaSecond: await m.openseaSecond().call(),
-							asset: await m.asset().call(),
-							time: time,
-							modify: time,
-							blockNumber: Number(e.blockNumber) || 0,
-						});
-					}
-				} else if (tag == 'MissionAndDesc') {
-					await db.update(`dao_${this.chain}`, {
-						mission: await m.mission().call(),
-						description: await m.description().call(), modify: time,
-					}, { address: this.address });
-				}
-				else if (tag == 'Ledger') {
-					await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
-				}
-				else if (tag == 'OpenseaFirst') {
-					await db.update(`dao_${this.chain}`, { openseaFirst: await m.openseaFirst().call(), modify: time }, { address: this.address });
-				}
-				else if (tag == 'OpenseaSecond') {
-					await db.update(`dao_${this.chain}`, { openseaSecond: await m.openseaSecond().call(), modify: time }, { address: this.address });
-				}
-				else if (tag == 'Asset') {
-					await db.update(`dao_${this.chain}`, { asset: await m.asset().call(), modify: time }, { address: this.address });
-				}
-				else if (tag == 'Department') {
-					// await db.update(`dao_${this.chain}`, { ledger: await m.ledger().call(), modify: time }, { address: this.address });
+				switch (tag) {
+					case constants.Change_Tag_Description:
+						let description = await methods.description().call();
+						await db.update(`dao_${chain}`, { description, modify }, { address });
+						break;
+					case constants.Change_Tag_DAO_Mission:
+						let mission = await methods.mission().call();
+						await db.update(`dao_${chain}`, { mission, modify }, { address });
+						break;
+					case constants.Change_Tag_Operator:
+						let operator = await methods.operator().call();
+						await db.update(`dao_${chain}`, { operator, modify }, { address });
+						break;
+					case constants.Change_Tag_Upgrade:
+						break;
 				}
 			},
-		}
+		},
+
+		SetModule: {
+			handle: async ({event,blockTime: modify}: HandleEventData)=>{
+				let id = Number(event.returnValues.id);
+				let methods = await this.methods();
+				let {address,chain} = this;
+
+				switch (id) {
+					case constants.Module_MEMBER_ID:
+						let member = await methods.module(constants.Module_MEMBER_ID).call();
+						await db.update(`dao_${chain}`, { member, modify }, { address });
+						break;
+					case constants.Module_LEDGER_ID:
+						let ledger = await methods.module(constants.Module_LEDGER_ID).call();
+						await db.update(`dao_${chain}`, { ledger, modify }, { address });
+						break;
+					case constants.Module_ASSET_ID:
+						let asset = await methods.module(constants.Module_ASSET_ID).call();
+						await db.update(`dao_${chain}`, { asset, modify }, { address });
+						break;
+					case constants.Module_ASSET_First_ID:
+						let first = await methods.module(constants.Module_ASSET_First_ID).call();
+						await db.update(`dao_${chain}`, { first, modify }, { address });
+						break;
+					case constants.Module_ASSET_Second_ID:
+						let second = await methods.module(constants.Module_ASSET_Second_ID).call();
+						await db.update(`dao_${chain}`, { second, modify }, { address });
+						break;
+				}
+
+			}
+		},
 	};
 
 

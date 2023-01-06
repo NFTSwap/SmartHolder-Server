@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import {ChainType} from '../models/def';
+import {ChainType} from '../models/define';
 import * as opensea from '../models/opensea';
 import { OrderComponents } from "seaport-smart/types";
 

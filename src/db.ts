@@ -11,9 +11,9 @@ import {MysqlTools} from 'somes/mysql';
 import pool from 'somes/mysql/pool';
 import {Charsets} from 'somes/mysql/constants';
 import * as cfg from '../config';
-import {ChainType} from './models/def';
+import {ChainType} from './models/define';
 
-export * from './models/def';
+export * from './models/define';
 
 export const storage = new Storage();
 
@@ -43,15 +43,14 @@ async function load_main_db() {
 				operator     varchar (64)                       not null,
 				member       varchar (64)                       not null,
 				ledger       varchar (64)                       not null,
-				first        varchar (64)                      not null, -- opensea first
-				second       varchar (64)                      not null, -- opensea second
+				first        varchar (64)                       not null, -- opensea first
+				second       varchar (64)                       not null, -- opensea second
 				asset        varchar (64)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
 				assetIssuanceTax    int          default (0)    not null,
 				assetCirculationTax int          default (0)    not null,
-				defaultVotePassRate int          default (0)    not null,
 				defaultVoteTime     bigint       default (0)    not null,
 				memberBaseName      varchar (32) default ('')   not null,
 				memberTotalLimit    int          default (0)    not null
@@ -62,15 +61,14 @@ async function load_main_db() {
 				host         varchar (64)               not null, -- dao host
 				token        varchar (64)               not null, -- address
 				tokenId      varchar (72)               not null, -- id
-				uri          varchar (512)              not null, -- uri
 				owner        varchar (64)               not null, -- owner address
 				name         varchar (64)               not null, -- member name
 				description  varchar (512)              not null, -- member description
-				avatar       varchar (512)              not null, -- member head portrait
-				role         int           default (0)  not null, -- default 0
+				image        varchar (512)              not null, -- member head portrait
 				votes        int           default (0)  not null, -- default > 0
 				time         bigint                     not null,
-				modify       bigint                     not null
+				modify       bigint                     not null,
+				permissions  json                           null
 			);
 
 			create table if not exists asset_${chain} (
@@ -129,6 +127,7 @@ async function load_main_db() {
 				target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (72)                 not null, -- 金额
+				price        varchar (72)                 not null, -- 成交价格
 				time         bigint                       not null, -- 时间
 				blockNumber  int                          not null, -- 区块
 				state        int             default (0)  not null,
@@ -167,8 +166,9 @@ async function load_main_db() {
 				name         varchar (64)                 not null, -- 提案名称
 				description  varchar (1024)               not null, -- 提案描述
 				origin       varchar (64)                 not null, -- 发起人
-				target       varchar (64)                 not null, -- 执行目标合约地址
-				data         text                         not null, -- 执行参数数据
+				originId     varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
+				target       json                             null, -- 目标合约,决议执行合约地址列表
+				data         json                             null, -- 调用方法与实参列表
 				lifespan     bigint                       not null, -- 投票生命周期(minutes)
 				expiry       bigint                       not null, -- 过期时间（区块链时间单位）
 				passRate     int                          not null, -- 通过率不小于全体票数50% (0-10000)
@@ -195,7 +195,7 @@ async function load_main_db() {
 				blockNumber  int                          not null
 			);
 
-			create table if not exists contract_info_${chain} (
+			create table if not exists contract_info_${chain} (   -- 合约,监控数据源
 				id           int primary key auto_increment,
 				host         varchar (64)    default ('') not null,
 				address      varchar (64)                 not null,
@@ -210,7 +210,6 @@ async function load_main_db() {
 			// dao
 			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
-			`alter table dao_${chain}  add defaultVotePassRate   int          default (0)  not null`, // 
 			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
 			`alter table dao_${chain}  add openseaFirst          varchar (64) default ('')  not null`,
@@ -281,6 +280,22 @@ async function load_main_db() {
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
 		], `shs_${chain}`);
 	}
+
+	await main_db.load(`
+		create table if not exists events (
+			id                   int primary        key auto_increment, -- 主键id
+			host                 varchar (64)                 not null, -- dao host or self address
+			title                varchar (64)                 not null, --
+			description          varchar (4096)               not null,
+			created_member_id    varchar (72)    default ('') not null,  -- 创建人成员id
+			chain                int                          not null,
+			state                int             default (0)  not null, -- 0正常,1删除
+			time                 bigint                       not null,
+			modify               bigint                       not null
+		);
+		`, [], [
+		`create         index events_idx0    on   events         (chain,host,title)`,
+	], `shs_0`);
 }
 
 export async function initialize() {

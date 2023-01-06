@@ -3,16 +3,15 @@
  * @date 2021-09-26
  */
 
-import { Asset, ContractType, ChainType } from '../models/def';
-import {ContractScaner, IAssetScaner, formatHex,blockTimeStamp} from './scaner';
-import {EventData} from 'web3-tx';
-import {Transaction} from 'web3-core';
+import { Asset, ContractType, ChainType } from '../models/define';
+import {ContractScaner, IAssetScaner, formatHex,blockTimeStamp,HandleEventData} from './scaner';
 import * as utils from '../utils';
 import db from '../db';
 import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
 
 export abstract class AssetScaner extends ContractScaner implements IAssetScaner {
+
 	abstract uri(tokenId: string): Promise<string>;
 	abstract balanceOf(owner: string, tokenId: string): Promise<number>;
 	abstract exists(id: string): Promise<boolean>;
@@ -26,7 +25,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		try {
 			uri = await this.uri(tokenId);
 		} catch(err: any) {
-			console.warn('AssetScaner#uriNoErr', ContractType[this.type], ChainType[this.chain], this.address, tokenId, err.message);
+			console.warn('#AssetScaner#uriNoErr', ContractType[this.type], ChainType[this.chain], this.address, tokenId, err.message);
 		}
 		return uri;
 	}
@@ -51,7 +50,7 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		to: [string, number], // to address/total
 		value: string,
 	) {
-		var time = await blockTimeStamp(this.web3, blockNumber);
+		var time = await blockTimeStamp(this.web3, blockNumber, this.lastBlockNumber);
 		var token = this.address;
 		let exists = await this.exists(tokenId);
 		if (exists) {
@@ -85,6 +84,10 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		await opensea.maskOrderClose(this.chain, token, tokenId);
 	}
 
+	async handleChange(data: HandleEventData) {
+		// TODO update dao ...
+	}
+
 }
 
 export class AssetERC721 extends AssetScaner {
@@ -92,17 +95,20 @@ export class AssetERC721 extends AssetScaner {
 	events = {
 		// event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 		Transfer: {
-			use: async (e: EventData, tx: Transaction)=>{
+			handle: async ({event:e,tx,blockNumber}: HandleEventData)=>{
 				var {from, to} = e.returnValues;
 				if (e.returnValues.tokenId) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
-					let blockNumber = Number(e.blockNumber) || 0;
 					await this.assetTransaction(e.transactionHash, blockNumber, '1', tokenId, [from, 0], [to, 1], tx.value);
 				} else {
-					console.warn(`AssetERC721#Transfer, token=${this.address}, returnValues.tokenId=`, e.returnValues.tokenId, e.returnValues);
+					console.warn(`#AssetERC721#Transfer, token=${this.address}, returnValues.tokenId=`, e.returnValues.tokenId, e.returnValues);
 				}
 			},
-		}
+		},
+		// event Change(uint256 indexed tag, uint256 value);
+		Change: {
+			handle: (data: HandleEventData)=>this.handleChange(data),
+		},
 	};
 
 	async ownerOf(tokenId: string) {

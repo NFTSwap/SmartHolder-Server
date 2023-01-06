@@ -27,12 +27,13 @@ export interface DAO {
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
 	blockNumber: number;//  int            not null,
-	assetIssuanceTax: number;//    int default (0)   not null, // 发行税
-	assetCirculationTax: number;// int default (0)   not null, // 流转税
-	defaultVotePassRate: number;// int default (0)   not null  // 默认最小投票率
+	// assetIssuanceTax => first.seller_fee_basis_points
+	assetIssuanceTax: number;//    int default (0)   not null, // 发行税,一手交易
+	// assetCirculationTax => second.seller_fee_basis_points
+	assetCirculationTax: number;// int default (0)   not null, // 流转税,二手交易
+	// defaultVoteTime => votePool.lifespan
 	defaultVoteTime: number; // bigint         default (0)    not null,
 	memberBaseName: string; // varchar (32)   default ('')   not null,
-	memberTotalLimit: number; // int          default (0)    not null
 }
 
 export interface Member {
@@ -40,15 +41,22 @@ export interface Member {
 	host: string;//         varchar (64)    not null, -- dao host
 	token: string;//        varchar (64)    not null, -- address
 	tokenId: string;//      varchar (72)    not null, -- id
-	uri: string;//          varchar (512)   not null, -- uri
 	owner: string;//        varchar (64)    not null, -- owner address
 	name: string;//         varchar (64)    not null, -- member name
 	description: string;//     varchar (512)   not null, -- member description
-	avatar: string;//       varchar (512)   not null, -- member head portrait
-	role: number;//         int default (0) not null, -- default 0
+	image: string;//       varchar (512)   not null, -- member head portrait
 	votes: number;//        int default (0) not null, -- default > 0
 	time: number;//         bigint          not null,
 	modify: number;//       bigint          not null
+	permissions: number[];
+}
+
+export interface MemberInfo {
+	id: string; // uint256
+	name: string;
+	description: string;
+	image: string;
+	votes: number;
 }
 
 export enum Selling { // 销售类型
@@ -135,6 +143,7 @@ export interface LedgerAssetIncome {
 	tokenId: string;//      char    (66)                 not null, -- 原始资产id
 	source: string;//       varchar (64)                 not null, -- 进账来源
 	balance: string;//      varchar (72)                 not null, -- 金额
+	price: string;//        varchar (72)                 not null, -- 成交价格
 	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
 	saleType: SaleType;//     int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
@@ -160,8 +169,8 @@ export interface VoteProposal {
 	name: string;//         varchar (64)                 not null, -- 提案名称
 	description: string;//     varchar (1024)               not null, -- 提案描述
 	origin: string;//       varchar (64)                 not null, -- 发起人
-	target: string;//       varchar (64)                 not null, -- 执行目标合约地址
-	data: string;//         text                         not null, -- 执行参数数据
+	target: string[];//     josn                             null, -- 执行目标合约地址
+	data: string[];//       text                             null, -- 执行参数数据
 	lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）
 	expiry: number;//       bigint                       not null, -- 过期时间（区块链时间单位）
 	passRate: number;//     int                          not null, -- 通过率不小于全体票数50% (0-10000)

@@ -5,12 +5,13 @@
 
 import somes from 'somes';
 import {ContractScaner,ContractUnknown} from './scaner';
-import {ContractType, ChainType, ContractInfo } from '../models/def';
+import {ContractType, ChainType, ContractInfo } from '../models/define';
 import {DAO} from './dao';
-import {AssetERC721} from './erc721';
+import {AssetERC721} from './asset';
 import {Ledger} from './ledger';
 import {Member} from './member';
 import {VotePool} from './vote_pool';
+import {DAOs} from './daos';
 
 export * from './scaner';
 
@@ -42,6 +43,9 @@ export default function make(address: string, type: ContractType, chain: ChainTy
 	}
 	else if (type == ContractType.VotePool) {
 		cs = new VotePool(address, type, chain);
+	}
+	else if (type == ContractType.DAOs) {
+		cs = new DAOs(address, type, chain);
 	}
 	else {
 		cs = new ContractUnknown(address, ContractType.Invalid, chain);

@@ -1,6 +1,6 @@
 
 // import _ from 'bclib/api/chain';
-import {ChainType} from '../models/def';
+import {ChainType} from '../models/define';
 import sync from '../sync';
 import ApiController from '../api';
 import web3s from 'bclib/web3+';

@@ -3,8 +3,7 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,formatHex,blockTimeStamp} from './scaner';
-import {EventData} from 'web3-tx';
+import {ContractScaner,formatHex,blockTimeStamp,HandleEventData} from './scaner';
 import db, {LedgerType,LedgerReleaseLog} from '../db';
 
 export class Ledger extends ContractScaner {
@@ -15,12 +14,13 @@ export class Ledger extends ContractScaner {
 		// event Deposit(address indexed from, uint256 balance, string name, string description);
 		// event Withdraw(address indexed target, uint256 balance, string description);
 		// event Release(uint256 indexed member, address indexed to, uint256 balance);
-		// event AssetIncome(address indexed token, uint256 indexed tokenId, 
-		// 	address indexed source, uint256 balance, address to, IAssetShell.SaleType saleType
+		// event AssetIncome(
+		// 	address indexed token, uint256 indexed tokenId,
+		// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
 		// );
 
 		Receive: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e}: HandleEventData)=>{
 				let {from,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
@@ -54,7 +54,7 @@ export class Ledger extends ContractScaner {
 		},
 
 		ReleaseLog: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e}: HandleEventData)=>{
 				let {operator,balance,log} = e.returnValues;
 				let txHash = e.transactionHash;
 
@@ -82,7 +82,7 @@ export class Ledger extends ContractScaner {
 		},
 
 		Deposit: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {from,balance,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
@@ -104,7 +104,11 @@ export class Ledger extends ContractScaner {
 		},
 
 		AssetIncome: {
-			use: async (e: EventData)=>{
+			// event AssetIncome(
+			// 	address indexed token, uint256 indexed tokenId,
+			// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
+			// );
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {token,source,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
@@ -113,6 +117,7 @@ export class Ledger extends ContractScaner {
 					let blockNumber = Number(e.blockNumber) || 0;
 					let time = await blockTimeStamp(this.web3, blockNumber);
 					let balance = formatHex(e.returnValues.balance);
+					let price = formatHex(e.returnValues.price);
 
 					let ledger_id = await db.insert(`ledger_${this.chain}`, {
 						host: await this.host(),
@@ -128,7 +133,7 @@ export class Ledger extends ContractScaner {
 					});
 
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						ledger_id, token, tokenId, source, balance, toAddress: to, saleType, blockNumber, time
+						ledger_id, token, tokenId, source, balance, price, toAddress: to, saleType, blockNumber, time
 					});
 
 					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
@@ -137,7 +142,7 @@ export class Ledger extends ContractScaner {
 		},
 
 		Withdraw: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {target,balance,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
@@ -158,7 +163,7 @@ export class Ledger extends ContractScaner {
 		},
 
 		Release: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {member,to,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Release;

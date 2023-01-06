@@ -4,7 +4,7 @@
  */
 
 import bus from 'bclib/message';
-import {ChainType} from './models/def';
+import {ChainType} from './models/define';
 
 export const EventWatchBlock = 'WatchBlock';
 

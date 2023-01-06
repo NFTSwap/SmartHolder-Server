@@ -2,7 +2,7 @@
 import bcweb3, {BcWeb3} from 'bclib/web3+';
 import {Web3,Contract,MPSwitchMode,MultipleProvider,BaseProvider,JsonRpcResponse} from 'web3-tx';
 import * as abi from 'bclib/abi';
-import {ContractType,ChainType} from './models/def';
+import {ContractType,ChainType} from './models/define';
 import * as cfg from '../config';
 import somes from 'somes';
 import {AbiInterface} from 'bclib/abi';
@@ -25,7 +25,7 @@ abi.setSaveAbiToLocal(false);
 abi.FetchAbiFunList.pop(); // delete default fetch fun
 
 abi.FetchAbiFunList.push(async (addr, chain)=>{
-	somes.assert(addr, 'fetchAbiFunList address Cannot be empty');
+	somes.assert(addr, '#shs#web3+#FetchAbiFunList fetchAbiFunList address Cannot be empty');
 	var info = await getContractInfo(addr, chain);
 
 	if (info && info.abi) {
@@ -33,7 +33,7 @@ abi.FetchAbiFunList.push(async (addr, chain)=>{
 			var abi: abi.AbiInterface = { address: addr, abi: JSON.parse(info.abi) };
 			return abi;
 		} catch(err:any) {
-			console.warn('mvp-ser#web3+#FetchAbiFunList', err.message);
+			console.warn('#shs#web3+#FetchAbiFunList', err.message);
 		}
 	}
 	// use default abi

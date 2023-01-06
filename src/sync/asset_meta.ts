@@ -14,7 +14,7 @@ import {AssetSyncQueue} from './queue';
 import * as utils from '../utils';
 import errno from '../errno';
 import make from './mk_scaner';
-import {AssetERC721} from './erc721';
+import {AssetERC721} from './asset';
 import sync from '.';
 import {WatchCat} from 'bclib/watch';
 import {web3s} from '../web3+';

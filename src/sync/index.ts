@@ -8,12 +8,14 @@ import somes from 'somes';
 import errno from '../errno';
 import * as env from '../env';
 import {WatchCat} from 'bclib/watch';
-import { storage, ChainType } from '../db';
+import { storage, ChainType,ContractType } from '../db';
 import {web3s} from '../web3+';
 import msg, {EventWatchBlock} from '../message';
 import {WatchBlock} from './block';
 import {QiniuSync} from './qiniu';
 import {AssetMetaDataSync,AssetMetaDataUpdate} from './asset_meta';
+import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
+import * as contract from '../models/contract';
 
 interface WaitPromiseCallback {
 	timeout: number;
@@ -47,7 +49,17 @@ export class Sync {
 				_sync.watchBlocks[k] = env.workers ?
 					new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
 				addWatch(_sync.watchBlocks[k]);
-				await storage.set(`WatchBlock_Workers_${v.chain}`, env.workers ? env.workers.workers: 1);
+
+				if (isMainWorker) { // init DAOs contract
+					let info = deployInfo[ChainType[v.chain].toLowerCase() as 'goerli'];
+					if (info) {
+						let {address,blockNumber} = info.DAOsProxy;
+						let c = await contract.select(address, v.chain);
+						if (!c)
+							await contract.insert({ address, type: ContractType.DAOs, blockNumber, time: Date.now() }, v.chain);
+					}
+					await storage.set(`WatchBlock_Workers_${v.chain}`, env.workers ? env.workers.workers: 1);
+				}
 			}
 			if (isMainWorker) {
 				addWatch(this.qiniuSync);
@@ -83,7 +95,7 @@ export class Sync {
 		let woekers = await storage.get(`WatchBlock_Workers_${chain}`);
 		let worker = blockNumber % woekers;
 		let cur = await storage.get(`WatchBlock_Cat_${worker}_${ChainType[chain]}_`);
-		if (cur > blockNumber) return; // ok
+		if (cur >= blockNumber) return; // ok
 
 		return await somes.promise<void>((resolve, reject)=>{
 			let wait = this._waits[`${chain}_${worker}`] || (this._waits[`${chain}_${worker}`] = {
