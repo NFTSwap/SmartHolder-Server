@@ -3,39 +3,19 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,HandleEventData} from './scaner';
+import {HandleEventData} from './scaner';
+import {ModuleScaner} from './asset';
 import * as constants from './constants';
 import db from '../db';
 
-export class DAO extends ContractScaner {
+export class DAO extends ModuleScaner {
 
 	events = {
 		// event Change(uint256 indexed tag, uint256 value);
 		// event SetModule(uint256 indexed id, address addr);
 
 		Change: {
-			handle: async ({event:e,blockTime: modify}: HandleEventData)=>{
-				let tag = e.returnValues.tag as number;
-				let methods = await this.methods();
-				let {address,chain} = this;
-
-				switch (tag) {
-					case constants.Change_Tag_Description:
-						let description = await methods.description().call();
-						await db.update(`dao_${chain}`, { description, modify }, { address });
-						break;
-					case constants.Change_Tag_DAO_Mission:
-						let mission = await methods.mission().call();
-						await db.update(`dao_${chain}`, { mission, modify }, { address });
-						break;
-					case constants.Change_Tag_Operator:
-						let operator = await methods.operator().call();
-						await db.update(`dao_${chain}`, { operator, modify }, { address });
-						break;
-					case constants.Change_Tag_Upgrade:
-						break;
-				}
-			},
+			handle: (data: HandleEventData)=>this.onChange(data),
 		},
 
 		SetModule: {
@@ -66,10 +46,31 @@ export class DAO extends ContractScaner {
 						await db.update(`dao_${chain}`, { second, modify }, { address });
 						break;
 				}
-
 			}
 		},
 	};
 
+	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
+		await db.update(`dao_${this.chain}`, { description: desc, modify }, { address: this.address });
+	}
+
+	protected async onOperator({blockTime:modify}: HandleEventData, addr: string) {
+		await db.update(`dao_${this.chain}`, { operator: addr, modify }, { address: this.address });
+	}
+
+	protected async onUpgrade(data: HandleEventData, addr: string) {
+		// noop
+	}
+
+	protected async onChangePlus({blockTime: modify}: HandleEventData, tag: number) {
+		let methods = await this.methods();
+		let {address,chain} = this;
+		switch (tag) {
+			case constants.Change_Tag_DAO_Mission:
+				let mission = await methods.mission().call();
+				await db.update(`dao_${chain}`, { mission, modify }, { address });
+				break;
+		}
+	}
 
 }

@@ -146,10 +146,6 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		return uri;
 	}
 
-	async isCanDequeue() {
-		return true;
-	}
-
 	private async _SyncFromData(data: any, asset: Asset, chain: ChainType, _uri: string) {
 		const {id, token, tokenId, uri} = asset;
 
@@ -300,7 +296,7 @@ export class AssetMetaDataUpdate implements WatchCat {
 	async cat() {
 
 		for (let k of Object.keys(web3s)) {
-			let chain = Number(k) as unknown as ChainType;
+			let chain = Number(k) as ChainType;
 			let day = 10*24*3600*1e3; // 10天扫描一次数据
 			let offset = await storage.get(`NFTAssetDataSync_Offset_${chain}`, 0) as number;
 			if (offset === 0) {

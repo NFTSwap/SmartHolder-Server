@@ -58,7 +58,7 @@ export class WatchBlock implements WatchCat {
 			if (!receipt.status) return;
 
 		if (receipt.contractAddress) { // New contract
-			let address = cryptoTx.checksumAddress(receipt.contractAddress) as string;
+			let address = cryptoTx.checksumAddress(receipt.contractAddress);
 			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
 		else if (receipt.to) { // Contract call
@@ -71,6 +71,7 @@ export class WatchBlock implements WatchCat {
 				// 	}
 				// }
 				let info = await contract.select(address, chain);
+				// console.log('receipt.log', blockNumber, address, info);
 				if (info && info.type) {
 					let scaner = mk_scaner(address, info.type, chain);
 					scaner.lastBlockNumber = lastBlockNumber;
@@ -156,7 +157,6 @@ export class WatchBlock implements WatchCat {
 		} catch (err: any) {
 			if (isRpcLimitRequestAccount(this._web3, err)) {
 				this._web3.swatchRpc();
-				throw err;
 			}
 			console.error('#WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
 		}

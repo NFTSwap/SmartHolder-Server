@@ -16,8 +16,7 @@ import * as cfg from '../../config';
 import {AbiItem} from 'web3-utils';
 import uncaught from '../uncaught';
 import * as contract from '../models/contract';
-
-const cryptoTx = require('crypto-tx');
+import * as cryptoTx from 'crypto-tx';
 
 export function formatHex(hex_str: string | number | bigint, btyes: number = 32) {
 	var s = '';
@@ -84,7 +83,7 @@ export abstract class ContractScaner {
 	}
 
 	get web3() {
-		somes.assert(this._web3, `Chain type not supported => ${ChainType[this.chain]}`);
+		somes.assert(this._web3, `#ContractScaner#web3 Chain type not supported => ${ChainType[this.chain]}`);
 		return this._web3 as MvpWeb3;
 	}
 
@@ -95,23 +94,15 @@ export abstract class ContractScaner {
 	async info() {
 		if (!this._info) {
 			let info = (await contract.select(this.address, this.chain))!;
-			somes.assert(info, `No match the ${this.address} contract_info_${this.chain}`);
+			somes.assert(info, `#ContractScaner#info No match the ${this.address} contract_info_${this.chain}`);
 			this._info = info;
 		}
 		return this._info;
 	}
 
-	async host() {
-		return (await this.info()).host;
-	}
-
-	contract() {
-		return this.web3.contract(this.address);
-	}
-
-	async methods() {
-		return (await this.contract()).methods;
-	}
+	contract() { return this.web3.contract(this.address) }
+	async methods() { return (await this.contract()).methods }
+	async host() { return (await this.info()).host }
 
 	constructor(address: string, type: ContractType, chain: ChainType) {
 		this.address = cryptoTx.checksumAddress(address);
@@ -120,27 +111,38 @@ export abstract class ContractScaner {
 		this._web3 = web3s[chain];
 	}
 
+	async scan(fromBlock: number, toBlock: number): Promise<number> {
+		if (cfg.logs.sync) {
+			console.log(`Asset Sync:`, fromBlock, '->', toBlock, ChainType[this.chain], ':', ContractType[this.type], this.address);
+		}
+		var events = 0;
+		for (var [event, watch] of Object.entries(this.events)) {
+			events += await this.scanEvent(fromBlock, toBlock, event, watch);
+		}
+		return events;
+	}
+
 	private async scanEvent(fromBlock: number, toBlock: number, event: string, resolve: ResolveEvent) {
-		var self = this;
-		var abiI = await getAbiByType(this.type) as AbiInterface;
-		var abiItem = abiI.abi.find(e=>e.name==event);
+		let self = this;
+		let abiI = (await getAbiByType(this.type))!;
+		let abiItem = abiI.abi.find(e=>e.name==event);
 		if (!abiItem) return 0;
 
-		var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
-		var logs: Log[] = await this.web3.eth.getPastLogs({
+		let signature = self.web3.eth.abi.encodeEventSignature(abiItem);
+		let logs: Log[] = await this.web3.eth.getPastLogs({
 			address: this.address, topics: [signature], fromBlock, toBlock,
 		});
-		var transactions: Dict<Transaction> = {};
+		let txs: Dict<Transaction> = {};
 
 		async function getTransaction(hash: string) {
-			if (!transactions[hash])
-				transactions[hash] = await self.web3.eth.getTransaction(log.transactionHash);
-			return transactions[hash];
+			if (!txs[hash])
+				txs[hash] = await self.web3.eth.getTransaction(hash);
+			return txs[hash];
 		}
 
-		for (var log of logs) {
-			var tx = await getTransaction(log.transactionHash);
-			somes.assert(await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve), 'ContractScaner#scanEvent not solve log');
+		for (let log of logs) {
+			let tx = await getTransaction(log.transactionHash);
+			await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
 
 			if (cfg.logs.event) {
 				console.log(ChainType[this.chain], ContractType[this.type], 
@@ -150,17 +152,35 @@ export abstract class ContractScaner {
 		return logs.length;
 	}
 
+	async solveReceiptLog(log: Log, tx: Transaction) {
+		var abiI = (await getAbiByType(this.type))!;
+
+		for (var [event, resolve] of Object.entries(this.events)) {
+			var abiItem = abiI.abi.find(e=>e.name==event);
+			if (abiItem) {
+				var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
+				if (signature == log.topics[0]) {
+					await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
+					break;
+				}
+			}
+		}
+	}
+
 	private async solveReceiptLogFrom(
 		event: string, signature: string, abiItem: AbiItem, log: Log, tx: Transaction, resolve: ResolveEvent
 	) {
 		try {
 			var returnValues = 
 				this.web3.eth.abi.decodeLog(abiItem.inputs as AbiInput[], log.data, log.topics.slice(1));
-		} catch(err) {
-			return false;
+		} catch(err: any) {
+			uncaught.fault('#ContractScaner#solveReceiptLogFrom 1',
+				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
+			);
+			throw err;
 		}
 
-		var e: EventData = {
+		let e: EventData = {
 			returnValues,
 			raw: {
 				data: log.data,
@@ -177,50 +197,16 @@ export abstract class ContractScaner {
 		};
 
 		try {
-			// await blockTimeStamp(this.web3, e.blockNumber)
-			if (this.lastBlockNumber == 0) {
+			if (this.lastBlockNumber == 0)
 				this.lastBlockNumber = await this.web3.getBlockNumber()
-				let blockTime = await blockTimeStamp(this.web3, e.blockNumber, this.lastBlockNumber);
-				await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
-			}
+			let blockTime = await blockTimeStamp(this.web3, e.blockNumber, this.lastBlockNumber);
+			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
 		} catch(err:any) {
-			uncaught.fault('ContractScaner#solveReceiptLogFrom',
+			uncaught.fault('#ContractScaner#solveReceiptLogFrom 2',
 				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
 			throw err;
 		}
-
-		return true;
-	}
-
-	async scan(fromBlock: number, toBlock: number): Promise<number> {
-		if (cfg.logs.sync) {
-			console.log(`Asset Sync:`, fromBlock, '->', toBlock, ChainType[this.chain], ':', ContractType[this.type], this.address);
-		}
-		var events = 0;
-		for (var [event, watch] of Object.entries(this.events)) {
-			events += await this.scanEvent(fromBlock, toBlock, event, watch);
-		}
-		return events;
-	}
-
-	async solveReceiptLog(log: Log, tx: Transaction) {
-		var abiI = await getAbiByType(this.type) as AbiInterface;
-
-		for (var [event, resolve] of Object.entries(this.events)) {
-			var abiItem = abiI.abi.find(e=>e.name==event);
-			if (abiItem) {
-				var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
-				if (signature == log.topics[0]) {
-					somes.assert(
-						await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve),
-						'ContractScaner#solveReceiptLog not solve log'
-					);
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 }

@@ -15,13 +15,14 @@ export default async function runWorker() {
 	await import('../src/uncaught');
 	console.time('start');
 
+	var cfg = await import('../config');
 	var env = await import('../src/env');
 	var db = await import('../src/db');
 	var msg = (await import('../src/message')).default;
 	await (await import('bclib/init')).initialize(db.main_db, db.local_db); console.timeLog('bclib init');
 	await (await import('../src/db')).initialize(); console.timeLog('SmartHolder-Server db');
 	await (await import('../src/keys')).default.initialize(); console.timeLog('keys');
-	await (await import('bclib/redis')).initialize(); console.timeLog('redis');
+	await (await import('bclib/redis')).initialize(cfg.env == 'dev'); console.timeLog('redis');
 	if (!env.disableWeb) {
 		await (await import('../src/server')).default.start(); console.timeLog('server');
 		(await import('../src/server')).initializeApi(); console.timeLog('initialize api');

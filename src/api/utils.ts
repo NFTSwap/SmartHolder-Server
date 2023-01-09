@@ -67,8 +67,9 @@ export default class extends ApiController {
 	 * @method getMembersFrom() 通过dao地址与owner获取dao成员列表
 	 * @param host string dao 地址
 	 * */ 
-	getMembersFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
-		return member.getMembersFrom(chain,host,owner,limit);
+	async getMembersFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
+		let ms = await member.getMembersFrom(chain,host,owner,limit);
+		return ms.map(e=>((e as any).avatar=e.image,e)); // Compatible with older versions
 	}
 
 	/**

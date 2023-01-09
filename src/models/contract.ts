@@ -6,10 +6,13 @@
 import db, { ContractInfo, ChainType } from '../db';
 import * as redis from 'bclib/redis';
 
-var isEnableCache = true;
+export let isEnableCache = true;
 
-export function setCache(enable: boolean) {
+export async function setCache(enable: boolean) {
 	isEnableCache = !!enable;
+	if (!isEnableCache) {
+		await redis.fulushAll();
+	}
 }
 
 export async function update(info: Partial<ContractInfo>, address: string, chain: ChainType) {

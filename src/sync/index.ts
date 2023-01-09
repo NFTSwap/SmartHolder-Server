@@ -50,7 +50,7 @@ export class Sync {
 					new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
 				addWatch(_sync.watchBlocks[k]);
 
-				if (isMainWorker) { // init DAOs contract
+				if (isMainWorker) { // init DAOs contract, add data source
 					let info = deployInfo[ChainType[v.chain].toLowerCase() as 'goerli'];
 					if (info) {
 						let {address,blockNumber} = info.DAOsProxy;

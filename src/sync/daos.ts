@@ -4,7 +4,7 @@
  */
 
 import {ContractType,ContractInfo,MemberInfo} from '../models/define';
-import {ContractScaner,HandleEventData} from './scaner';
+import {ContractScaner,HandleEventData,formatHex} from './scaner';
 import db, {storage} from '../db';
 import * as DAO from '../../abi/DAO.json';
 import * as constants from './constants';
@@ -13,12 +13,19 @@ import * as contract from '../models/contract';
 export class DAOs extends ContractScaner {
 
 	private async addDataSource(address: string, info: Partial<ContractInfo>) {
-		if (await contract.select(address, this.chain, true))
+		if (!await contract.select(address, this.chain, true))
 			await contract.insert(info, this.chain);
 	}
 
 	events = {
-		//event Created(address indexed dao);
+		// event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+		// event Created(address indexed dao);
+
+		OwnershipTransferred: {
+			handle: async ({event,blockTime: time}: HandleEventData)=>{
+				console.log('OwnershipTransferred', event.signature, time);
+			}
+		},
 
 		Created: {
 			handle: async ({event,blockTime: time}: HandleEventData)=>{
@@ -131,11 +138,20 @@ export class DAOs extends ContractScaner {
 						// modify       bigint                     not null
 						let mbr = await db.selectOne(`member_${chain}`, { token: Member, tokenId: info.id });
 						if (!mbr) {
-							let owner = await member.methods.ownerOf(info.id).call();
+							let tokenId = formatHex(info.id);
+							let owner = await member.methods.ownerOf(tokenId).call();
+							let permissions = [];
+
+							if (await member.methods.isPermissionFrom(tokenId, constants.Action_VotePool_Create).call())
+								permissions.push(constants.Action_VotePool_Create);
+							if (await member.methods.isPermissionFrom(tokenId, constants.Action_VotePool_Vote).call())
+								permissions.push(constants.Action_VotePool_Vote);
+
 							db.insert(`member_${chain}`, {
-								host, token: Member, tokenId: info.id, owner, 
+								host, token: Member, tokenId, owner,
 								name: info.name, description: info.description,
 								image: info.image, votes: info.votes, time, modify: time,
+								permissions,
 							});
 						}
 					}
@@ -143,7 +159,7 @@ export class DAOs extends ContractScaner {
 				} // if (Member != addressZero)
 				// ---- handle end ----
 			},
-		}
+		},
 	};
 
 }

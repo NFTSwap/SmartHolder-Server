@@ -7,11 +7,8 @@ import db, { Asset, ChainType, ContractInfo } from '../db';
 import somes from 'somes';
 import _hash from 'somes/hash';
 import {WatchCat} from 'bclib/watch';
-import paths from 'bclib/paths';
 import * as env from '../env';
 import errno from '../errno';
-
-const disk = require(`../../build/Release/hc`).disk;
 
 export interface QueueData {
 	id: number;
@@ -70,18 +67,6 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 			`create unique  index ${name}_idx0         on ${name}             (chain,asset_id)`,
 			`create         index ${name}_idx1         on ${name}             (chain,contract_info_id)`,
 		], `shs_${name}`);
-	}
-
-	async diskSpace() {
-		if (process.platform == 'win32')
-			return true;
-		var info = disk.diskInfo(paths.var);
-		if (info) {
-			if (info.f_bsize * info.f_bavail > 2048 * 1024 * 1024) { // > 2Gb
-				return true;
-			}
-		}
-		return false;
 	}
 
 	get runing() {
@@ -175,7 +160,7 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 	protected async onError(asset: Asset, chain: ChainType) {}
 
 	isCanDequeue() {
-		return this.diskSpace();
+		return true;
 	}
 
 	async isQueue(asset_id: number, chain: ChainType) {
@@ -187,7 +172,7 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		if (this._runing >= this._runingLimit) return;
 		try {
 			this._runing++;
-			if (await this.isCanDequeue()) { // disk space ok
+			if (this.isCanDequeue()) { // disk space ok
 				await this._Dequeue();
 			} else {
 				console.error('#AssetSyncQueue#dequeue ******** Insufficient disk space ********');

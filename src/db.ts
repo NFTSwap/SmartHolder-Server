@@ -41,6 +41,7 @@ async function load_main_db() {
 				description  varchar (1024)                     not null,
 				root         varchar (64)                       not null,
 				operator     varchar (64)                       not null,
+				executor     varchar (72)        default ('')   not null,
 				member       varchar (64)                       not null,
 				ledger       varchar (64)                       not null,
 				first        varchar (64)                       not null, -- opensea first
@@ -102,7 +103,7 @@ async function load_main_db() {
 				asset_id               int    not null,
 				json_data              json       null
 			);
-	
+
 			create table if not exists asset_order_${chain} (           -- 资产订单 asset from -> to
 				id           int    primary key auto_increment not null,
 				txHash       char    (72)                      not null,  -- tx hash
@@ -202,8 +203,8 @@ async function load_main_db() {
 				type         int             default (0)  not null, -- contracts type
 				blockNumber  int                          not null,
 				abi          text,                                  -- 协约abi json,为空时使用默认值
-				state        int             default (0) not null, -- 状态: 0启用, 1禁用
-				time         bigint                      not null  --
+				state        int             default (0) not null,  -- 状态: 0启用, 1禁用
+				time         bigint                      not null   --
 			);
 
 		`, [
@@ -212,8 +213,9 @@ async function load_main_db() {
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
 			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
-			`alter table dao_${chain}  add openseaFirst          varchar (64) default ('')  not null`,
-			`alter table dao_${chain}  add openseaSecond         varchar (64) default ('')  not null`,
+			`alter table dao_${chain}  add first                 varchar (64) default ('')  not null`,
+			`alter table dao_${chain}  add second                varchar (64) default ('')  not null`,
+			`alter table dao_${chain}  add executor              varchar (72) default ('')  not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
@@ -235,8 +237,8 @@ async function load_main_db() {
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
 			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
 			`create         index dao_${chain}_idx2              on dao_${chain}                    (asset)`,
-			`create         index dao_${chain}_idx3              on dao_${chain}                    (openseaFirst)`,
-			`create         index dao_${chain}_idx4              on dao_${chain}                    (openseaSecond)`,
+			`create         index dao_${chain}_idx3              on dao_${chain}                    (first)`,
+			`create         index dao_${chain}_idx4              on dao_${chain}                    (second)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,

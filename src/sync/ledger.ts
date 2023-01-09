@@ -3,12 +3,12 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,formatHex,blockTimeStamp,HandleEventData} from './scaner';
 import db, {LedgerType,LedgerReleaseLog} from '../db';
+import {formatHex,HandleEventData} from './scaner';
+import {ModuleScaner} from './asset';
 
-export class Ledger extends ContractScaner {
+export class Ledger extends ModuleScaner {
 	events = {
-
 		// event Receive(address indexed from, uint256 balance);
 		// event ReleaseLog(address indexed operator, uint256 balance, string log);
 		// event Deposit(address indexed from, uint256 balance, string name, string description);
@@ -19,8 +19,12 @@ export class Ledger extends ContractScaner {
 		// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
 		// );
 
+		Change: {
+			handle: (data: HandleEventData)=>this.onChange(data),
+		},
+
 		Receive: {
-			handle: async ({event:e}: HandleEventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {from,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
@@ -46,7 +50,7 @@ export class Ledger extends ContractScaner {
 						type: type,
 						target: from,
 						balance: formatHex(balance),
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -54,7 +58,7 @@ export class Ledger extends ContractScaner {
 		},
 
 		ReleaseLog: {
-			handle: async ({event:e}: HandleEventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let {operator,balance,log} = e.returnValues;
 				let txHash = e.transactionHash;
 
@@ -72,7 +76,7 @@ export class Ledger extends ContractScaner {
 						operator,
 						balance: formatHex(balance),
 						log,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 						txHash,
 					});
@@ -96,7 +100,7 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						name: name,
 						description: description,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -115,7 +119,6 @@ export class Ledger extends ContractScaner {
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
-					let time = await blockTimeStamp(this.web3, blockNumber);
 					let balance = formatHex(e.returnValues.balance);
 					let price = formatHex(e.returnValues.price);
 
@@ -155,7 +158,7 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						target: target,
 						description: description,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -179,12 +182,24 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						description: log?.log || '',
 						member_id: '0x' + BigInt(member).toString(16),
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
 		},
 	};
+
+	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
+		//await db.update(`dao_${this.chain}`, { description: desc, modify }, { address: this.address });
+	}
+
+	protected async onOperator({blockTime:modify}: HandleEventData, addr: string) {
+		//await db.update(`dao_${this.chain}`, { operator: addr, modify }, { address: this.address });
+	}
+
+	protected async onUpgrade(data: HandleEventData, addr: string) {
+		// noop
+	}
 
 }

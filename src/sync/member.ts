@@ -3,20 +3,24 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,formatHex,HandleEventData} from './scaner';
+import {formatHex,HandleEventData} from './scaner';
+import {ModuleScaner} from './asset';
 import db, {storage,MemberInfo,Member as MemberDef} from '../db';
 import * as constants from './constants';
 
-export class Member extends ContractScaner {
+export class Member extends ModuleScaner {
 	events = {
 		// event Update(uint256 indexed id); // update info
 		// event TransferVotes(uint256 indexed from, uint256 indexed to, uint32 votes);
 		// event AddPermissions(uint256[] ids, uint256[] actions);
 		// event RemovePermissions(uint256[] ids, uint256[] actions);
 
+		Change: {
+			handle: (data: HandleEventData)=>this.onChange(data),
+		},
 		Transfer: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
-				let tokenId = formatHex(e.returnValues.tokenId, 32);
+				let tokenId = formatHex(e.returnValues.tokenId);
 				let chain = this.chain;
 
 				// id           int primary key auto_increment,
@@ -75,7 +79,7 @@ export class Member extends ContractScaner {
 		},
 		Update: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
-				let tokenId = formatHex(e.returnValues.id, 32);
+				let tokenId = formatHex(e.returnValues.id);
 				if ( await db.selectOne(`member_${this.chain}`, { token: this.address, tokenId }) ) {
 					let info = await this.getMemberInfo(tokenId);
 					await db.update(`member_${this.chain}`, {
@@ -89,11 +93,23 @@ export class Member extends ContractScaner {
 			},
 		},
 		TransferVotes: {
-			handle: (data: HandleEventData)=>this.events.Update.handle(data),
+			handle: async (data: HandleEventData)=>{
+				let {from,to} = data.event.returnValues;
+				let methods = await this.methods();
+
+				for (let [id] of [from, to]) {
+					if (id != '0' && await methods.exists(id).call()) {
+						let info = await this.getMemberInfo(id);
+						await db.update(`member_${this.chain}`, {
+							votes: info.votes,
+						}, { token: this.address, tokenId: formatHex(id) });
+					}
+				}
+			},
 		},
 		AddPermissions: { // May be inaccurate
 			handle: async ({event}: HandleEventData)=>{
-				let tokenIds = (event.returnValues.IDs as string[]).map(e=>formatHex(e, 32));
+				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
 				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
 				for (let tokenId of tokenIds) {
 					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
@@ -113,7 +129,7 @@ export class Member extends ContractScaner {
 		},
 		RemovePermissions: { // May be inaccurate
 			handle: async ({event}: HandleEventData)=>{
-				let tokenIds = (event.returnValues.IDs as string[]).map(e=>formatHex(e, 32));
+				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
 				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
 				for (let tokenId of tokenIds) {
 					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
@@ -133,6 +149,29 @@ export class Member extends ContractScaner {
 		},
 	};
 
+	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
+		//await db.update(`dao_${this.chain}`, { description: desc, modify }, { address: this.address });
+	}
+
+	protected async onOperator({blockTime:modify}: HandleEventData, addr: string) {
+		//await db.update(`dao_${this.chain}`, { operator: addr, modify }, { address: this.address });
+	}
+
+	protected async onUpgrade(data: HandleEventData, addr: string) {
+		// noop
+	}
+
+	protected async onChangePlus({blockTime:modify}: HandleEventData, tag: number) {
+		switch (tag) {
+			case constants.Change_Tag_Member_Set_Executor:
+				let methods = await this.methods();
+				let executor = formatHex(await methods.executor().call());
+				let info = await this.info()
+				await db.update(`dao_${this.chain}`, { executor, modify }, { address: info.host });
+				break;
+		}
+	}
+
 	async total() {
 		return await (await this.methods()).total().call() as number;
 	}
@@ -144,5 +183,4 @@ export class Member extends ContractScaner {
 	async getMemberInfo(tokenId: string) {
 		return await (await this.methods()).getMemberInfo(tokenId).call() as MemberInfo;
 	}
-
 }

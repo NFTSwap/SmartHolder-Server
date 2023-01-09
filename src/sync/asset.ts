@@ -3,14 +3,45 @@
  * @date 2021-09-26
  */
 
-import { Asset, ContractType, ChainType } from '../models/define';
+import { Asset, ContractType, ChainType, SaleType} from '../models/define';
 import {ContractScaner, IAssetScaner, formatHex,blockTimeStamp,HandleEventData} from './scaner';
 import * as utils from '../utils';
 import db from '../db';
 import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
+import * as constants from './constants';
 
-export abstract class AssetScaner extends ContractScaner implements IAssetScaner {
+export abstract class ModuleScaner extends ContractScaner {
+
+	protected async onDescription(data: HandleEventData, desc: string) {}
+	protected async onOperator(data: HandleEventData, addr: string) {}
+	protected async onUpgrade(data: HandleEventData, addr: string) {}
+	protected async onChangePlus(data: HandleEventData, tag: number) {}
+
+	// module change handle
+	protected async onChange(data: HandleEventData) {
+		let tag = Number(data.event.returnValues.tag);
+		let methods = await this.methods();
+
+		switch (tag) {
+			case constants.Change_Tag_Description:
+				await this.onDescription(data, await methods.description().call());
+				break;
+			case constants.Change_Tag_Operator:
+				await this.onOperator(data, await methods.operator().call());
+				break;
+			case constants.Change_Tag_Upgrade:
+				await this.onUpgrade(data, await methods.impl().call());
+				break;
+			default:
+				await this.onChangePlus(data, tag);
+				break;
+		}
+	}
+
+}
+
+export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetScaner {
 
 	abstract uri(tokenId: string): Promise<string>;
 	abstract balanceOf(owner: string, tokenId: string): Promise<number>;
@@ -84,16 +115,14 @@ export abstract class AssetScaner extends ContractScaner implements IAssetScaner
 		await opensea.maskOrderClose(this.chain, token, tokenId);
 	}
 
-	async handleChange(data: HandleEventData) {
-		// TODO update dao ...
-	}
-
 }
 
-export class AssetERC721 extends AssetScaner {
+export class AssetERC721 extends ERC721ModuleScaner {
 
 	events = {
 		// event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+		// event Change(uint256 indexed tag, uint256 value);
+
 		Transfer: {
 			handle: async ({event:e,tx,blockNumber}: HandleEventData)=>{
 				var {from, to} = e.returnValues;
@@ -105,11 +134,31 @@ export class AssetERC721 extends AssetScaner {
 				}
 			},
 		},
-		// event Change(uint256 indexed tag, uint256 value);
 		Change: {
-			handle: (data: HandleEventData)=>this.handleChange(data),
+			handle: (data: HandleEventData)=>this.onChange(data),
 		},
 	};
+
+	protected async onChangePlus({event,blockTime: modify}: HandleEventData, tag: number) {
+		switch (tag) {
+			case constants.Change_Tag_Asset_set_seller_fee_basis_points: // update fee basis points
+				let methods = await this.methods();
+				let saleType = await methods.saleType().call() as SaleType;
+				let info = await this.info();
+
+				if (saleType == SaleType.kFirst) {
+					let assetIssuanceTax = Number(event.returnValues.value);
+					await db.update(`dao_${this.chain}`, { assetIssuanceTax, modify }, { address: info.host });
+				}
+				else if (saleType == SaleType.kSecond) {
+					let assetCirculationTax = Number(event.returnValues.value);
+					await db.update(`dao_${this.chain}`, { assetCirculationTax, modify }, { address: info.host });
+				}
+				break;
+			case constants.Change_Tag_Asset_set_fee_recipient:
+				break;
+		}
+	}
 
 	async ownerOf(tokenId: string) {
 		return await (await this.methods()).ownerOf(tokenId).call() as string;

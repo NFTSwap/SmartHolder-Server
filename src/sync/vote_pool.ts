@@ -74,6 +74,7 @@ export class VotePool extends ContractScaner {
 				name: proposal.name,
 				description: proposal.description,
 				origin: proposal.origin,
+				originId: formatHex(proposal.originId),
 				target: proposal.target,
 				data: proposal.data,
 				lifespan: proposal.lifespan,

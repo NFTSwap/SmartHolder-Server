@@ -19,6 +19,7 @@ export interface DAO {
 	description: string;//  varchar (1024) not null,
 	root: string;//         varchar (64)   not null,
 	operator: string;//     varchar (64)   not null,
+	executor: string;//     varchar (64)   not null,
 	member: string;//       varchar (64)   not null,
 	ledger: string;//       varchar (64)   not null,
 	first: string;//        varchar (64)   not null,
@@ -169,6 +170,7 @@ export interface VoteProposal {
 	name: string;//         varchar (64)                 not null, -- 提案名称
 	description: string;//     varchar (1024)               not null, -- 提案描述
 	origin: string;//       varchar (64)                 not null, -- 发起人
+	originId: string;//       varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
 	target: string[];//     josn                             null, -- 执行目标合约地址
 	data: string[];//       text                             null, -- 执行参数数据
 	lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）
