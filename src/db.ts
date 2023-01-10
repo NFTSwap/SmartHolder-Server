@@ -34,19 +34,19 @@ async function load_main_db() {
 
 			create table if not exists dao_${chain} (
 				id           int primary key auto_increment,
-				host         varchar (64)                       not null, -- dao host or self address
-				address      varchar (64)                       not null,
+				host         varchar (42)                       not null, -- dao host or self address
+				address      varchar (42)                       not null,
 				name         varchar (64)                       not null,
 				mission      varchar (1024)                     not null,
 				description  varchar (1024)                     not null,
-				root         varchar (64)                       not null,
-				operator     varchar (64)                       not null,
-				executor     varchar (72)        default ('')   not null,
-				member       varchar (64)                       not null,
-				ledger       varchar (64)                       not null,
-				first        varchar (64)                       not null, -- opensea first
-				second       varchar (64)                       not null, -- opensea second
-				asset        varchar (64)                       not null,
+				root         varchar (42)                       not null,
+				operator     varchar (42)                       not null,
+				executor     varchar (66)        default ('')   not null,
+				member       varchar (42)                       not null,
+				ledger       varchar (42)                       not null,
+				first        varchar (42)                       not null, -- opensea first
+				second       varchar (42)                       not null, -- opensea second
+				asset        varchar (42)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
@@ -203,8 +203,46 @@ async function load_main_db() {
 				type         int             default (0)  not null, -- contracts type
 				blockNumber  int                          not null,
 				abi          text,                                  -- 协约abi json,为空时使用默认值
-				state        int             default (0) not null,  -- 状态: 0启用, 1禁用
-				time         bigint                      not null   --
+				state        int             default (0)  not null, -- 状态: 0启用, 1禁用
+				time         bigint                       not null  --
+			);
+
+			create table if not exists transaction_${chain} (
+				id                int primary key auto_increment,
+				nonce             int                          not null,
+				blockNumber       int                          not null, -- input
+				fromAddress       char (42)                    not null,
+				toAddress         char (42)                    not null,
+				value             varchar (66)                 not null,
+				gasPrice          varchar (66)                 not null,
+				gas               varchar (66)                 not null, -- gas limit
+				-- data              text                             null, -- input data hex format
+				blockHash         char (66)                    not null, -- receipt
+				transactionHash   char (66)                    not null,
+				transactionIndex  int                          not null,
+				gasUsed           varchar (66)                 not null, -- use gasd
+				cumulativeGasUsed varchar (66)                 not null,
+				effectiveGasPrice varchar (66)                 not null,
+				-- logsBloom         varchar (514)                not null,
+				contractAddress   char (42)                        null, -- created contract address
+				status            bit                          not null,
+				logsCount         int                          not null -- logs count
+			);
+
+			create table if not exists transaction_log_${chain} (
+				id                int primary key auto_increment,
+				tx_id             int                          not null,
+				address           char (42)                    not null,
+				topic0            varchar (66)                 not null,
+				topic1            varchar (66)  default ('')   not null,
+				topic2            varchar (66)  default ('')   not null,
+				topic3            varchar (66)  default ('')   not null,
+				data              text                         null,
+				logIndex          int                          not null,
+				transactionIndex  int                          not null,
+				transactionHash   char (66)                    not null,
+				blockHash         char (66)                    not null,
+				blockNumber       int                          not null
 			);
 
 		`, [
@@ -213,9 +251,9 @@ async function load_main_db() {
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
 			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
-			`alter table dao_${chain}  add first                 varchar (64) default ('')  not null`,
-			`alter table dao_${chain}  add second                varchar (64) default ('')  not null`,
-			`alter table dao_${chain}  add executor              varchar (72) default ('')  not null`,
+			`alter table dao_${chain}  add first                 varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
@@ -280,6 +318,24 @@ async function load_main_db() {
 			`create         index votes_${chain}_idx2            on votes_${chain}                  (address,member_id)`,
 			// contract_info
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
+			// transaction
+			`create unique  index transaction_${chain}_0         on transaction_${chain}            (transactionHash)`,
+			`create         index transaction_${chain}_1         on transaction_${chain}            (blockHash)`,
+			`create         index transaction_${chain}_2         on transaction_${chain}            (blockNumber)`,
+			`create         index transaction_${chain}_3         on transaction_${chain}            (blockNumber,fromAddress)`,
+			`create         index transaction_${chain}_4         on transaction_${chain}            (blockNumber,toAddress)`,
+			`create         index transaction_${chain}_5         on transaction_${chain}            (fromAddress)`,
+			`create         index transaction_${chain}_6         on transaction_${chain}            (toAddress)`,
+			//transaction_log
+			`create unique  index transaction_log_${chain}_0     on transaction_log_${chain}        (transactionHash,logIndex)`,
+			`create         index transaction_log_${chain}_1     on transaction_log_${chain}        (transactionHash)`,
+			`create         index transaction_log_${chain}_2     on transaction_log_${chain}        (blockNumber)`,
+			`create         index transaction_log_${chain}_3     on transaction_log_${chain}        (blockNumber,address)`,
+			`create         index transaction_log_${chain}_4     on transaction_log_${chain}        (address)`,
+			`create         index transaction_log_${chain}_5     on transaction_log_${chain}        (address,topic0)`,
+			`create         index transaction_log_${chain}_6     on transaction_log_${chain}        (address,topic0,topic1)`,
+			`create         index transaction_log_${chain}_7     on transaction_log_${chain}        (address,topic0,topic1,topic2)`,
+			`create         index transaction_log_${chain}_8     on transaction_log_${chain}        (address,topic0,topic1,topic2,topic3)`,
 		], `shs_${chain}`);
 	}
 

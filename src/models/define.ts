@@ -324,3 +324,41 @@ export interface TokenURIInfo {
 	external_link?: string;
 	attributes?: {trait_type: string; value: string}[]
 }
+
+export interface Transaction {
+	id: number;//                int primary key auto_increment,
+	nonce: number;//             int                          not null,
+	blockNumber: number;//       int                          not null, -- input
+	fromAddress: string;//       char (42)                    not null,
+	toAddress: string;//         char (64)                    not null,
+	value: string;//             varchar (66)                 not null,
+	gasPrice: string;//          varchar (66)                 not null,
+	gas: string;//               varchar (66)                 not null, -- gas limit
+	// data: string;//              text                             null, -- input data hex format
+	blockHash: string;//         char (66)                    not null, -- receipt
+	transactionHash: string;//   char (66)                    not null,
+	transactionIndex: number;//  int                          not null,
+	gasUsed: number;//           varchar (66)                 not null, -- use gasd
+	cumulativeGasUsed: number;// varchar (66)                 not null,
+	effectiveGasPrice: number;// varchar (66)                 not null,
+	// logsBloom: number;//         varchar (514)                not null,
+	contractAddress: number;//   char (42)                        null, -- created contract address
+	status: boolean;//           bit                          not null,
+	logsCount: number;//         int                          not null -- logs count
+}
+
+export interface TransactionLog {
+	id: number;//                int primary key auto_increment,
+	tx_id: number;//             int                          not null,
+	address: string;//           char (42)                    not null,
+	topic0: string;//            varchar (66)                 not null,
+	topic1: string;//            varchar (66)  default ('')   not null,
+	topic2: string;//            varchar (66)  default ('')   not null,
+	topic3: string;//            varchar (66)  default ('')   not null,
+	data: string;//              text                         null,
+	logIndex: number;//          int                          not null,
+	transactionIndex: number;//  int                          not null,
+	transactionHash: string;//   char (66)                    not null,
+	blockHash: string;//         char (66)                    not null,
+	blockNumber: number;//       int                          not null
+}

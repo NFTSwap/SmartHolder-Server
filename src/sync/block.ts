@@ -7,7 +7,7 @@ import '../uncaught';
 import somes from 'somes';
 import * as cfg from '../../config';
 import {WatchCat} from 'bclib/watch';
-import { storage, ChainType, ContractInfo, ContractType } from '../db';
+import db, { storage, ChainType, ContractInfo, ContractType, Transaction as ITransaction } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
 import {Transaction, TransactionReceipt, Log} from 'web3-core';
@@ -50,7 +50,7 @@ export class WatchBlock implements WatchCat {
 		}
 	}
 
-	private async _solveReceipt(blockNumber: number, lastBlockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
+	private async _solveReceipt0(blockNumber: number, lastBlockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
 		let chain = this._web3.chain;
 		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
@@ -81,6 +81,68 @@ export class WatchBlock implements WatchCat {
 		} // else if (receipt.to) {
 	}
 
+	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
+		let chain = this._web3.chain;
+		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+
+		let tx = await getTx();
+		let transactionHash = receipt.transactionHash;
+		let tx_id = 0;
+		let tx_ = (await db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
+		if ( !tx_ ) {
+			tx_id = await db.insert(`transaction_${chain}`, {
+				nonce: tx.nonce,
+				blockNumber: receipt.blockNumber,
+				fromAddress: receipt.from,
+				toAddress: receipt.to || '0x0000000000000000000000000000000000000000',
+				value: '0x' + Number(tx.value).toString(16),
+				gasPrice: '0x' + Number(tx.gasPrice).toString(16),
+				gas: '0x' + Number(tx.gas).toString(16),
+				// data: tx.input,
+				blockHash: receipt.blockHash,
+				transactionHash: receipt.transactionHash,
+				transactionIndex: receipt.transactionIndex,
+				gasUsed: '0x' + Number(receipt.gasUsed).toString(16),
+				cumulativeGasUsed: '0x' + Number(receipt.cumulativeGasUsed).toString(16),
+				effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice).toString(16),
+				// logsBloom: receipt.logsBloom,
+				contractAddress: receipt.contractAddress,
+				status: receipt.status,
+				logsCount: receipt.logs.length,
+			});
+		} else {
+			tx_id = tx_.id;
+		}
+
+		if (receipt.contractAddress) { // New contract
+			let address = cryptoTx.checksumAddress(receipt.contractAddress);
+			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
+		}
+		else if (receipt.to) { // Contract call
+			let logIndex = 0;
+			for (let log of receipt.logs) { // event logs
+				let address = log.address;
+				if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
+					await db.insert(`transaction_log_${chain}`, {
+						tx_id,
+						address,
+						topic0: log.topics[0] || '',
+						topic1: log.topics[1],
+						topic2: log.topics[2],
+						topic3: log.topics[3],
+						data: log.data,
+						logIndex,
+						transactionIndex,
+						transactionHash,
+						blockHash: receipt.blockHash,
+						blockNumber,
+					});
+				}
+				logIndex++;
+			}
+		} // else if (receipt.to) {
+	}
+
 	private async _solveBlock(blockNumber: number) {
 		let web3 = this._web3;
 		let chain = web3.chain;
@@ -95,7 +157,7 @@ export class WatchBlock implements WatchCat {
 			return txs[idx];
 		}
 
-		let lastBlockNumber = await web3.getBlockNumber();
+		// let lastBlockNumber = await web3.getBlockNumber();
 		let idx = 0;
 
 		if (await web3.hasSupportGetTransactionReceiptsByBlock()) {
@@ -110,7 +172,7 @@ export class WatchBlock implements WatchCat {
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', receipts.length);
 				for (let item of receipts) {
 					let _idx = idx++;
-					await this._solveReceipt(blockNumber, lastBlockNumber, item, ()=>getTransaction(_idx));
+					await this._solveReceipt(blockNumber, item, _idx, ()=>getTransaction(_idx));
 				}
 				return;
 			}
@@ -125,7 +187,7 @@ export class WatchBlock implements WatchCat {
 		for (let txHash of block.transactions) {
 			let _idx = idx++;
 			let receipt = await web3.eth.getTransactionReceipt(txHash);
-			await this._solveReceipt(blockNumber, lastBlockNumber, receipt, ()=>getTransaction(_idx));
+			await this._solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
 		}
 	}
 
