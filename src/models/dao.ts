@@ -9,20 +9,20 @@ import errno from '../errno';
 import * as redis from 'bclib/redis';
 
 export function getDAO(chain: ChainType, address: string) {
-	somes.assert(address, '#utils#getDAO Bad argument. address');
+	somes.assert(address, '#dao#getDAO Bad argument. address');
 	return db.selectOne<DAO>(`dao_${chain}`, {address});
 }
 
 export async function getDAONoEmpty(chain: ChainType, address: string) {
-	somes.assert(address, '#utils#getDAONoEmpty Bad argument. address');
+	somes.assert(address, '#dao#getDAONoEmpty Bad argument. address');
 	let dao = await db.selectOne<DAO>(`dao_${chain}`, {address});
 	somes.assert(dao, errno.ERR_DAO_ADDRESS_NOT_EXISTS);
 	return dao!;
 }
 
 export async function getDAOsFromOwner(chain: ChainType, owner: string) {
-	somes.assert(chain, '#utils#getDAOsFromOwner Bad argument. chain');
-	somes.assert(owner, '#utils#getDAOsFromOwner Bad argument. owner');
+	somes.assert(chain, '#dao#getDAOsFromOwner Bad argument. chain');
+	somes.assert(owner, '#dao#getDAOsFromOwner Bad argument. owner');
 
 	let ms = await db.select<Member>(`member_${chain}`, {owner}, {group: 'host'});
 	let hosts = ms.map(e=>`'${e.host}'`);

@@ -174,7 +174,7 @@ export class Member extends ModuleScaner {
 	}
 
 	async total() {
-		return await (await this.methods()).total().call() as number;
+		return Number(await (await this.methods()).total().call());
 	}
 
 	async ownerOf(tokenId: string) {

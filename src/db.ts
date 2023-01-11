@@ -196,15 +196,23 @@ async function load_main_db() {
 				blockNumber  int                          not null
 			);
 
-			create table if not exists contract_info_${chain} (   -- 合约,监控数据源
+			create table if not exists contract_info_${chain} (   -- 索引人监控数据源
 				id           int primary key auto_increment,
-				host         varchar (64)    default ('') not null,
-				address      varchar (64)                 not null,
+				host         char (42)                 not null,
+				address      char (42)                 not null,
 				type         int             default (0)  not null, -- contracts type
-				blockNumber  int                          not null,
+				blockNumber  int                          not null, -- init height
 				abi          text,                                  -- 协约abi json,为空时使用默认值
 				state        int             default (0)  not null, -- 状态: 0启用, 1禁用
-				time         bigint                       not null  --
+				time         bigint                       not null,  --
+				indexer_id   int             default (0)  not null
+			);
+
+			create table if not exists indexer_${chain} (   -- 索引人
+				id           int primary key auto_increment,
+				hash         varchar (66)                 not null,
+				watchHeight  int             default (0)  not null,
+				state        int             default (0)  not null
 			);
 
 			create table if not exists transaction_${chain} (
@@ -273,6 +281,8 @@ async function load_main_db() {
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
 			// transaction
 			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
+			// contract_info
+			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
@@ -321,6 +331,9 @@ async function load_main_db() {
 			`create         index votes_${chain}_idx2            on votes_${chain}                  (address,member_id)`,
 			// contract_info
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
+			`create         index contract_info_${chain}_1       on contract_info_${chain}          (indexer_id)`,
+			// indexer
+			`create unique  index indexer_${chain}_0             on indexer_${chain}                (hash)`,
 			// transaction
 			`create unique  index transaction_${chain}_0         on transaction_${chain}            (transactionHash)`,
 			`create         index transaction_${chain}_1         on transaction_${chain}            (blockHash)`,

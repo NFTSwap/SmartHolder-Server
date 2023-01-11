@@ -57,7 +57,7 @@ export async function startWeb(workers?: number) {
 			SERVER_HOST: '127.0.0.1',
 			SERVER_PORT: 8320 + i,
 			PROC_TYPE: 'web',
-			WATCH_SYNC_MAIN: 0,
+			WATCH_MAIN: 0,
 		});
 		daemons.push(dea);
 	}
@@ -98,7 +98,7 @@ export async function startWeb3TxDequeue(workers?: number) {
 			__WORKER: i,
 			PROC_TYPE: 'tx',
 			RUN_DAEMON: '',
-			WATCH_SYNC_MAIN: 0,
+			WATCH_MAIN: 0,
 			DISABLE_WEB: true,
 			WEB3_TX_DEQUEUE: true,
 		});

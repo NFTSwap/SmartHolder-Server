@@ -6,9 +6,16 @@
 import {HandleEventData} from './scaner';
 import {ModuleScaner} from './asset';
 import * as constants from './constants';
-import db from '../db';
+import db, {DAO as IDAO,ContractType} from '../db';
+import watch from './index';
+import {Indexer} from './indexer';
 
 export class DAO extends ModuleScaner {
+
+	async setDataSource(indexer: Indexer, del: string, add: string, type: ContractType) {
+		await indexer.deleteDataSource(del);
+		await indexer.addDataSource({ address: add, host: this.address, type, time: Date.now() });
+	}
 
 	events = {
 		// event Change(uint256 indexed tag, uint256 value);
@@ -23,27 +30,34 @@ export class DAO extends ModuleScaner {
 				let id = Number(event.returnValues.id);
 				let methods = await this.methods();
 				let {address,chain} = this;
+				let dao = (await db.selectOne<IDAO>(`dao_${chain}`, { address }))!;
+				let indexer = watch.getIndexerFromHash(chain, this.address);
 
 				switch (id) {
 					case constants.Module_MEMBER_ID:
 						let member = await methods.module(constants.Module_MEMBER_ID).call();
 						await db.update(`dao_${chain}`, { member, modify }, { address });
+						await this.setDataSource(indexer, dao.member, member, ContractType.Member);
 						break;
 					case constants.Module_LEDGER_ID:
 						let ledger = await methods.module(constants.Module_LEDGER_ID).call();
 						await db.update(`dao_${chain}`, { ledger, modify }, { address });
+						await this.setDataSource(indexer, dao.ledger, ledger, ContractType.Ledger);
 						break;
 					case constants.Module_ASSET_ID:
 						let asset = await methods.module(constants.Module_ASSET_ID).call();
 						await db.update(`dao_${chain}`, { asset, modify }, { address });
+						await this.setDataSource(indexer, dao.asset, asset, ContractType.Asset);
 						break;
 					case constants.Module_ASSET_First_ID:
 						let first = await methods.module(constants.Module_ASSET_First_ID).call();
 						await db.update(`dao_${chain}`, { first, modify }, { address });
+						await this.setDataSource(indexer, dao.first, first, ContractType.AssetShell);
 						break;
 					case constants.Module_ASSET_Second_ID:
 						let second = await methods.module(constants.Module_ASSET_Second_ID).call();
 						await db.update(`dao_${chain}`, { second, modify }, { address });
+						await this.setDataSource(indexer, dao.second, second, ContractType.AssetShell);
 						break;
 				}
 			}

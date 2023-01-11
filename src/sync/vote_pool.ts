@@ -94,7 +94,7 @@ export class VotePool extends ContractScaner {
 				blockNumber,
 			});
 
-			await storage.set(`vote_proposal_${this.chain}_${this.address}_total`, await (await this.methods()).total().call());
+			await storage.set(`vote_proposal_${this.chain}_${this.address}_total`, Number(await (await this.methods()).total().call()));
 		} else {
 			await db.update(`vote_proposal_${this.chain}`, {
 				loopCount: proposal.loopCount,

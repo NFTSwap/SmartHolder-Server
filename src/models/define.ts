@@ -220,6 +220,7 @@ export interface ContractInfo {
 	abi: string | null; //  abi
 	state: State; //        int          default (0)     not null, -- 状态: 0启用, 1禁用
 	time: number; //        bigint                       not null  -- 
+	indexer_id: number;
 }
 
 export enum ChainType {
@@ -362,4 +363,11 @@ export interface TransactionLog {
 	transactionHash: string;//   char (66)                    not null,
 	blockHash: string;//         char (66)                    not null,
 	blockNumber: number;//       int                          not null
+}
+
+export interface Indexer {
+	id: number;//           int primary key auto_increment,
+	hash: string;//         varchar (66)                 not null,
+	watchHeight: number;
+	state: number;//        int             default (0)  not null
 }

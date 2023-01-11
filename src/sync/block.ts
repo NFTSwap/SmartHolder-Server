@@ -13,45 +13,22 @@ import mk_scaner from './mk_scaner';
 import {Transaction, TransactionReceipt, Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import * as contract from '../models/contract';
-import {broadcastWatchBlock} from '../message';
+import {postWatchBlock} from '../message';
+import * as redis from 'bclib/redis';
 
 export class WatchBlock implements WatchCat {
-	private _web3: MvpWeb3;
-	private _name: string;
+	readonly web3: MvpWeb3;
 	readonly workers: number;// = 1;
 	readonly worker: number;// = 0;
 
-	// @arg onlyTest only test asset type
-	constructor(web3: MvpWeb3, worker = 0, workers = 1, name = '') {
-		this._web3 = web3;
-		this._name = name;
+	constructor(web3: MvpWeb3, worker = 0, workers = 1) {
+		this.web3 = web3;
 		this.worker = worker;
 		this.workers = workers;
 	}
 
-	private printLog(ac: ContractInfo, log: Log) {
-		if (cfg.logs.block_no_resolve) 
-			console.warn('Not resolved TransactionReceipt',
-				ContractType[ac.type], ChainType[this._web3.chain],
-				'address:', ac.address,
-				'block:', log.blockNumber,
-				'tx:', log.transactionHash, 'topics:', log.topics, 'data:', log.data
-			);
-	}
-
-	private async _Test() {
-		if (cfg.env == 'dev') {// test
-			if (this._web3.chain == ChainType.MUMBAI) { // matic test
-				// New contract  0x36763175b209853D022F2BAfd64eef71D5DF8dCF 0xf23128ed1c9cb13c02e0b500cc3a788f0e4abd6f24f603129e953e56d6d78830
-				//await this._Watch(0x1630ee0);
-				// mint Asset    0x36763175b209853D022F2BAfd64eef71D5DF8dCF 0xaf82f84eb432ae2455796744b870b77195d9b85fb640fc7766dccf56d3dec1ed
-				await this._solveBlock(0x1630f98);
-			}
-		}
-	}
-
-	private async _solveReceipt0(blockNumber: number, lastBlockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
-		let chain = this._web3.chain;
+	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
+		let chain = this.web3.chain;
 		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
 		if ('status' in receipt)
@@ -64,25 +41,17 @@ export class WatchBlock implements WatchCat {
 		else if (receipt.to) { // Contract call
 			for (let log of receipt.logs) { // event logs
 				let address = log.address;
-				// if (blockNumber == 11084609) {
-				// 	console.log('------------------------', blockNumber, address, '0x283703CC092EC7621F286dE09De5Ca9279AE4F98');
-				// 	if (address.toLowerCase() == '0x283703CC092EC7621F286dE09De5Ca9279AE4F98'.toLowerCase()) {
-				// 		debugger;
-				// 	}
-				// }
 				let info = await contract.select(address, chain);
-				// console.log('receipt.log', blockNumber, address, info);
 				if (info && info.type) {
 					let scaner = mk_scaner(address, info.type, chain);
-					scaner.lastBlockNumber = lastBlockNumber;
 					await scaner.solveReceiptLog(log, await getTx());
 				}
 			}
 		} // else if (receipt.to) {
 	}
 
-	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
-		let chain = this._web3.chain;
+	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
+		let chain = this.web3.chain;
 		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
 		let tx = await getTx();
@@ -144,8 +113,8 @@ export class WatchBlock implements WatchCat {
 		} // else if (receipt.to) {
 	}
 
-	private async _solveBlock(blockNumber: number) {
-		let web3 = this._web3;
+	private async solveBlock(blockNumber: number) {
+		let web3 = this.web3;
 		let chain = web3.chain;
 
 		//if (blockNumber % 100 === this._worker)
@@ -173,7 +142,7 @@ export class WatchBlock implements WatchCat {
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', receipts.length);
 				for (let item of receipts) {
 					let _idx = idx++;
-					await this._solveReceipt(blockNumber, item, _idx, ()=>getTransaction(_idx));
+					await this.solveReceipt(blockNumber, item, _idx, ()=>getTransaction(_idx));
 				}
 				return;
 			}
@@ -188,14 +157,68 @@ export class WatchBlock implements WatchCat {
 		for (let txHash of block.transactions) {
 			let _idx = idx++;
 			let receipt = await web3.eth.getTransactionReceipt(txHash);
-			await this._solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
+			await this.solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
 		}
+	}
+
+	static async getBlockSyncHeight(chain: ChainType, worker = 0) {
+		let key = `Block_Sync_Height_${ChainType[chain]}`;
+		let num = await redis.client.hGet(key, `worker_${worker}`);
+		if (!num)
+			num = await storage.get(`${key}_${worker}`);
+		return (num || 0) as number;
+	}
+
+	static async getMinBlockSyncHeight(chain: ChainType) {
+		let workers = await this.getWatchBlockWorkers(chain);
+		let key = `Block_Sync_Height_${ChainType[chain]}`;
+		let height = Infinity;
+		let heightAll = await redis.client.hGetAll(key);
+
+		for (let i = 0; i < workers; i++) {
+			height = Math.min(height, Number(heightAll[`worker_${i}`]) || Infinity);
+		}
+		return height == Infinity ? 0: height;
+	}
+
+	private static _WatchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
+
+	private static async getWatchBlockWorkers(chain: ChainType) {
+		let key = `Block_Sync_Workers_${ChainType[chain]}`;
+		let cache = this._WatchBlockWorkersCaches[chain] || {value:0,timeout: 0};
+
+		if (cache.timeout < Date.now()) {
+			let workers = (await redis.get<number>(key))!;
+			if (!workers)
+				workers = await storage.get(key) || 1;
+			this._WatchBlockWorkersCaches[chain] = {
+				value: workers, timeout: Date.now() + 1e4, // 10 second
+			};
+			return workers;
+		} else {
+			return cache.value;
+		}
+	}
+
+	private async saveBlockSyncHeight(blockNumber: number, worker = 0) {
+		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		await storage.set(`${key}_${worker}`, blockNumber);
+		await redis.client.hSet(key, `worker_${worker}`, blockNumber);
+	}
+	
+	private async saveBlockSyncWorkers() {
+		let key = `Block_Sync_Workers_${ChainType[this.web3.chain]}`;
+		await storage.set(key, this.workers);
+		await redis.set(key, this.workers);
 	}
 
 	async cat() {
 		// await this._Test();
+		await this.saveBlockSyncWorkers();
 
-		let key = (worker: number)=> `WatchBlock_Cat_${worker}_${ChainType[this._web3.chain]}_${this._name}`;
+		let web3 = this.web3;
+		let chain = web3.chain;
+		let key = (worker: number)=> `Block_Sync_Height_${ChainType[chain]}_${worker}`;
 
 		let blockNumber = await storage.get<number>(key(this.worker)) || 0;
 		if (!blockNumber) {
@@ -206,20 +229,20 @@ export class WatchBlock implements WatchCat {
 			}
 		}
 
-		let delay = this._web3.chain == ChainType.BSN || this._web3.chain == ChainType.MATIC ? 2: 0;
-		let blockNumberCur = await this._web3.getBlockNumber() - delay; // 延迟查询块
+		let delay = chain == ChainType.BSN || chain == ChainType.MATIC ? 2: 0;
+		let blockNumberCur = await web3.getBlockNumber() - delay; // 延迟查询块
 
 		try {
 			while (++blockNumber <= blockNumberCur) {
 				if (blockNumber % this.workers === this.worker) {
-					await this._solveBlock(blockNumber);
-					await storage.set(key(this.worker), blockNumber); // complete save
-					broadcastWatchBlock(this.worker, blockNumber, this._web3.chain);
+					await this.solveBlock(blockNumber);
+					await this.saveBlockSyncHeight(blockNumber, this.worker); // complete save
+					postWatchBlock(this.worker, blockNumber, web3.chain);
 				}
 			}
 		} catch (err: any) {
-			if (isRpcLimitRequestAccount(this._web3, err)) {
-				this._web3.swatchRpc();
+			if (isRpcLimitRequestAccount(web3, err)) {
+				web3.swatchRpc();
 			}
 			console.error('#WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
 		}

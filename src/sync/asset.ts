@@ -4,7 +4,7 @@
  */
 
 import { Asset, ContractType, ChainType, SaleType} from '../models/define';
-import {ContractScaner, IAssetScaner, formatHex,blockTimeStamp,HandleEventData} from './scaner';
+import {ContractScaner, IAssetScaner, formatHex,HandleEventData} from './scaner';
 import * as utils from '../utils';
 import db from '../db';
 import _hash from 'somes/hash';
@@ -81,7 +81,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 		to: [string, number], // to address/total
 		value: string,
 	) {
-		var time = await blockTimeStamp(this.web3, blockNumber, this.lastBlockNumber);
+		var time = Date.now();
 		var token = this.address;
 		let exists = await this.exists(tokenId);
 		if (exists) {

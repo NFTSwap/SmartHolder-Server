@@ -46,7 +46,7 @@ class Manager extends AuthorizationManager {
 
 	async initialize(msg?: Notification) {
 		await super.initialize(msg);
-		this.setCache(new AuthCache(redis.redis));
+		this.setCache(new AuthCache(redis.client));
 	}
 
 	async register(name: string, pkey: string, ref?: string) {

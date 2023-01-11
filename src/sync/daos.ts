@@ -8,14 +8,9 @@ import {ContractScaner,HandleEventData,formatHex} from './scaner';
 import db, {storage} from '../db';
 import * as DAO from '../../abi/DAO.json';
 import * as constants from './constants';
-import * as contract from '../models/contract';
+import {RunIndexer} from './indexer';
 
 export class DAOs extends ContractScaner {
-
-	private async addDataSource(address: string, info: Partial<ContractInfo>) {
-		if (!await contract.select(address, this.chain, true))
-			await contract.insert(info, this.chain);
-	}
 
 	events = {
 		// event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -73,29 +68,33 @@ export class DAOs extends ContractScaner {
 
 				const addressZero = '0x0000000000000000000000000000000000000000';
 
-				await this.addDataSource(host, { host, address: host, type: ContractType.DAO, blockNumber, time });
+				let ds: (Partial<ContractInfo> & {address: string})[] = [];
+
+				ds.push({ address: host, host, type: ContractType.DAO, time });
 
 				if (Root != addressZero) {
-					await this.addDataSource(Root, { host, address: Root, type: ContractType.VotePool, blockNumber, time });
+					ds.push({ host, address: Root, type: ContractType.VotePool, time });
 				}
 				if (Member != addressZero) {
-					await this.addDataSource(Member, { host, address: Member, type: ContractType.Member, blockNumber, time });
+					ds.push({ host, address: Member, type: ContractType.Member, time });
 					memberBaseName = await (await web3.contract(Member)).methods.name().call();
 				}
 				if (Asset != addressZero) {
-					await this.addDataSource(Asset, { host, address: Asset, type: ContractType.Asset, blockNumber, time });
+					ds.push({ host, address: Asset, type: ContractType.Asset, time });
 				}
 				if (First != addressZero) {
-					await this.addDataSource(First, { host, address: First, type: ContractType.AssetShell, blockNumber, time });
+					ds.push({ host, address: First, type: ContractType.AssetShell, time });
 					assetIssuanceTax = await (await web3.contract(First)).methods.seller_fee_basis_points().call();
 				}
 				if (Second != addressZero) {
-					await this.addDataSource(Second, { host, address: Second, type: ContractType.AssetShell, blockNumber, time });
+					ds.push({ host, address: Second, type: ContractType.AssetShell, time });
 					assetCirculationTax = await (await web3.contract(Second)).methods.seller_fee_basis_points().call();
 				}
 				if (Ledger != addressZero) {
-					await this.addDataSource(Ledger, { host, address: Ledger, type: ContractType.Ledger, blockNumber, time });
+					ds.push({ host, address: Ledger, type: ContractType.Ledger, time });
 				}
+
+				await RunIndexer.addIndexer(chain, host, blockNumber, ds);
 
 				await db.insert(`dao_${chain}`, {
 					address: host,

@@ -20,7 +20,8 @@ module.exports = {
 	env: 'dev', // dev|prod, 正式服务器设置为 prod
 	apis: [`${__dirname}/../../src/api`],
 	tests: [`${__dirname}/../../test/test`],
-	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
+	watch_main: true, // 是否启用数据同步主服务,主服务只能有一个
+	watch_indexer: true, // 索引人监控
 	root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
 	tx_api: 'https://mvp.stars-mine.com/service-api',
 	publicURL: 'https://smartholder.stars-mine.com',

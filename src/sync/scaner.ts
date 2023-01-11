@@ -74,8 +74,6 @@ export abstract class ContractScaner {
 	readonly type: ContractType;
 	readonly chain: ChainType;
 
-	lastBlockNumber = 0;
-
 	abstract readonly events: Dict<ResolveEvent>;
 
 	get isValid() { // chain is valid
@@ -84,7 +82,7 @@ export abstract class ContractScaner {
 
 	get web3() {
 		somes.assert(this._web3, `#ContractScaner#web3 Chain type not supported => ${ChainType[this.chain]}`);
-		return this._web3 as MvpWeb3;
+		return this._web3!;
 	}
 
 	asAsset(): IAssetScaner | null {
@@ -93,9 +91,9 @@ export abstract class ContractScaner {
 
 	async info() {
 		if (!this._info) {
-			let info = (await contract.select(this.address, this.chain))!;
+			let info = await contract.select(this.address, this.chain)!;
 			somes.assert(info, `#ContractScaner#info No match the ${this.address} contract_info_${this.chain}`);
-			this._info = info;
+			this._info = info!;
 		}
 		return this._info;
 	}
@@ -197,9 +195,7 @@ export abstract class ContractScaner {
 		};
 
 		try {
-			if (this.lastBlockNumber == 0)
-				this.lastBlockNumber = await this.web3.getBlockNumber();
-			let blockTime = await blockTimeStamp(this.web3, e.blockNumber, this.lastBlockNumber);
+			let blockTime = Date.now();
 			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
 		} catch(err:any) {
 			uncaught.fault('#ContractScaner#solveReceiptLogFrom 2',
