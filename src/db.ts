@@ -226,7 +226,8 @@ async function load_main_db() {
 				-- logsBloom         varchar (514)                not null,
 				contractAddress   char (42)                        null, -- created contract address
 				status            bit                          not null,
-				logsCount         int                          not null -- logs count
+				logsCount         int                          not null, -- logs count
+				time              bigint         default (0)   not null
 			);
 
 			create table if not exists transaction_log_${chain} (
@@ -270,6 +271,8 @@ async function load_main_db() {
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
+			// transaction
+			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,

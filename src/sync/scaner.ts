@@ -198,7 +198,7 @@ export abstract class ContractScaner {
 
 		try {
 			if (this.lastBlockNumber == 0)
-				this.lastBlockNumber = await this.web3.getBlockNumber()
+				this.lastBlockNumber = await this.web3.getBlockNumber();
 			let blockTime = await blockTimeStamp(this.web3, e.blockNumber, this.lastBlockNumber);
 			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
 		} catch(err:any) {

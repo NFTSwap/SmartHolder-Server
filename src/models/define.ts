@@ -345,6 +345,7 @@ export interface Transaction {
 	contractAddress: number;//   char (42)                        null, -- created contract address
 	status: boolean;//           bit                          not null,
 	logsCount: number;//         int                          not null -- logs count
+	time: number;
 }
 
 export interface TransactionLog {

@@ -109,6 +109,7 @@ export class WatchBlock implements WatchCat {
 				contractAddress: receipt.contractAddress,
 				status: receipt.status,
 				logsCount: receipt.logs.length,
+				time: Date.now(),
 			});
 		} else {
 			tx_id = tx_.id;

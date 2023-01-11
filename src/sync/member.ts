@@ -34,6 +34,7 @@ export class Member extends ModuleScaner {
 				// votes        int           default (0)  not null, -- default > 0
 				// time         bigint                     not null,
 				// modify       bigint                     not null
+				this.web3.eth.call({}, 100);
 
 				let methods = await this.methods();
 				let isRemove = ! await methods.exists(tokenId).call(); // (to == '0x0000000000000000000000000000000000000000');
