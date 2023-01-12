@@ -224,8 +224,9 @@ export class WatchBlock implements WatchCat {
 		if (!blockNumber) {
 			for (let i = 0; i < this.workers; i++) {
 				let num = await storage.get<number>(key(i));
-				if (num)
-					blockNumber = Math.min(blockNumber, num);
+				if (num) {
+					blockNumber = blockNumber ? Math.min(blockNumber, num): num;
+				}
 			}
 		}
 
