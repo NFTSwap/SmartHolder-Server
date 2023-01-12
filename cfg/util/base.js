@@ -3,7 +3,7 @@ module.exports = {
 	name: 'shs', // Smart Holder Server
 	server: { // web服务端口监听配置
 		host: process.env.SERVER_HOST || '0.0.0.0',
-		port: Number(process.env.SERVER_PORT) || 8002,
+		port: Number(process.env.SERVER_PORT) || 8010,
 	},
 	var: '/data/shs/var', // `${__dirname}/var`,
 	web3s: {}, // web3s 配置列表
