@@ -11,6 +11,9 @@ import {Daemon} from 'bclib/daemon';
 import * as cfg from '../config';
 import * as net from 'net';
 
+const ENV = process.env;
+const debug = 'DEBUG' in ENV ? !!(Number(ENV.DEBUG) || 0): !!cfg.debug;
+
 somes.config = __dirname + '/..'; // set config dir
 
 var daemons: Daemon[] = [];
@@ -24,11 +27,11 @@ async function initialize() {
 
 function runWebForwardServer() {
 	return somes.promise<void>((resolve)=>{
-		var {host, port} = cfg.server;
+		let {host, port} = cfg.server;
 		net.createServer((socket: net.Socket) => {
 			if (daemons.length) { // forward port
-				var port = somes.random(0, daemons.length * 1e3) % daemons.length + 8320;
-				var socket2 = net.createConnection(port, '127.0.0.1', ()=>{
+				let port_ = (somes.random(0, daemons.length * 1e3) % daemons.length) + port;
+				let socket2 = net.createConnection(port_, '127.0.0.1', ()=>{
 					socket.pipe(socket2);
 					socket.resume();
 				});
@@ -48,14 +51,15 @@ export async function startWeb(workers?: number) {
 	await initialize();
 	await runWebForwardServer();
 
-	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`shs-web_${i}`);
-		await dea.start(process.execPath, [`--inspect=${9320+i}`, `${__dirname}/../`], {
+	for (let i = 0, port = cfg.server.port; i < workers; i++) {
+		let dea = new Daemon(`shs-web_${i}`);
+		await dea.start(process.execPath,
+			[...(debug ? [`--inspect=${1000+port+i}`]: []), `${__dirname}/../`], {
 			__WORKERS: workers,
 			__WORKER: i,
 			RUN_DAEMON: '',
 			SERVER_HOST: '127.0.0.1',
-			SERVER_PORT: 8320 + i,
+			SERVER_PORT: port + i,
 			PROC_TYPE: 'web',
 			WATCH_SYNC_MAIN: 0,
 		});
@@ -68,15 +72,13 @@ export async function startWatch(workers?: number) {
 	workers = Math.pow(2, Math.ceil(Math.log2(workers)));
 	await initialize();
 
-	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`shs-watch_${i}`);
+	for (let i = 0, port = cfg.server.port; i < workers; i++) {
+		let dea = new Daemon(`shs-watch_${i}`);
 		// `--max-heap-size=2048`, // 2048MB
 		// `--trace-gc`, 
 		// Scavenge
-		var args = [`${__dirname}/../`];
-		//if (!i)
-		args.unshift(`--inspect=${9330+i}`); 
-		await dea.start(process.execPath, args, {
+		await dea.start(process.execPath, [
+			...(debug ? [`--inspect=${1100+port+i}`]: []), `${__dirname}/../`], {
 			__WORKERS: workers,
 			__WORKER: i,
 			PROC_TYPE: 'watch',
@@ -91,9 +93,10 @@ export async function startWeb3TxDequeue(workers?: number) {
 	workers = workers || (cfg.env == 'dev' ? 2: 8);
 	await initialize();
 
-	for (var i = 0; i < workers; i++) {
-		var dea = new Daemon(`shs-tx_${i}`);
-		await dea.start(process.execPath, [`--inspect=${9340+i}`, `${__dirname}/../`], {
+	for (let i = 0, port = cfg.server.port; i < workers; i++) {
+		let dea = new Daemon(`shs-tx_${i}`);
+		await dea.start(process.execPath, [
+			...(debug ? [`--inspect=${1200+port+i}`]: []), `${__dirname}/../`], {
 			__WORKERS: workers,
 			__WORKER: i,
 			PROC_TYPE: 'tx',

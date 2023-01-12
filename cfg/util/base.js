@@ -20,6 +20,7 @@ module.exports = {
 	mbus_auth: '', // user:password
 	mbus_topic: 'shs_default',
 	env: 'dev', // dev|prod, 正式服务器设置为 prod
+	debug: true,
 	apis: [`${__dirname}/../../src/api`],
 	tests: [`${__dirname}/../../test/test`],
 	sync_main: true, // 是否启用数据同步主服务,主服务只能有一个
