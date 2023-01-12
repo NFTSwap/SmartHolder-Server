@@ -165,21 +165,24 @@ export class RunIndexer implements WatchCat {
 		if (await db.selectOne(`indexer_${chain}`, {hash}))
 			return;
 
-		let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
+		await db.transaction(async db=>{
 
-		for (let {id:_, ...ds} of initDataSource) {
-			if (!await contract.select(ds.address, chain, true)) {
-				await contract.insert({
-					...ds,
-					indexer_id: id,
-					host: ds.host || '0x0000000000000000000000000000000000000000',
-					time: Date.now(),
-					blockNumber,
-				}, chain);
+			let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
+
+			for (let {id:_, ...ds} of initDataSource) {
+				if (!await contract.select(ds.address, chain, true)) {
+					await contract.insert({
+						...ds,
+						indexer_id: id,
+						host: ds.host || '0x0000000000000000000000000000000000000000',
+						time: Date.now(),
+						blockNumber,
+					}, chain);
+				}
 			}
-		}
 
-		postNewIndexer(chain, id);
+			postNewIndexer(chain, id);
+		});
 	}
 
 	private async addWatch(i: IIndexer) {
