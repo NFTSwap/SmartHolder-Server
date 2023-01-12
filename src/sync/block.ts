@@ -176,7 +176,7 @@ export class WatchBlock implements WatchCat {
 		let heightAll = await redis.client.hGetAll(key);
 
 		for (let i = 0; i < workers; i++) {
-			height = Math.min(height, Number(heightAll[`worker_${i}`]) || Infinity);
+			height = Math.min(height, Number(heightAll[`worker_${i}`]) || 0);
 		}
 		return height == Infinity ? 0: height;
 	}
