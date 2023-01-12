@@ -30,7 +30,7 @@ function runWebForwardServer() {
 		let {host, port} = cfg.server;
 		net.createServer((socket: net.Socket) => {
 			if (daemons.length) { // forward port
-				let port_ = (somes.random(0, daemons.length * 1e3) % daemons.length) + port;
+				let port_ = (somes.random(0, daemons.length * 1e3) % daemons.length) + port + 50;
 				let socket2 = net.createConnection(port_, '127.0.0.1', ()=>{
 					socket.pipe(socket2);
 					socket.resume();
@@ -59,7 +59,7 @@ export async function startWeb(workers?: number) {
 			__WORKER: i,
 			RUN_DAEMON: '',
 			SERVER_HOST: '127.0.0.1',
-			SERVER_PORT: port + i,
+			SERVER_PORT: port + i + 50,
 			PROC_TYPE: 'web',
 			WATCH_SYNC_MAIN: 0,
 		});
