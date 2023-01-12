@@ -13,7 +13,7 @@ export default class extends ApiController {
 		return Promise.resolve(true);
 	}
 
-	waitBlockNumber({chain, blockNumber,timeout}:{chain?: ChainType, blockNumber: number, timeout?: number}) {
-		return sync.waitBlockNumber(chain || this._web3().chain, blockNumber, timeout);
+	waitBlockNumber({chain, host, blockNumber,timeout}:{chain?: ChainType, host: string, blockNumber: number, timeout?: number}) {
+		return sync.waitBlockNumber(chain || this._web3().chain, host, blockNumber, timeout);
 	}
 }

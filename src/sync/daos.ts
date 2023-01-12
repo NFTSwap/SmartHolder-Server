@@ -68,33 +68,26 @@ export class DAOs extends ContractScaner {
 
 				const addressZero = '0x0000000000000000000000000000000000000000';
 
-				let ds: (Partial<ContractInfo> & {address: string})[] = [];
+				let ds: (Partial<ContractInfo> & {address: string} | null)[] = [
+					{ address: host, host, type: ContractType.DAO, time },
+					Root   != addressZero ? { host, address: Root, type: ContractType.VotePool, time }: null,
+					Member != addressZero ? { host, address: Member, type: ContractType.Member, time }: null,
+					Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time }: null,
+					First  != addressZero ? { host, address: First, type: ContractType.AssetShell, time }: null,
+					Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
+					Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
+				];
+				await RunIndexer.addIndexer(chain, host, blockNumber, ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
 
-				ds.push({ address: host, host, type: ContractType.DAO, time });
-
-				if (Root != addressZero) {
-					ds.push({ host, address: Root, type: ContractType.VotePool, time });
-				}
 				if (Member != addressZero) {
-					ds.push({ host, address: Member, type: ContractType.Member, time });
 					memberBaseName = await (await web3.contract(Member)).methods.name().call();
 				}
-				if (Asset != addressZero) {
-					ds.push({ host, address: Asset, type: ContractType.Asset, time });
-				}
 				if (First != addressZero) {
-					ds.push({ host, address: First, type: ContractType.AssetShell, time });
 					assetIssuanceTax = await (await web3.contract(First)).methods.seller_fee_basis_points().call();
 				}
 				if (Second != addressZero) {
-					ds.push({ host, address: Second, type: ContractType.AssetShell, time });
 					assetCirculationTax = await (await web3.contract(Second)).methods.seller_fee_basis_points().call();
 				}
-				if (Ledger != addressZero) {
-					ds.push({ host, address: Ledger, type: ContractType.Ledger, time });
-				}
-
-				await RunIndexer.addIndexer(chain, host, blockNumber, ds);
 
 				await db.insert(`dao_${chain}`, {
 					address: host,

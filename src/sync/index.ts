@@ -3,17 +3,18 @@
  * @date 2022-07-21
  */
 
+import somes from 'somes';
 import '../uncaught';
 import errno from '../errno';
 import * as env from '../env';
 import {WatchCat} from 'bclib/watch';
 import { ChainType } from '../db';
 import {web3s} from '../web3+';
-import msg, {EventWatchBlock} from '../message';
+import msg, {EventIndexerNextBlock} from '../message';
 import {WatchBlock} from './block';
 import {QiniuSync} from './qiniu';
 import {AssetMetaDataSync,AssetMetaDataUpdate} from './asset_meta';
-import {RunIndexer} from './indexer';
+import {RunIndexer,Indexer} from './indexer';
 
 interface WaitPromiseCallback {
 	timeout: number;
@@ -24,7 +25,7 @@ interface WaitPromiseCallback {
 
 interface Wait {
 	chain: ChainType;
-	worker: number;
+	dao: string;
 	callback: WaitPromiseCallback[];
 }
 
@@ -78,20 +79,19 @@ export class Sync {
 			}
 		}
 
-		msg.addEventListener(EventWatchBlock, async (e)=>{
-			let {worker, blockNumber, chain} = e.data;
-			let wait = this._waits[`${chain}_${worker}`];
-			let now = Date.now();
+		msg.addEventListener(EventIndexerNextBlock, async (e)=>{
+			let {hash, blockNumber, chain} = 
+				e.data as {hash: string, blockNumber: number, chain: ChainType};
+			let wait = this._waits[`${chain}_${hash.toLowerCase()}`];
 			if (!wait) return;
-			//let height = await WatchBlock.getMinBlockSyncHeight(chain);
 
 			for (let i = 0; i < wait.callback.length;) {
-				let it = wait.callback[i];
-				if (blockNumber > it.blockNumber) { // ok
-					it.resolve();
+				let w = wait.callback[i];
+				if (blockNumber >= w.blockNumber) { // ok
+					w.resolve();
 					wait.callback.splice(i, 1); // delete
-				} else if (now > it.timeout) { // timeout
-					it.reject(errno.ERR_SYNC_WAIT_BLOCK_TIMEOUT);
+				} else if (Date.now() > w.timeout) { // timeout
+					w.reject(errno.ERR_SYNC_WAIT_BLOCK_TIMEOUT);
 					wait.callback.splice(i, 1); // delete
 				} else { // wait
 					i++;
@@ -100,20 +100,22 @@ export class Sync {
 		});
 	}
 
-	async waitBlockNumber(chain: ChainType, blockNumber: number, timeout?: number) {
-		// somes.assert(web3s[chain], `Not supported ${ChainType[chain]}`);
+	async waitBlockNumber(chain: ChainType, dao: string, blockNumber: number, timeout?: number) {
+		somes.assert(web3s[chain], `Not supported ${ChainType[chain]}`);
+		somes.assert(dao, `Bad argument. dao param not empty`);
+		dao = dao.toLowerCase();
 
-		// let woekers = await storage.get(`WatchBlock_Workers_${chain}`);
-		// let worker = blockNumber % woekers;
-		// let cur = await storage.get(`WatchBlock_Cat_${worker}_${ChainType[chain]}_`);
-		// if (cur >= blockNumber) return; // ok
+		let height = await Indexer.getWatchHeightFromHash(chain, dao);
+		if (height >= blockNumber) {
+			return;
+		}
 
-		// return await somes.promise<void>((resolve, reject)=>{
-		// 	let wait = this._waits[`${chain}_${worker}`] || (this._waits[`${chain}_${worker}`] = {
-		// 		chain, worker, callback: []
-		// 	});
-		// 	wait.callback.push({ timeout: timeout ? timeout + Date.now(): Infinity, blockNumber, resolve, reject });
-		// });
+		return await somes.promise<void>((resolve, reject)=>{
+			let wait = this._waits[`${chain}_${dao}`] || (this._waits[`${chain}_${dao}`] = {
+				chain, dao, callback: []
+			});
+			wait.callback.push({ timeout: (timeout || 18e4/*180 second*/) + Date.now(), blockNumber, resolve, reject });
+		});
 	}
 }
 

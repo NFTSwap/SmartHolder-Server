@@ -8,12 +8,13 @@ import db, {
 	ChainType, ContractInfo, Indexer as IIndexer,
 	ContractType, Transaction, TransactionLog,
 } from '../db';
-import msg, {postNewIndexer, EventNewIndexer} from '../message';
+import msg, {postNewIndexer, EventNewIndexer, postIndexerNextBlock} from '../message';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import * as contract from '../models/contract';
 import * as env from '../env';
 import mk_scaner from './mk_scaner';
 import {WatchBlock} from './block';
+import * as redis from 'bclib/redis';
 
 /**
  * @class indexer for dao
@@ -84,7 +85,7 @@ export class Indexer implements WatchCat {
 
 			let log_ = {
 				address,
-				data: '0x',
+				data: log.data,
 				topics: [log.topic0, log.topic1, log.topic2, log.topic3].filter(e=>e),
 				logIndex: log.logIndex,
 				transactionIndex: log.transactionIndex,
@@ -112,19 +113,30 @@ export class Indexer implements WatchCat {
 		}
 	}
 
+	static async getWatchHeightFromHash(chain: ChainType, hash: string) {
+		let height = await redis.get<number>(`indexer_hash_${chain}_${hash.toLowerCase()}`);
+		if (height) return height;
+		let obj = await db.selectOne<IIndexer>(`indexer_${chain}`, {hash});
+		return obj ? obj.watchHeight: 0;
+	}
+
 	async cat() {
 		let blockNumber = this.data.watchHeight;
 		let curBlockNumber = await WatchBlock.getMinBlockSyncHeight(this.chain);
 
-		while(blockNumber++ < curBlockNumber) {
-			for (let i = 0; i < this._dsList.length; i++) {
-				let ds = this._dsList[i];
-				if (ds.state == 0) {
-					await this.solveLogs(blockNumber, this._dsList[i]);
+		while (blockNumber++ < curBlockNumber) {
+			await db.transaction(async (db)=>{
+				for (let i = 0; i < this._dsList.length; i++) {
+					let ds = this._dsList[i];
+					if (ds.state == 0) {
+						await this.solveLogs(blockNumber, this._dsList[i]);
+					}
 				}
-			}
-			this.data.watchHeight = blockNumber;
-			await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
+				await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
+				await redis.set(`indexer_hash_${this.chain}_${this.data.hash.toLowerCase()}`, blockNumber);
+				postIndexerNextBlock(this.chain, this.data.id, this.data.hash, blockNumber);
+				this.data.watchHeight = blockNumber;
+			});
 		}
 		return true;
 	}

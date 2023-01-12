@@ -46,6 +46,10 @@ abi.FetchAbiFunList.push(async (addr, chain)=>{
 	}
 });
 
+export function isZeroAddress(addr: string) {
+	return addr == '0x0000000000000000000000000000000000000000';
+}
+
 export function getAbiByType(type: ContractType) {
 	return abi.getLocalAbi(`${__dirname}/../abi/${ContractType[type]}.json`);
 }
