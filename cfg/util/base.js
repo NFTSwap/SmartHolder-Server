@@ -5,7 +5,7 @@ module.exports = {
 		host: process.env.SERVER_HOST || '0.0.0.0',
 		port: Number(process.env.SERVER_PORT) || 8010,
 	},
-	var: '/data/shs/var', // `${__dirname}/var`,
+	var: '/data/shs/var_v2', // `${__dirname}/var`,
 	web3s: {}, // web3s 配置列表
 	// 0单一模式：优先选择第一个节点,当第一个节点比第二个节点小16个块时切换到第二个节点
 	// 1多模式：在多个节点中自动切换，当前一个节点出现故障时，会随机切换到下一个节点
