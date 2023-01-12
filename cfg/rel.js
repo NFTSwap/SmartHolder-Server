@@ -7,7 +7,7 @@ module.exports = {
 	web3s: {
 		GOERLI: rpc.GOERLI,
 	},
-	tx_api: 'http://127.0.0.1:8002/service-api',
+	tx_api: 'http://127.0.0.1:8100/service-api',
 	// ssh -f -N -g -R 8002:0.0.0.0:8002 root@dttyd.stars-mine.com
 	publicURL: 'https://smart-dao-rel-v2.stars-mine.com',
 	mbus: 'mqtt://mqtt-test.stars-mine.com:2883',
