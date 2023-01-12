@@ -15,7 +15,7 @@ export default async function runWorker() {
 	await import('../src/uncaught');
 	console.time('start');
 
-	var cfg = await import('../config');
+	// var cfg = await import('../config');
 	var env = await import('../src/env');
 	var db = await import('../src/db');
 	var msg = (await import('../src/message')).default;
