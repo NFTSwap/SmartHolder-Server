@@ -125,6 +125,16 @@ export class MvpWeb3 extends BcWeb3 {
 
 	constructor(chain: ChainType, _cfg: string[] | string) {
 		super(chain);
+
+		_cfg = typeof _cfg == 'string' ? [_cfg]: _cfg;
+
+		for (let i = 0; i < _cfg.length; i++) {
+			let j = somes.random(0, _cfg.length - 1);
+			let a = _cfg[i];
+			_cfg[i] = _cfg[j]; // swap
+			_cfg[j] = a;
+		}
+		
 		var chain_str = ChainType[chain];
 		this.chain = chain;
 		this.mode = (chain_str in cfg.web3Mode) ?
