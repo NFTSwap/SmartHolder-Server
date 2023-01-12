@@ -28,13 +28,11 @@ export interface DAO {
 	time: number;//         bigint         not null,
 	modify: number;//       bigint         not null
 	blockNumber: number;//  int            not null,
-	// assetIssuanceTax => first.seller_fee_basis_points
-	assetIssuanceTax: number;//    int default (0)   not null, // 发行税,一手交易
-	// assetCirculationTax => second.seller_fee_basis_points
-	assetCirculationTax: number;// int default (0)   not null, // 流转税,二手交易
-	// defaultVoteTime => votePool.lifespan
-	defaultVoteTime: number; // bigint         default (0)    not null,
+	assetIssuanceTax: number;//    int default (0)   not null, 发行税,一手交易, assetIssuanceTax => first.seller_fee_basis_points
+	assetCirculationTax: number;// int default (0)   not null, 流转税,二手交易, assetCirculationTax => second.seller_fee_basis_points
+	defaultVoteTime: number; // bigint         default (0)    not null,      defaultVoteTime => votePool.lifespan
 	memberBaseName: string; // varchar (32)   default ('')   not null,
+	like: number;//            int          default (0)    not null
 }
 
 export interface Member {
@@ -370,4 +368,24 @@ export interface Indexer {
 	hash: string;//         varchar (66)                 not null,
 	watchHeight: number;
 	state: number;//        int             default (0)  not null
+}
+
+export interface User {
+	id: number;//                int primary key,
+	nickname: string;//          varchar (24)                 not null,
+	description: string;//       varchar (512)                not null,
+	image: string;//             varchar (512)                not null,
+	like: number;//              int           default (0)    not null,
+	address: string;//           varchar (42)                 not null,  -- wallet address
+	time: number;//              bigint                       not null,
+	modify: number;//            bigint                       not null
+}
+
+export interface UserLikeDAO {
+	id: number;//                int primary key auto_increment,
+	user_id: number;//           int                          not null,
+	dao_id: number;//            int                          not null,
+	chain: ChainType;//          int                          not null,
+	time: number;//              bigint                       not null
+	state: number;
 }

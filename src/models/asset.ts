@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import db, {ChainType, Asset, State, AssetOrder,Selling} from '../db';
-	import {escape} from 'somes/db';
+import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
