@@ -11,6 +11,9 @@ import {Daemon} from 'bclib/daemon';
 import * as cfg from '../config';
 import * as net from 'net';
 
+const ENV   = process.env;
+const debug = 'DEUBG' in ENV ? !!(Number(ENV.DEUBG) || 0): !!cfg.debug;
+
 somes.config = __dirname + '/..'; // set config dir
 
 var daemons: Daemon[] = [];
@@ -50,7 +53,7 @@ export async function startWeb(workers?: number) {
 
 	for (var i = 0, port = cfg.server.port; i < workers; i++) {
 		var dea = new Daemon(`shs-web_${i}`);
-		await dea.start(process.execPath, [`--inspect=${port+1000+i}`, `${__dirname}/../`], {
+		await dea.start(process.execPath, [...(debug?[`--inspect=${port+1000+i}`]:[]), `${__dirname}/../`], {
 			__WORKERS: workers, __WORKER: i,
 			PROC_TYPE: 'web', RUN_DAEMON: '',
 			SERVER_HOST: '127.0.0.1',
@@ -70,7 +73,7 @@ export async function startWatch(workers?: number) {
 		var dea = new Daemon(`shs-watch_${i}`);
 		// `--max-heap-size=2048`, // 2048MB
 		// `--trace-gc`, 
-		await dea.start(process.execPath, [`--inspect=${port+1100+i}`, `${__dirname}/../`], {
+		await dea.start(process.execPath, [...(debug?[`--inspect=${port+1100+i}`]:[]), `${__dirname}/../`], {
 			__WORKERS: workers, __WORKER: i,
 			PROC_TYPE: 'watch', RUN_DAEMON: '',
 			DISABLE_WEB: 1, WATCH_MAIN: 1, WATCH_INDEXER: 0,
@@ -86,7 +89,7 @@ export async function startIndexer(workers?: number) {
 
 	for (var i = 0, port = cfg.server.port; i < workers; i++) {
 		var dea = new Daemon(`shs-indexer_${i}`);
-		await dea.start(process.execPath, [`--inspect=${port+1200+i}`, `${__dirname}/../`], {
+		await dea.start(process.execPath, [...(debug?[`--inspect=${port+1200+i}`]:[]), `${__dirname}/../`], {
 			__WORKERS: workers, __WORKER: i,
 			PROC_TYPE: 'indexer', RUN_DAEMON: '',
 			DISABLE_WEB: 1, WATCH_MAIN: 0, WATCH_INDEXER: 1,
@@ -101,7 +104,7 @@ export async function startWeb3TxDequeue(workers?: number) {
 
 	for (var i = 0, port = cfg.server.port; i < workers; i++) {
 		var dea = new Daemon(`shs-tx_${i}`);
-		await dea.start(process.execPath, [`--inspect=${port+1300+i}`, `${__dirname}/../`], {
+		await dea.start(process.execPath, [...(debug?[`--inspect=${port+1300+i}`]:[]), `${__dirname}/../`], {
 			__WORKERS: workers, __WORKER: i,
 			PROC_TYPE: 'tx', RUN_DAEMON: '',
 			DISABLE_WEB: 1, WATCH_MAIN: 0, WATCH_INDEXER: 0, WEB3_TX_DEQUEUE: 1,
