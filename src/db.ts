@@ -55,7 +55,7 @@ async function load_main_db() {
 				defaultVoteTime     bigint       default (0)    not null,
 				memberBaseName      varchar (32) default ('')   not null,
 				memberTotalLimit    int          default (0)    not null,
-				like                int          default (0)    not null
+				likes               int          default (0)    not null
 			);
 
 			create table if not exists member_${chain} (
@@ -264,7 +264,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add first                 varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
-			`alter table dao_${chain}  add like                  int          default (0)   not null`,
+			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
@@ -375,7 +375,7 @@ async function load_main_db() {
 			nickname          varchar (24)                 not null,
 			description       varchar (512)                not null,
 			image             varchar (512)                not null,
-			like              int           default (0)    not null,
+			likes             int           default (0)    not null,
 			address           varchar (42)  default ('')   not null,  -- wallet address
 			time              bigint                       not null,
 			modify            bigint                       not null
@@ -387,7 +387,7 @@ async function load_main_db() {
 			dao_id            int                          not null,
 			chain             int                          not null,
 			state             int           default (0)    not null, -- 0正常,1删除
-			time              bigint                       not null,
+			time              bigint                       not null
 		);
 
 		`, [], [

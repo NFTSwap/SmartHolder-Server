@@ -92,6 +92,7 @@ export class Indexer implements WatchCat {
 				transactionHash: log.transactionHash,
 				blockHash: log.blockHash,
 				blockNumber: log.blockNumber,
+				removed: false,
 			};
 
 			let tx_ = {

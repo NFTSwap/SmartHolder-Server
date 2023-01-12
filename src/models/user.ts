@@ -9,7 +9,7 @@ export async function getUser(id?: number) {
 	let defaultValue: User = {
 		id: id || 0,
 		nickname: '', description: '',
-		image: '',  like: 0,
+		image: '',  likes: 0,
 		address: '', time: 0, modify: 0,
 	}
 	if (!id)
@@ -28,7 +28,7 @@ async function setUser1(id: number, user: Partial<User>) {
 }
 
 export async function setUser(id: number, user: Partial<User>) {
-	let {like, ...obj} = user; // skip like
+	let {likes, ...obj} = user; // skip like
 	return setUser1(id, obj);
 }
 
@@ -45,8 +45,8 @@ export async function addLikeDAO(id: number, dao_id: number, chain: ChainType) {
 			} else {
 				await db.insert(`user_like_dao`, {user_id: id, dao_id, chain, time: Date.now()});
 			}
-			await setUser1(id, {like: user.like + 1});
-			await db.update(`dao_${chain}`, {like: dao.like + 1}, {id: dao_id});
+			await setUser1(id, {likes: user.likes + 1});
+			await db.update(`dao_${chain}`, {likes: dao.likes + 1}, {id: dao_id});
 		})
 	}
 }
@@ -60,8 +60,8 @@ export async function deleteLikeDAO(id: number, dao_id: number, chain: ChainType
 
 		await db.transaction(async db=>{
 			await db.update(`user_like_dao`, {state: 1, time: Date.now()}, {id: user_like_dao!.id});
-			await setUser1(id, {like: user.like - 1});
-			await db.update(`dao_${chain}`, {like: dao.like - 1}, {id: dao_id});
+			await setUser1(id, {likes: user.likes - 1});
+			await db.update(`dao_${chain}`, {likes: dao.likes - 1}, {id: dao_id});
 		});
 	}
 }

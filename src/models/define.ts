@@ -32,7 +32,7 @@ export interface DAO {
 	assetCirculationTax: number;// int default (0)   not null, 流转税,二手交易, assetCirculationTax => second.seller_fee_basis_points
 	defaultVoteTime: number; // bigint         default (0)    not null,      defaultVoteTime => votePool.lifespan
 	memberBaseName: string; // varchar (32)   default ('')   not null,
-	like: number;//            int          default (0)    not null
+	likes: number;//           int          default (0)    not null
 }
 
 export interface Member {
@@ -375,7 +375,7 @@ export interface User {
 	nickname: string;//          varchar (24)                 not null,
 	description: string;//       varchar (512)                not null,
 	image: string;//             varchar (512)                not null,
-	like: number;//              int           default (0)    not null,
+	likes: number;//             int           default (0)    not null,
 	address: string;//           varchar (42)                 not null,  -- wallet address
 	time: number;//              bigint                       not null,
 	modify: number;//            bigint                       not null
