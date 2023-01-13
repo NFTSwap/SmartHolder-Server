@@ -6,7 +6,6 @@
 import { Asset, ContractType, ChainType, SaleType} from '../models/define';
 import {ContractScaner, IAssetScaner, formatHex,HandleEventData} from './scaner';
 import * as utils from '../utils';
-import db from '../db';
 import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
 import * as constants from './constants';
@@ -116,7 +115,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 			});
 		}
 
-		await opensea.maskOrderClose(this.chain, token, tokenId);
+		await opensea.maskOrderClose(this.chain, token, tokenId, db);
 	}
 
 }

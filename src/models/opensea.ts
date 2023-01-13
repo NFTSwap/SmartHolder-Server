@@ -22,6 +22,7 @@ import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
 import * as redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
+import {DatabaseCRUD} from 'somes/db';
 
 export {OrderComponents};
 
@@ -381,15 +382,15 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 }
 
-export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '') {
+export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '', db_?: DatabaseCRUD) {
 	let id = formatHex(tokenId, 32);
-	let num = await db.update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: id });
+	let num = await (db_||db).update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: id });
 	// somes.assert(num == 1);
 	// console.log('maskOrderSelling', num, token, id);
 }
 
-export async function maskOrderClose(chain: ChainType, token: string, tokenId: string) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '');
+export async function maskOrderClose(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', db_);
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
