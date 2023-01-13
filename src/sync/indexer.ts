@@ -42,17 +42,34 @@ export class Indexer implements WatchCat {
 	}
 
 	async addDataSource({address, ...ds}: Partial<ContractInfo> & {address: string}) {
-		if (
-			address &&
-			address != '0x0000000000000000000000000000000000000000' && 
-			!await contract.select(address, this.chain, true)
-		) {
-			await contract.insert({address, ...ds}, this.chain);
-			let ds_ = (await contract.select(address, this.chain, true))!;
-			if (ds_.state == 0) {
-				this.ds[address] = ds_;
-				this._dsList.push(ds_);
-			}
+		if (!address || address == '0x0000000000000000000000000000000000000000')
+			return;
+		let chain = this.chain;
+		let ds_ = await contract.select(address, chain, true);
+
+		if (ds_ && ds_.state == 1) {
+			await contract.update({
+				...ds,
+				indexer_id: this.data.id,
+				state: 0,
+				time: Date.now(),
+			}, address, chain);
+			ds_.state = 0;
+		} else if (!ds_) { // insert
+			await contract.insert({
+				...ds,
+				indexer_id: this.data.id,
+				host: ds.host || '0x0000000000000000000000000000000000000000',
+				time: Date.now(),
+			}, chain);
+			ds_ = (await contract.select(address, chain, true))!;
+		} else {
+			return;
+		}
+
+		if (!this.ds[address]) {
+			this.ds[address] = ds_;
+			this._dsList.push(ds_);
 		}
 	}
 
@@ -60,9 +77,7 @@ export class Indexer implements WatchCat {
 		let c = await contract.select(address, this.chain, true);
 		if (c && c.state == 0) {
 			await contract.update({state: 1}, address, this.chain);
-			let ds = this.ds[address];
-			ds.state = 1;
-			delete this.ds[address];
+			this.ds[address].state = 1; // mark delete state
 		}
 	}
 

@@ -13,8 +13,10 @@ import {Indexer} from './indexer';
 export class DAO extends ModuleScaner {
 
 	async setDataSource(indexer: Indexer, del: string, add: string, type: ContractType) {
-		await indexer.deleteDataSource(del);
-		await indexer.addDataSource({ address: add, host: this.address, type, time: Date.now() });
+		if (del != add) {
+			await indexer.deleteDataSource(del);
+			await indexer.addDataSource({ address: add, host: this.address, type, time: Date.now() });
+		}
 	}
 
 	events = {
