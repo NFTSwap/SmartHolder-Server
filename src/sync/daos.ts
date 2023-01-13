@@ -29,7 +29,7 @@ export class DAOs extends ContractScaner {
 				let blockNumber = Number(event.blockNumber);
 				let web3 = this.web3;
 
-				if ( await db.selectOne(`dao_${chain}`, { address: host }) )
+				if ( await this.db.selectOne(`dao_${chain}`, { address: host }) )
 					return;
 
 				let dao    = web3.createContract(host, DAO.abi as any);
@@ -89,7 +89,7 @@ export class DAOs extends ContractScaner {
 					assetCirculationTax = await (await web3.contract(Second)).methods.seller_fee_basis_points().call();
 				}
 
-				await db.insert(`dao_${chain}`, {
+				await this.db.insert(`dao_${chain}`, {
 					address: host,
 					host,
 					name: await dao.methods.name().call(),
@@ -128,7 +128,7 @@ export class DAOs extends ContractScaner {
 						// votes        int           default (0)  not null, -- default > 0
 						// time         bigint                     not null,
 						// modify       bigint                     not null
-						let mbr = await db.selectOne(`member_${chain}`, { token: Member, tokenId: info.id });
+						let mbr = await this.db.selectOne(`member_${chain}`, { token: Member, tokenId: info.id });
 						if (!mbr) {
 							let tokenId = formatHex(info.id);
 							let owner = await member.methods.ownerOf(tokenId).call();
@@ -139,7 +139,7 @@ export class DAOs extends ContractScaner {
 							if (await member.methods.isPermissionFrom(tokenId, constants.Action_VotePool_Vote).call())
 								permissions.push(constants.Action_VotePool_Vote);
 
-							db.insert(`member_${chain}`, {
+								this.db.insert(`member_${chain}`, {
 								host, token: Member, tokenId, owner,
 								name: info.name, description: info.description,
 								image: info.image, votes: info.votes, time, modify: time,

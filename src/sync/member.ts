@@ -20,6 +20,7 @@ export class Member extends ModuleScaner {
 		},
 		Transfer: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let tokenId = formatHex(e.returnValues.tokenId);
 				let chain = this.chain;
 
@@ -80,6 +81,7 @@ export class Member extends ModuleScaner {
 		},
 		Update: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let tokenId = formatHex(e.returnValues.id);
 				if ( await db.selectOne(`member_${this.chain}`, { token: this.address, tokenId }) ) {
 					let info = await this.getMemberInfo(tokenId);
@@ -95,6 +97,7 @@ export class Member extends ModuleScaner {
 		},
 		TransferVotes: {
 			handle: async (data: HandleEventData)=>{
+				let db = this.db;
 				let {from,to} = data.event.returnValues;
 				let methods = await this.methods();
 
@@ -110,6 +113,7 @@ export class Member extends ModuleScaner {
 		},
 		AddPermissions: { // May be inaccurate
 			handle: async ({event}: HandleEventData)=>{
+				let db = this.db;
 				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
 				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
 				for (let tokenId of tokenIds) {
@@ -130,6 +134,7 @@ export class Member extends ModuleScaner {
 		},
 		RemovePermissions: { // May be inaccurate
 			handle: async ({event}: HandleEventData)=>{
+				let db = this.db;
 				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
 				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
 				for (let tokenId of tokenIds) {
@@ -163,6 +168,7 @@ export class Member extends ModuleScaner {
 	}
 
 	protected async onChangePlus({blockTime:modify}: HandleEventData, tag: number) {
+		let db = this.db;
 		switch (tag) {
 			case constants.Change_Tag_Member_Set_Executor:
 				let methods = await this.methods();

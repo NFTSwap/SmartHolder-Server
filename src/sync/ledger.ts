@@ -25,6 +25,7 @@ export class Ledger extends ModuleScaner {
 
 		Receive: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {from,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
@@ -59,6 +60,7 @@ export class Ledger extends ModuleScaner {
 
 		ReleaseLog: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {operator,balance,log} = e.returnValues;
 				let txHash = e.transactionHash;
 
@@ -87,6 +89,7 @@ export class Ledger extends ModuleScaner {
 
 		Deposit: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {from,balance,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
@@ -113,6 +116,7 @@ export class Ledger extends ModuleScaner {
 			// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
 			// );
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {token,source,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
@@ -147,6 +151,7 @@ export class Ledger extends ModuleScaner {
 
 		Withdraw: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {target,balance,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
@@ -168,6 +173,7 @@ export class Ledger extends ModuleScaner {
 
 		Release: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {member,to,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Release;

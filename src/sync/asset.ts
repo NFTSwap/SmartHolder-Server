@@ -63,6 +63,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 	}
 
 	async asset(tokenId: string, blockNumber?: number) {
+		let db = this.db;
 		var token = this.address;
 		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
@@ -83,6 +84,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 		to: [string, number], // to address/total
 		value: string,
 	) {
+		let db = this.db;
 		var time = Date.now();
 		var token = this.address;
 		let exists = await this.exists(tokenId);
@@ -142,6 +144,7 @@ export class AssetERC721 extends ERC721ModuleScaner {
 	};
 
 	protected async onChangePlus({event,blockTime: modify}: HandleEventData, tag: number) {
+		let db = this.db;
 		switch (tag) {
 			case constants.Change_Tag_Asset_set_seller_fee_basis_points: // update fee basis points
 				let methods = await this.methods();

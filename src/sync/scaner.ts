@@ -17,6 +17,8 @@ import {AbiItem} from 'web3-utils';
 import uncaught from '../uncaught';
 import * as contract from '../models/contract';
 import * as cryptoTx from 'crypto-tx';
+import {DatabaseCRUD} from 'somes/db';
+import db from '../db';
 
 export function formatHex(hex_str: string | number | bigint, btyes: number = 32) {
 	var s = '';
@@ -73,6 +75,7 @@ export abstract class ContractScaner {
 	readonly address: string;
 	readonly type: ContractType;
 	readonly chain: ChainType;
+	readonly db: DatabaseCRUD;
 
 	abstract readonly events: Dict<ResolveEvent>;
 
@@ -102,11 +105,12 @@ export abstract class ContractScaner {
 	async methods() { return (await this.contract()).methods }
 	async host() { return (await this.info()).host }
 
-	constructor(address: string, type: ContractType, chain: ChainType) {
+	constructor(address: string, type: ContractType, chain: ChainType, db_?: DatabaseCRUD) {
 		this.address = cryptoTx.checksumAddress(address);
 		this.type = type;
 		this.chain = chain;
 		this._web3 = web3s[chain];
+		this.db = db_ || db;
 	}
 
 	async scan(fromBlock: number, toBlock: number): Promise<number> {

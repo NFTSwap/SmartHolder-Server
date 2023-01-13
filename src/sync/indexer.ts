@@ -16,6 +16,8 @@ import mk_scaner from './mk_scaner';
 import {WatchBlock} from './block';
 import * as redis from 'bclib/redis';
 import * as request from '../request';
+import {DatabaseCRUD} from 'somes/db';
+// import pool from 'somes/mysql/pool';
 
 /**
  * @class indexer for dao
@@ -81,7 +83,7 @@ export class Indexer implements WatchCat {
 		}
 	}
 
-	private async solveLogs(blockNumber: number, info: ContractInfo) {
+	private async solveLogs(db: DatabaseCRUD, blockNumber: number, info: ContractInfo) {
 		let logs = await db.select<TransactionLog>(
 			`transaction_log_${this.chain}`, {address: info.address, blockNumber}, {order: 'logIndex'});
 
@@ -150,7 +152,7 @@ export class Indexer implements WatchCat {
 				for (let i = 0; i < this._dsList.length; i++) {
 					let ds = this._dsList[i];
 					if (ds.state == 0) {
-						await this.solveLogs(blockNumber, this._dsList[i]);
+						await this.solveLogs(db, blockNumber, this._dsList[i]);
 					}
 				}
 				await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
@@ -219,6 +221,9 @@ export class RunIndexer implements WatchCat {
 
 	async initialize() {
 		let isMainWorker = !env.workers || env.workers.id === 0;
+
+		//pool.MAX_CONNECT_COUNT = 50; // max 50
+		//pool.CONNECT_TIMEOUT = 1e5; // 100 second
 
 		msg.addEventListener(EventNewIndexer, async (e)=>{
 			let obj = await db.selectOne<IIndexer>(`indexer_${this.chain}`, { id: e.data.id });

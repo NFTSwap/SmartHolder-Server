@@ -22,6 +22,7 @@ export class VotePool extends ContractScaner {
 
 		Vote: {
 			handle: async (data: HandleEventData)=>{
+				let db = this.db;
 				let {event:e, blockTime: time,blockNumber} = data;
 				let proposal_id = formatHex(e.returnValues.id, 32);
 				let member_id = formatHex(e.returnValues.member, 32);
@@ -64,6 +65,7 @@ export class VotePool extends ContractScaner {
 	};
 
 	private async update(proposal_id: string, {blockTime: time,blockNumber}: HandleEventData) {
+		let db = this.db;
 		let proposal = await this.getProposal(proposal_id);
 
 		if ( ! await db.selectOne(`vote_proposal_${this.chain}`, { address: this.address, proposal_id }) ) {
