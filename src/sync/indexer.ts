@@ -193,13 +193,13 @@ export class RunIndexer implements WatchCat {
 
 			for (let {id:_, ...ds} of initDataSource) {
 				if (!await contract.select(ds.address, chain, true)) {
-					await contract.insert({
+					await db.insert(`contract_info_${chain}`, { // use transaction
 						...ds,
 						indexer_id: id,
 						host: ds.host || '0x0000000000000000000000000000000000000000',
 						time: Date.now(),
 						blockNumber,
-					}, chain);
+					});
 				}
 			}
 
