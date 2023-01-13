@@ -177,7 +177,8 @@ export class Ledger extends ModuleScaner {
 				let {member,to,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Release;
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: member}) ) {
+				let member_id = formatHex(member);
+				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) ) {
 					let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
 
 					await db.insert(`ledger_${this.chain}`, {
@@ -188,7 +189,7 @@ export class Ledger extends ModuleScaner {
 						target: to,
 						balance: formatHex(balance),
 						description: log?.log || '',
-						member_id: '0x' + BigInt(member).toString(16),
+						member_id,
 						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
