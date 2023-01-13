@@ -129,6 +129,7 @@ export class Ledger extends ModuleScaner {
 						type: type,
 						target: source,
 						balance,
+						price,
 						name: '',
 						description: '',
 						time,

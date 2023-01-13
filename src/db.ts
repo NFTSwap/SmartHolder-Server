@@ -129,7 +129,6 @@ async function load_main_db() {
 				target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (72)                 not null, -- 金额
-				price        varchar (72)                 not null, -- 成交价格
 				time         bigint                       not null, -- 时间
 				blockNumber  int                          not null, -- 区块
 				state        int             default (0)  not null,
@@ -143,6 +142,7 @@ async function load_main_db() {
 				tokenId      char    (66)                 not null, -- 原始资产id
 				source       varchar (64)                 not null, -- 进账来源
 				balance      varchar (72)                 not null, -- 金额
+				price        varchar (72)                 not null, -- 成交价格
 				toAddress    varchar (64)                 not null, -- 资产转移目标地址
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
