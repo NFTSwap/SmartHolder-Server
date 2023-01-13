@@ -17,7 +17,7 @@ import {WatchBlock} from './block';
 import * as redis from 'bclib/redis';
 import * as request from '../request';
 import {DatabaseCRUD} from 'somes/db';
-// import pool from 'somes/mysql/pool';
+import pool from 'somes/mysql/pool';
 
 /**
  * @class indexer for dao
@@ -223,7 +223,7 @@ export class RunIndexer implements WatchCat {
 		let isMainWorker = !env.workers || env.workers.id === 0;
 
 		//pool.MAX_CONNECT_COUNT = 50; // max 50
-		//pool.CONNECT_TIMEOUT = 1e5; // 100 second
+		pool.CONNECT_TIMEOUT = 2e4; // 20 second
 
 		msg.addEventListener(EventNewIndexer, async (e)=>{
 			let obj = await db.selectOne<IIndexer>(`indexer_${this.chain}`, { id: e.data.id });
