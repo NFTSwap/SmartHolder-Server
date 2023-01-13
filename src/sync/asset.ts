@@ -10,6 +10,7 @@ import db from '../db';
 import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
 import * as constants from './constants';
+import sync from './index';
 
 export abstract class ModuleScaner extends ContractScaner {
 
@@ -70,6 +71,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 			let time = Date.now();
 			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time, blockNumber });
 			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
+			await sync.assetMetaDataSync.fetchFrom(asset, this.chain);
 		}
 		return asset;
 	}

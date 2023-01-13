@@ -275,8 +275,8 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 
 	async fetchFrom(asset: Asset, chain: ChainType, force?: boolean) {
 		var {id, token, uri, mediaOrigin} = asset;
-		if (await this.isQueue(id, chain))
-			return;
+		// if (await this.isQueue(id, chain))
+			// return;
 		if (force || !uri || !mediaOrigin) {
 			await this.enqueue(id, token, chain);
 		}
