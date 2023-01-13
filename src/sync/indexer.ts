@@ -83,7 +83,7 @@ export class Indexer implements WatchCat {
 		}
 	}
 
-	private async solveLogs(db: DatabaseCRUD, blockNumber: number, info: ContractInfo) {
+	private async solveLogs(blockNumber: number, info: ContractInfo, db: DatabaseCRUD) {
 		let logs = await db.select<TransactionLog>(
 			`transaction_log_${this.chain}`, {address: info.address, blockNumber}, {order: 'logIndex'});
 
@@ -98,7 +98,7 @@ export class Indexer implements WatchCat {
 
 		for (let log of logs) {
 			let address = log.address;
-			let scaner = mk_scaner(address, info.type, this.chain);
+			let scaner = mk_scaner(address, info.type, this.chain, db);
 			let tx = await getTx(log.transactionHash);
 
 			if (log.data.substring(0,4) == 'http') {
@@ -152,7 +152,7 @@ export class Indexer implements WatchCat {
 				for (let i = 0; i < this._dsList.length; i++) {
 					let ds = this._dsList[i];
 					if (ds.state == 0) {
-						await this.solveLogs(db, blockNumber, this._dsList[i]);
+						await this.solveLogs(blockNumber, this._dsList[i], db);
 					}
 				}
 				await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
