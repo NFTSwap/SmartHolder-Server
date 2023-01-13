@@ -15,6 +15,7 @@ import * as env from '../env';
 import mk_scaner from './mk_scaner';
 import {WatchBlock} from './block';
 import * as redis from 'bclib/redis';
+import * as request from '../request';
 
 /**
  * @class indexer for dao
@@ -82,6 +83,10 @@ export class Indexer implements WatchCat {
 			let address = log.address;
 			let scaner = mk_scaner(address, info.type, this.chain);
 			let tx = await getTx(log.transactionHash);
+
+			if (log.data.substring(0,4) == 'http') {
+				log.data = '0x' + (await request.get(log.data)).data.toString('hex');
+			}
 
 			let log_ = {
 				address,

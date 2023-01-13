@@ -5,16 +5,17 @@
 
 import '../uncaught';
 import somes from 'somes';
-import * as cfg from '../../config';
+import buffer from 'somes/buffer';
 import {WatchCat} from 'bclib/watch';
-import db, { storage, ChainType, ContractInfo, ContractType, Transaction as ITransaction } from '../db';
+import db, { storage, ChainType, Transaction as ITransaction } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
-import {Transaction, TransactionReceipt, Log} from 'web3-core';
+import {Transaction, TransactionReceipt} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import * as contract from '../models/contract';
 import {postWatchBlock} from '../message';
 import * as redis from 'bclib/redis';
+import * as utils from '../utils';
 
 export class WatchBlock implements WatchCat {
 	readonly web3: MvpWeb3;
@@ -93,6 +94,9 @@ export class WatchBlock implements WatchCat {
 			for (let log of receipt.logs) { // event logs
 				let address = log.address;
 				if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
+					if (log.data.length > 65535) {
+						log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
+					}
 					await db.insert(`transaction_log_${chain}`, {
 						tx_id,
 						address,
