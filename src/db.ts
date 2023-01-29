@@ -354,6 +354,7 @@ async function load_main_db() {
 			`create         index transaction_log_${chain}_6     on transaction_log_${chain}        (address,topic0,topic1)`,
 			`create         index transaction_log_${chain}_7     on transaction_log_${chain}        (address,topic0,topic1,topic2)`,
 			`create         index transaction_log_${chain}_8     on transaction_log_${chain}        (address,topic0,topic1,topic2,topic3)`,
+			`create         index transaction_log_${chain}_9     on transaction_log_${chain}        (tx_id)`,
 		], `shs_${chain}`);
 	}
 

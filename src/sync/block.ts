@@ -89,32 +89,33 @@ export class WatchBlock implements WatchCat {
 			let address = cryptoTx.checksumAddress(receipt.contractAddress);
 			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
-		else if (receipt.to) { // Contract call
-			let logIndex = 0;
-			for (let log of receipt.logs) { // event logs
-				let address = log.address;
-				if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
-					if (log.data.length > 65535) {
-						log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
-					}
-					await db.insert(`transaction_log_${chain}`, {
-						tx_id,
-						address,
-						topic0: log.topics[0] || '',
-						topic1: log.topics[1],
-						topic2: log.topics[2],
-						topic3: log.topics[3],
-						data: log.data,
-						logIndex,
-						transactionIndex,
-						transactionHash,
-						blockHash: receipt.blockHash,
-						blockNumber,
-					});
+		// else if (receipt.to) { // Contract call
+
+		let logIndex = 0;
+		for (let log of receipt.logs) { // event logs
+			let address = log.address;
+			if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
+				if (log.data.length > 65535) {
+					log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
 				}
-				logIndex++;
+				await db.insert(`transaction_log_${chain}`, {
+					tx_id,
+					address,
+					topic0: log.topics[0] || '',
+					topic1: log.topics[1],
+					topic2: log.topics[2],
+					topic3: log.topics[3],
+					data: log.data,
+					logIndex,
+					transactionIndex,
+					transactionHash,
+					blockHash: receipt.blockHash,
+					blockNumber,
+				});
 			}
-		} // else if (receipt.to) {
+			logIndex++;
+		}
+		// } // else if (receipt.to) {
 	}
 
 	private async solveBlock(blockNumber: number) {
