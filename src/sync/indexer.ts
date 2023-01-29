@@ -83,11 +83,7 @@ export class Indexer implements WatchCat {
 		}
 	}
 
-	private async solveLogs(blockNumber: number, info: ContractInfo, db: DatabaseCRUD) {
-		let logs = await db.select<TransactionLog>(
-			`transaction_log_${this.chain}`, {address: info.address, blockNumber}, {order: 'logIndex'});
-
-		if (!logs.length) return;
+	private async solveLogs(logs: TransactionLog[], info: ContractInfo, db: DatabaseCRUD) {
 
 		let tx: Transaction | null = null;
 		let getTx = async (hash: string)=>{
@@ -148,12 +144,22 @@ export class Indexer implements WatchCat {
 		let curBlockNumber = await WatchBlock.getMinBlockSyncHeight(this.chain);
 
 		while (blockNumber++ < curBlockNumber) {
-			await db.transaction(async (db)=>{
-				for (let i = 0; i < this._dsList.length; i++) {
-					let ds = this._dsList[i];
-					if (ds.state == 0) {
-						await this.solveLogs(blockNumber, this._dsList[i], db);
+			let logsAll = [] as {info: ContractInfo, logs: TransactionLog[]}[];
+
+			for (let i = 0; i < this._dsList.length; i++) {
+				let ds = this._dsList[i];
+				if (ds.state == 0) {
+					let logs = await db.select<TransactionLog>(
+					`transaction_log_${this.chain}`, {address: ds.address, blockNumber}, {order: 'logIndex'});
+					if (logs.length) {
+						logsAll.push({info: ds, logs});
 					}
+				}
+			}
+
+			await db.transaction(async (db)=>{
+				for (let logs of logsAll) {
+					await this.solveLogs(logs.logs, logs.info, db);
 				}
 				await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
 				await redis.set(`indexer_hash_${this.chain}_${this.data.hash.toLowerCase()}`, blockNumber);
