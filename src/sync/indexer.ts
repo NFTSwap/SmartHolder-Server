@@ -141,7 +141,7 @@ export class Indexer implements WatchCat {
 
 	async cat() {
 		let blockNumber = this.data.watchHeight;
-		let curBlockNumber = await WatchBlock.getMinBlockSyncHeight(this.chain);
+		let curBlockNumber = await WatchBlock.getValidBlockSyncHeight(this.chain);
 
 		while (blockNumber++ < curBlockNumber) {
 			let logsAll = [] as {info: ContractInfo, logs: TransactionLog[]}[];

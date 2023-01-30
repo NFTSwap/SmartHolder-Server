@@ -174,16 +174,21 @@ export class WatchBlock implements WatchCat {
 		return (num || 0) as number;
 	}
 
-	static async getMinBlockSyncHeight(chain: ChainType) {
+	static async getValidBlockSyncHeight(chain: ChainType) {
 		let workers = await this.getWatchBlockWorkers(chain);
 		let key = `Block_Sync_Height_${ChainType[chain]}`;
-		let height = Infinity;
 		let heightAll = await redis.client.hGetAll(key);
 
-		for (let i = 0; i < workers; i++) {
-			height = Math.min(height, Number(heightAll[`worker_${i}`]) || 0);
+		let [height, ...heights] = Array.from({length:workers})
+				.map((_,i)=>(Number(heightAll[`worker_${i}`]) || 0))
+				.sort((a,b)=>a-b);
+
+		for (let i = 0; i < heights.length; i++) {
+			if (height + 1 != heights[i])
+				break;
+			height++;
 		}
-		return height == Infinity ? 0: height;
+		return height;
 	}
 
 	private static _WatchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
