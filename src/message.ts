@@ -19,7 +19,7 @@ export function postNewIndexer(chain: ChainType, indexer_id: number) {
 }
 
 export function postIndexerNextBlock(chain: ChainType, indexer_id: number, hash: string, blockNumber: number ) {
-	bus.post(EventNewIndexer, { chain, indexer_id, hash, blockNumber });
+	bus.post(EventIndexerNextBlock, { chain, indexer_id, hash, blockNumber });
 }
 
 export default bus;
