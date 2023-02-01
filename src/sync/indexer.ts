@@ -232,7 +232,7 @@ export class RunIndexer implements WatchCat {
 		pool.CONNECT_TIMEOUT = 2e4; // 20 second
 
 		msg.addEventListener(EventNewIndexer, async (e)=>{
-			let obj = await db.selectOne<IIndexer>(`indexer_${this.chain}`, { id: e.data.id });
+			let obj = await db.selectOne<IIndexer>(`indexer_${this.chain}`, { id: e.data.indexer_id });
 			if (obj)
 				await this.addWatch(obj);
 		});
