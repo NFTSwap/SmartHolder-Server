@@ -248,6 +248,7 @@ export class RunIndexer implements WatchCat {
 			}
 		}
 
+		await this.cat();
 	}
 
 	async cat() {
