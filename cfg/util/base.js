@@ -23,7 +23,8 @@ module.exports = {
 	tests: [`${__dirname}/../../test/test`],
 	watch_main: true, // 是否启用数据同步主服务,主服务只能有一个
 	watch_indexer: true, // 索引人监控
-	root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
+	// root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
+	root: '/data/apps/smart-dao/smart-dao', // 前端程序路径,可为空
 	tx_api: 'http://dao.smartholder.jp/service-api',
 	publicURL: 'https://smartholder.stars-mine.com',
 	httpProxy: [
