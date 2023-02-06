@@ -182,6 +182,8 @@ export class RunIndexer implements WatchCat {
 		this.chain = chain;
 		this.worker = worker;
 		this.workers = workers;
+		pool.MAX_CONNECT_COUNT = 10; // max 50
+		// pool.CONNECT_TIMEOUT = 2e4; // 20 second
 	}
 
 	static async addIndexer(
@@ -227,9 +229,6 @@ export class RunIndexer implements WatchCat {
 
 	async initialize() {
 		let isMainWorker = !env.workers || env.workers.id === 0;
-
-		//pool.MAX_CONNECT_COUNT = 50; // max 50
-		pool.CONNECT_TIMEOUT = 2e4; // 20 second
 
 		msg.addEventListener(EventNewIndexer, async (e)=>{
 			let obj = await db.selectOne<IIndexer>(`indexer_${this.chain}`, { id: e.data.indexer_id });

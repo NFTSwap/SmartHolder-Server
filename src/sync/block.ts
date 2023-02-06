@@ -16,6 +16,7 @@ import * as contract from '../models/contract';
 import {postWatchBlock} from '../message';
 import * as redis from 'bclib/redis';
 import * as utils from '../utils';
+import pool from 'somes/mysql/pool';
 
 export class WatchBlock implements WatchCat {
 	readonly web3: MvpWeb3;
@@ -26,6 +27,7 @@ export class WatchBlock implements WatchCat {
 		this.web3 = web3;
 		this.worker = worker;
 		this.workers = workers;
+		pool.MAX_CONNECT_COUNT = 10; // max 50
 	}
 
 	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
