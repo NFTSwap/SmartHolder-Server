@@ -9,7 +9,7 @@ module.exports = {
 		ETHEREUM: rpc.ETHEREUM,
 	},
 	root: '/data/apps/smart-dao/smart-dao',
-	publicURL: 'http://dao.smartholder.jp',
+	publicURL: 'https://dao.smartholder.jp',
 	mbus: 'mqtt://172.16.3.114:1883',
 	mbus_auth: '', // user:password
 	mbus_topic: 'shs_default_prod',

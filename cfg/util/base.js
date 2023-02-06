@@ -25,8 +25,8 @@ module.exports = {
 	watch_indexer: true, // 索引人监控
 	// root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
 	root: '/data/apps/smart-dao/smart-dao', // 前端程序路径,可为空
-	tx_api: 'http://dao.smartholder.jp/service-api',
-	publicURL: 'https://smartholder.stars-mine.com',
+	tx_api: 'https://dao.smartholder.jp/service-api',
+	publicURL: 'https://dao.smartholder.jp',
 	httpProxy: [
 		// 资源下载服务器列表,这需服务器建议使用 cfg/glob_us_meta.js 中的配置
 		'http://152.32.150.111:8001',
