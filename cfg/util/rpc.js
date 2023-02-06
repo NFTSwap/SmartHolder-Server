@@ -2,8 +2,8 @@
 module.exports = {
 	ETHEREUM: [
 		// '16/http://165.154.5.166:8545', // PUBLIC HK inner 10.8.179.26 
-		// '8/http:172.16.1.93:8545', // jp geth
-		// '8/http:172.16.1.119:8545', // jp geth
+		'8/http:172.16.1.93:8545', // jp geth
+		'8/http:172.16.1.119:8545', // jp geth
 		'https://mainnet.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://mainnet.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://mainnet.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
@@ -22,7 +22,8 @@ module.exports = {
 		// 'https://eth-mainnet.alchemyapi.io/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
 	],
 	MATIC: [
-		'10/http://103.210.22.186:8545', // PUBLIC HK inner 10.8.63.231
+		// '10/http://103.210.22.186:8545', // PUBLIC HK inner 10.8.63.231
+		'16/http://172.16.1.154:8545', // jp matic
 		// 'http://172.16.0.173:8545', // public cn
 		// 'https://polygon-mainnet.infura.io/v3/295cce92179b4be498665b1b16dfee34',
 		'https://rpc-mainnet.maticvigil.com/v1/2db5bb18b8b1b3f1b47a080e4c9ce6d2c7a5128c', // louistru@live.com
@@ -37,6 +38,7 @@ module.exports = {
 		'https://rpc-mainnet.maticvigil.com/v1/368d0a19a1108e223d0dca757a342716f403dbb6', // moqi.reg@gmail.com
 	],
 	GOERLI: [
+		'16/http:172.16.1.30:8545', // jp geth
 		'https://goerli.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://goerli.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://goerli.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn

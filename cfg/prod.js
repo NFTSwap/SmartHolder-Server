@@ -5,8 +5,8 @@ var rpc = require('./util/rpc');
 module.exports = {
 	...base,
 	web3s: {
-		GOERLI: rpc.GOERLI,
-		ETHEREUM: rpc.ETHEREUM,
+		GOERLI: rpc.GOERLI.slice(1), // skip local
+		ETHEREUM: rpc.ETHEREUM.slice(1,2), // only use local
 	},
 	root: '/data/apps/smart-dao/smart-dao',
 	publicURL: 'https://dao.smartholder.jp',
