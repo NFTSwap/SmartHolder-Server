@@ -20,4 +20,5 @@ module.exports = {
 		host: '192.168.1.83', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao', // rel inner
 	},
 	fastStart: false,
+	atomicLock: 'http://172.16.3.114:9802', // atomic lock service
 };
