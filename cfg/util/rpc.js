@@ -1,9 +1,10 @@
 
 module.exports = {
 	ETHEREUM: [
-		'16/http://165.154.5.166:8545', // PUBLIC HK inner 10.8.179.26 
+		// '16/http://165.154.5.166:8545', // PUBLIC HK inner 10.8.179.26 
 		//'http://192.168.1.248:8545', // 'http://117.50.6.70:8545', // public cn
 		//'http://172.16.0.194:8545', // 'http://106.75.7.248:8545', // public cn
+		'https://mainnet.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://mainnet.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://mainnet.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
 		'https://mainnet.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
@@ -17,9 +18,8 @@ module.exports = {
 		'https://mainnet.infura.io/v3/81e184a58fd04f8ea6c7d026f26c34d5', // yuyongpeng@hotmail.com
 		'https://mainnet.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
 		'https://mainnet.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
-		'https://mainnet.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
-		'https://eth-mainnet.alchemyapi.io/v2/VuUoO23bTphxU3hI0DuvLtv78G9Dx7z8', // louis.tru@gmail.com
-		'https://eth-mainnet.alchemyapi.io/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
+		// 'https://eth-mainnet.alchemyapi.io/v2/VuUoO23bTphxU3hI0DuvLtv78G9Dx7z8', // louis.tru@gmail.com
+		// 'https://eth-mainnet.alchemyapi.io/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
 	],
 	MATIC: [
 		'10/http://103.210.22.186:8545', // PUBLIC HK inner 10.8.63.231

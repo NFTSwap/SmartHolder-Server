@@ -196,9 +196,9 @@ export class MvpWeb3 extends BcWeb3 {
 				await somes.timeout(this.eth.getBlockNumber(), 1e4); // 10s
 				// await this.hasSupportGetTransactionReceiptsByBlock();
 			} catch(err: any) { // fault
-				if (isRpcLimitRequestAccount(this, err)) { // Restrict access
-					this.swatchRpc();
-				}
+				//if (isRpcLimitRequestAccount(this, err)) { // Restrict access
+				this.swatchRpc();
+				//}
 			}
 		} else { // SINGLE
 			try {

@@ -242,10 +242,10 @@ export class WatchBlock implements WatchCat {
 			}
 		}
 
-		let delay = chain == ChainType.BSN || chain == ChainType.MATIC ? 2: 0;
-		let blockNumberCur = await web3.getBlockNumber() - delay; // 延迟查询块
-
 		try {
+			let delay = chain == ChainType.BSN || chain == ChainType.MATIC ? 2: 0;
+			let blockNumberCur = await web3.getBlockNumber() - delay; // 延迟查询块
+
 			while (++blockNumber <= blockNumberCur) {
 				if (blockNumber % this.workers === this.worker) {
 					await this.solveBlock(blockNumber);
