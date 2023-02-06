@@ -2,8 +2,8 @@
 module.exports = {
 	ETHEREUM: [
 		// '16/http://165.154.5.166:8545', // PUBLIC HK inner 10.8.179.26 
-		//'http://192.168.1.248:8545', // 'http://117.50.6.70:8545', // public cn
-		//'http://172.16.0.194:8545', // 'http://106.75.7.248:8545', // public cn
+		// '8/http:172.16.1.93:8545', // jp geth
+		// '8/http:172.16.1.119:8545', // jp geth
 		'https://mainnet.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://mainnet.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://mainnet.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
