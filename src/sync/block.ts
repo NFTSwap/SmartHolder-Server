@@ -98,7 +98,8 @@ export class WatchBlock implements WatchCat {
 			let address = log.address;
 			if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
-					log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
+					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
+					log.data = 'rpc:fetch';
 				}
 				await db.insert(`transaction_log_${chain}`, {
 					tx_id,
