@@ -43,8 +43,11 @@ export class Member extends ModuleScaner {
 
 				if (await db.selectOne(`member_${chain}`, { token, tokenId })) {
 					if (isRemove) {
-						await storage.set(`member_${chain}_${this.address}_total`, await this.total());
+						let members = await this.total();
+						let host = await this.host();
 						await db.delete(`member_${chain}`, { token, tokenId });
+						await db.update(`dao_${chain}`, { members }, {address: host});
+						await storage.set(`member_${chain}_${this.address}_total`, members);
 					} else {
 						let owner = await this.ownerOf(tokenId);
 						await db.update(`member_${chain}`, { owner: owner }, { token: this.address, tokenId });
@@ -61,8 +64,11 @@ export class Member extends ModuleScaner {
 					if (await methods.isPermissionFrom(tokenId, constants.Action_VotePool_Vote).call())
 						permissions.push(constants.Action_VotePool_Vote);
 
+					let members = await this.total();
+					let host = await this.host();
+
 					await db.insert(`member_${chain}`, {
-						host: await this.host(),
+						host: host,
 						token: this.address,
 						tokenId,
 						owner: owner,
@@ -74,8 +80,8 @@ export class Member extends ModuleScaner {
 						modify: time,
 						permissions,
 					});
-
-					await storage.set(`member_${chain}_${this.address}_total`, await this.total());
+					await db.update(`dao_${chain}`, { members }, {address: host});
+					await storage.set(`member_${chain}_${this.address}_total`, members);
 				}
 			},
 		},

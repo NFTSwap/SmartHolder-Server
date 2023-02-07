@@ -55,7 +55,8 @@ async function load_main_db() {
 				defaultVoteTime     bigint       default (0)    not null,
 				memberBaseName      varchar (32) default ('')   not null,
 				memberTotalLimit    int          default (0)    not null,
-				likes               int          default (0)    not null
+				likes               int          default (0)    not null,
+				members             int          default (0)    not null
 			);
 
 			create table if not exists member_${chain} (
@@ -265,6 +266,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
 			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
+			`alter table dao_${chain}  add members               int          default (0)   not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,

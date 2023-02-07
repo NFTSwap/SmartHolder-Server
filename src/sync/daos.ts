@@ -147,6 +147,8 @@ export class DAOs extends ContractScaner {
 							});
 						}
 					}
+
+					await this.db.update(`dao_${chain}`, {members: total}, { address: host });
 					await storage.set(`member_${chain}_${Member}_total`, total);
 				} // if (Member != addressZero)
 				// ---- handle end ----

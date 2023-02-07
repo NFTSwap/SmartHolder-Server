@@ -4,9 +4,11 @@
  */
 
 import somes from 'somes';
-import db, { DAO, ChainType, Member } from '../db';
+import db, { DAO, ChainType, Member, UserLikeDAO } from '../db';
 import errno from '../errno';
 import * as redis from 'bclib/redis';
+import {escape} from 'somes/db';
+import {getLimit} from './utils';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#dao#getDAO Bad argument. address');
@@ -39,6 +41,73 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 	let total = await redis.get<number>(key);
 	if (total === null) {
 		let DAOs = await getDAOsFromOwner(chain, owner);
+		await redis.set(key, total = DAOs.length, 1e4);
+	}
+	return total;
+}
+
+export interface DAOExtend extends DAO {
+	isMember: boolean;
+	isLike: boolean;
+}
+
+export async function getAllDAOs(chain: ChainType,
+	name?: string, limit?: number | number[], user_id?: number, owner?: string
+) {
+	somes.assert(chain, '#dao#getAllDAOs Bad argument. chain');
+
+	let sql = `select * from dao_${chain}`;
+	if (name)
+		sql += `where name like ${escape(name+'%')} `;
+	if (limit)
+		sql += `limit ${getLimit(limit).join(',')} `;
+
+	let daos = await db.query<DAOExtend>(sql);
+
+	daos.forEach(e=>Object.assign(e, {isJoin:false,isLike:false}));
+
+	if (user_id && daos.length) {
+		let likes = await db.query<UserLikeDAO>(`
+			select * from user_like_dao 
+				where user_id = ${escape(user_id)}
+				and chain = ${escape(chain)}
+				and dao_id in (${daos.map(e=>e.id).join(',')})
+		`);
+		let likeMap: Dict<boolean> = {};
+
+		for (let like of likes) {
+			likeMap[like.dao_id] = like.state == 0;
+		}
+		for (let dao of daos) {
+			dao.isLike = !!likeMap[dao.id];
+		}
+	}
+
+	if (owner && daos.length) {
+		let tokenIDs = daos.map(e=>`'${e.member}'`);
+		let members = await db.query<Member>(`
+			select * from member_${chain} 
+				where owner = ${escape(owner)}
+				and token in (${tokenIDs.join(',')})
+		`);
+		let membersMap: Dict<boolean> = {};
+
+		for (let member of members) {
+			membersMap[member.token] = true;
+		}
+		for (let dao of daos) {
+			dao.isMember = !!membersMap[dao.member];
+		}
+	}
+
+	return daos;
+}
+
+export async function getAllDAOsTotal(chain: ChainType, name?: string) {
+	let key = `getAllDAOsTotal_${chain}_${name}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let DAOs = await getAllDAOs(chain, name);
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;

@@ -33,6 +33,7 @@ export interface DAO {
 	defaultVoteTime: number; // bigint         default (0)    not null,      defaultVoteTime => votePool.lifespan
 	memberBaseName: string; // varchar (32)   default ('')   not null,
 	likes: number;//           int          default (0)    not null
+	members: number;
 }
 
 export interface Member {
