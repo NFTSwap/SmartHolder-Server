@@ -18,4 +18,8 @@ export default class extends ApiController {
 		return dao.getAllDAOsTotal(chain,name);
 	}
 
+	getDAOSummarys({chain,host}: { chain: ChainType, host: string}) {
+		return dao.getDAOSummarys(chain,host);
+	}
+
 }

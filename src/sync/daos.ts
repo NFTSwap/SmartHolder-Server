@@ -50,8 +50,8 @@ export class DAOs extends ContractScaner {
 				// operator     varchar (64)                       not null,
 				// member       varchar (64)                       not null,
 				// ledger       varchar (64)                       not null,
-				// first        varchar (64)                      not null, -- opensea first
-				// second       varchar (64)                      not null, -- opensea second
+				// first        varchar (64)                       not null, -- opensea first
+				// second       varchar (64)                       not null, -- opensea second
 				// asset        varchar (64)                       not null,
 				// time         bigint                             not null,
 				// modify       bigint                             not null,

@@ -156,3 +156,29 @@ export async function getAssetTotalFrom(chain: ChainType, host: string, owner?: 
 	}
 	return total;
 }
+
+export async function getAssetAmountTotal(chain: ChainType, host: string, owner?: string, state = State.Enable, name?: string) {
+	let key = `getAssetAmountTotal_${chain}_${owner}_${state}_${name}`;
+	let total = await redis.get<{assetTotal: number, assetAmountTotal: string}>(key);
+	if (total === null) {
+		let ls = await getAssetFrom(chain, host, owner, state, name, undefined, undefined, undefined, true);
+		let assetTotal = 0;
+		let assetAmountTotal = BigInt(0);
+
+		for (let it of ls) {
+			if (it.owner != '0x0000000000000000000000000000000000000000') {
+				assetTotal++;
+				if (it.selling) {
+					assetAmountTotal += BigInt(it.sellPrice);
+				} else {
+					assetAmountTotal += BigInt(it.minimumPrice || 0);
+				}
+			}
+		}
+
+		await redis.set(key, total = {
+			assetTotal, assetAmountTotal: '0x' + assetAmountTotal.toString(16),
+		}, 1e4);
+	}
+	return total;
+}

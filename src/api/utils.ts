@@ -106,6 +106,18 @@ export default class extends ApiController {
 		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
 	}
 
+	getAssetTotalFrom({chain,host,owner,state,name,time,selling}: { 
+		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
+	}) {
+		return asset.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
+	}
+
+	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
+	}
+
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
@@ -189,18 +201,6 @@ export default class extends ApiController {
 
 	getMembersTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string}) {
 		return member.getMembersTotalFrom(chain,host,owner);
-	}
-
-	getAssetTotalFrom({chain,host,owner,state,name,time,selling}: { 
-		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
-	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
-	}
-
-	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
-		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
-	}) {
-		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
 	}
 
 	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {

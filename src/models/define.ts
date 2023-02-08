@@ -79,6 +79,7 @@ export interface Asset {
 	author: string; // 作者地址
 	selling: Selling; // 销售类型: 0未销售,1销售opensea,2其它平台
 	sellPrice: string; // 销售价格
+	minimumPrice: string; // 最小销售价格
 	state: State; // 状态: 0正常,1删除
 	time: number; // 数据入库时间
 	modify: number; // 修改时间（非链上数据修改）

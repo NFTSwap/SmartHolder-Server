@@ -4,11 +4,15 @@
  */
 
 import somes from 'somes';
-import db, { DAO, ChainType, Member, UserLikeDAO } from '../db';
+import db, { DAO, ChainType, Member, UserLikeDAO,LedgerType } from '../db';
 import errno from '../errno';
 import * as redis from 'bclib/redis';
 import {escape} from 'somes/db';
 import {getLimit} from './utils';
+import { DAOExtend, DAOSummarys } from './define_ext';
+import {getVoteProposalFrom} from './vote_pool';
+import {getAssetAmountTotal,getOrderTotalAmount} from './asset';
+import {getLedgerTotalAmount} from './ledger';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#dao#getDAO Bad argument. address');
@@ -44,11 +48,6 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;
-}
-
-export interface DAOExtend extends DAO {
-	isMember: boolean;
-	isLike: boolean;
 }
 
 export async function getAllDAOs(chain: ChainType,
@@ -111,4 +110,53 @@ export async function getAllDAOsTotal(chain: ChainType, name?: string) {
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;
+}
+
+export async function getDAOSummarys(chain: ChainType, host: string) {
+	let key = `getSummarys${chain}_${host}`;
+	let summarys = await redis.get<DAOSummarys>(key);
+
+	if (summarys === null) {
+		let dao = await getDAONoEmpty(chain, host);
+		let voteProposalTotal = 0;
+		let voteProposalPendingTotal = 0;
+		let voteProposalExecutedTotal = 0;
+		let voteProposalResolveTotal = 0;
+		let voteProposalRejectTotal = 0;
+
+		for (let p of await getVoteProposalFrom(chain, dao.root)) {
+			voteProposalTotal++;
+			if (p.isClose) {
+				if (p.isAgree)
+					voteProposalResolveTotal++;
+				else 
+					voteProposalRejectTotal++;
+				if (p.isExecuted)
+					voteProposalExecutedTotal++;
+			} else {
+				voteProposalPendingTotal++;
+			}
+		}
+
+		let {assetTotal,assetAmountTotal} = await getAssetAmountTotal(chain, host);
+		let {total,amount} = await getOrderTotalAmount(chain, host);
+		let assetLedgerIncomeTotal = await getLedgerTotalAmount(chain, host,LedgerType.AssetIncome);
+
+		summarys = {
+			membersTotal: dao.members,
+			voteProposalTotal,
+			voteProposalPendingTotal,
+			voteProposalExecutedTotal,
+			voteProposalResolveTotal,
+			voteProposalRejectTotal,
+			assetTotal,
+			assetAmountTotal,
+			assetOrderTotal: total,
+			assetOrderAmountTotal: amount,
+			assetLedgerIncomeTotal: assetLedgerIncomeTotal.amount,
+		};
+		await redis.set(key, summarys, 2e4); // 20s
+	}
+
+	return summarys;
 }
