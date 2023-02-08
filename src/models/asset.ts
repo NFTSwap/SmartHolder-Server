@@ -4,18 +4,14 @@
  */
 
 import somes from 'somes';
-import db, {ChainType, Asset, State, AssetOrder,Selling} from '../db';
+import db, {ChainType, Asset, State,Selling} from '../db';
+import {AssetOrderExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
 import * as redis from 'bclib/redis';
 import errno from '../errno';
-
-export interface AssetOrderExt extends AssetOrder {
-	asset_id: number,
-	asset: Asset;
-}
 
 async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
 	if (!asset.name || !asset.uri || !asset.mediaOrigin) {
