@@ -15,7 +15,7 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
 	let sql = `select * from ledger_${chain} where address=${escape(dao.ledger)} and state=${escape(state)} `
 	if (type !== undefined)
-		sql += `type=${escape(type)} `;
+		sql += `and type=${escape(type)} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (limit)

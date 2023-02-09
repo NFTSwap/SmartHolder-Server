@@ -173,7 +173,7 @@ export async function getAssetAmountTotal(chain: ChainType, host: string, owner?
 		}
 
 		await redis.set(key, total = {
-			assetTotal, assetAmountTotal: '0x' + assetAmountTotal.toString(16),
+			assetTotal, assetAmountTotal: assetAmountTotal.toString(),
 		}, 1e4);
 	}
 	return total;
