@@ -1,6 +1,6 @@
 
-import {cfg} from 'bclib/server';
-import server, {ServerIMPL} from 'somes/server';
+import {cfg,Server} from 'bclib/server';
+import server from 'somes/server';
 import * as config from '../config';
 
 if (config.root) {
@@ -8,9 +8,7 @@ if (config.root) {
 	(cfg as any).tryFiles = '/index.html';
 }
 
-export * from 'bclib/server';
-
-var impl = new ServerIMPL(cfg);
+var impl = new Server(cfg);
 
 server.setShared(impl);
 
