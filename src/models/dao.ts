@@ -55,7 +55,7 @@ export async function getAllDAOs(chain: ChainType,
 ) {
 	somes.assert(chain, '#dao#getAllDAOs Bad argument. chain');
 
-	let sql = `select * from dao_${chain}`;
+	let sql = `select * from dao_${chain} `;
 	if (name)
 		sql += `where name like ${escape(name+'%')} `;
 	if (limit)
