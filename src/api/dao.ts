@@ -22,7 +22,7 @@ export default class extends ApiController {
 		return dao.getDAOSummarys(chain,host);
 	}
 
-	getDAOsFromCreatedBy({chain, createdBy}: { chain: ChainType, name?: string, createdBy: string}) {
+	getDAOsFromCreatedBy({chain, createdBy}: { chain: ChainType, name?: string, createdBy/*address string*/: string}) {
 		return dao.getDAOsFromCreatedBy(chain,createdBy);
 	}
 
