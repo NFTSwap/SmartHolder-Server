@@ -35,6 +35,7 @@ export interface DAO {
 	likes: number;//           int          default (0)    not null
 	members: number;
 	createdBy: string;
+	image: string;
 }
 
 export interface Member {

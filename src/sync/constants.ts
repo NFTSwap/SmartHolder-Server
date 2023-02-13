@@ -28,6 +28,7 @@ export const Change_Tag_DAO_Module = 5;
 export const Change_Tag_Asset_set_seller_fee_basis_points = 6;
 export const Change_Tag_Asset_set_fee_recipient = 7;
 export const Change_Tag_Member_Set_Executor = 8;
+export const Change_Tag_DAO_Image = 9;
 
 // Action Permission defines
 export const Action_Member_Create = 0x22a25870; // bytes4(keccak256('create(address,string memory,Info memory,uint256[] memory)'))

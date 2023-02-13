@@ -89,6 +89,13 @@ export class DAOs extends ContractScaner {
 					assetCirculationTax = await (await web3.contract(Second)).methods.seller_fee_basis_points().call();
 				}
 
+				let image = '';
+				try {
+					image = await dao.methods.image().call();
+				} catch(err) {
+					console.warn('#daos#Created', err);
+				}
+
 				await this.db.insert(`dao_${chain}`, {
 					address: host,
 					host,
@@ -110,6 +117,7 @@ export class DAOs extends ContractScaner {
 					defaultVoteTime,  // 默认投票时间
 					memberBaseName, // 成员base名称
 					createdBy: tx.from,
+					image,
 				});
 
 				if (Member != addressZero) {

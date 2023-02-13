@@ -87,6 +87,10 @@ export class DAO extends ModuleScaner {
 				let mission = await methods.mission().call();
 				await this.db.update(`dao_${chain}`, { mission, modify }, { address });
 				break;
+				case constants.Change_Tag_DAO_Image:
+				let image = await methods.image().call();
+				await this.db.update(`dao_${chain}`, { image, modify }, { address });
+				break;
 		}
 	}
 
