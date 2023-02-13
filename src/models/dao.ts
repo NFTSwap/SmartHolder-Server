@@ -160,3 +160,20 @@ export async function getDAOSummarys(chain: ChainType, host: string) {
 
 	return summarys;
 }
+
+export async function getDAOsFromCreatedBy(chain: ChainType, createdBy: string) {
+	somes.assert(chain, '#dao#getDAOsFromCreatedBy Bad argument. chain');
+	somes.assert(createdBy, '#dao#getDAOsFromCreatedBy Bad argument. createdBy');
+	let DAOs = await db.select<DAO>(`dao_${chain}`, {createdBy});
+	return DAOs;
+}
+
+export async function getDAOsTotalFromCreatedBy(chain: ChainType, createdBy: string) {
+	let key = `getDAOsTotalFromCreatedBy_${chain}_${createdBy}`;
+	let total = await redis.get<number>(key);
+	if (total === null) {
+		let DAOs = await getDAOsFromCreatedBy(chain, createdBy);
+		await redis.set(key, total = DAOs.length, 1e4);
+	}
+	return total;
+}

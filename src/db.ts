@@ -56,7 +56,8 @@ async function load_main_db() {
 				memberBaseName      varchar (32) default ('')   not null,
 				memberTotalLimit    int          default (0)    not null,
 				likes               int          default (0)    not null,
-				members             int          default (0)    not null
+				members             int          default (0)    not null,
+				createdBy           varchar (42) default ('')   not null
 			);
 
 			create table if not exists member_${chain} (
@@ -268,6 +269,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
 			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
 			`alter table dao_${chain}  add members               int          default (0)   not null`,
+			`alter table dao_${chain}  add createdBy             varchar (42) default ('')  not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null`, //  -- 名称
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null`, //  -- origin image uri
@@ -296,6 +298,7 @@ async function load_main_db() {
 			`create         index dao_${chain}_idx2              on dao_${chain}                    (asset)`,
 			`create         index dao_${chain}_idx3              on dao_${chain}                    (first)`,
 			`create         index dao_${chain}_idx4              on dao_${chain}                    (second)`,
+			`create         index dao_${chain}_idx5              on dao_${chain}                    (createdBy)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,

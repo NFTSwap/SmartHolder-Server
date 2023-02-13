@@ -34,6 +34,7 @@ export interface DAO {
 	memberBaseName: string; // varchar (32)   default ('')   not null,
 	likes: number;//           int          default (0)    not null
 	members: number;
+	createdBy: string;
 }
 
 export interface Member {

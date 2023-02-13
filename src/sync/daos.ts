@@ -23,7 +23,7 @@ export class DAOs extends ContractScaner {
 		},
 
 		Created: {
-			handle: async ({event,blockTime: time}: HandleEventData)=>{
+			handle: async ({event,blockTime: time, tx}: HandleEventData)=>{
 				let host = event.returnValues.dao as string;
 				let chain = this.chain;
 				let blockNumber = Number(event.blockNumber);
@@ -109,6 +109,7 @@ export class DAOs extends ContractScaner {
 					assetCirculationTax, // 资产流转税,二手交易
 					defaultVoteTime,  // 默认投票时间
 					memberBaseName, // 成员base名称
+					createdBy: tx.from,
 				});
 
 				if (Member != addressZero) {
