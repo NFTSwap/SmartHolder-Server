@@ -22,11 +22,11 @@ export default class extends ApiController {
 		return dao.getDAOSummarys(chain,host);
 	}
 
-	getDAOsFromCreatedBy({chain, owner}: { chain: ChainType, name?: string, owner/*address string*/: string}) {
+	getDAOsFromCreatedBy({chain, owner}: { chain: ChainType, owner/*address string*/: string}) {
 		return dao.getDAOsFromCreatedBy(chain,owner);
 	}
 
-	getDAOsTotalFromCreatedBy({chain, owner}: { chain: ChainType, name?: string, owner: string}) {
+	getDAOsTotalFromCreatedBy({chain, owner}: { chain: ChainType, owner: string}) {
 		return dao.getDAOsTotalFromCreatedBy(chain,owner);
 	}
 
