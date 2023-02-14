@@ -55,12 +55,15 @@ export class Sync {
 
 		await this.assetMetaDataSync.initialize();
 
-		if (env.watch_main) {
-			for (var [k,v] of Object.entries(web3s)) {
-				_sync.watchBlocks[k] = env.workers ?
-					new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
+		for (var [k,v] of Object.entries(web3s)) {
+			_sync.watchBlocks[k] = env.workers ?
+				new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
+			if (env.watch_main)
 				addWatch(_sync.watchBlocks[k]);
-			}
+			await _sync.watchBlocks[k].initialize();
+		}
+
+		if (env.watch_main) {
 			if (isMainWorker) {
 				addWatch(this.qiniuSync);
 				addWatch(this.assetMetaDataUpdate);
@@ -69,12 +72,10 @@ export class Sync {
 		}
 
 		if (env.watch_indexer) {
-
 			for (var [k,v] of Object.entries(web3s)) {
 				let run = env.workers ?
 					new RunIndexer(v.chain, env.workers.id, env.workers.workers): new RunIndexer(v.chain, 0, 1);
 				addWatch(_sync.watchIndexers[k] = run);
-
 				await run.initialize();
 			}
 		}

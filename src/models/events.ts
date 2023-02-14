@@ -5,7 +5,7 @@
 
 import db, {ChainType, Member, State,EventsItem} from '../db';
 import {escape} from 'somes/db';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
 

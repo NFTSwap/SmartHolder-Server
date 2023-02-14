@@ -13,9 +13,8 @@ import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import * as contract from '../models/contract';
 import * as env from '../env';
 import mk_scaner from './mk_scaner';
-import {WatchBlock} from './block';
-import * as redis from 'bclib/redis';
-import * as request from '../request';
+import index from './index';
+import redis from 'bclib/redis';
 import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 
@@ -88,7 +87,7 @@ export class Indexer implements WatchCat {
 		let tx: Transaction | null = null;
 		let getTx = async (hash: string)=>{
 			if (!tx)
-				tx = await db.selectOne<Transaction>(`transaction_${this.chain}`, { transactionHash: hash });
+				tx = await index.watchBlocks[this.chain].getTransaction(hash);
 			return tx!;
 		}
 
@@ -148,21 +147,11 @@ export class Indexer implements WatchCat {
 
 	async cat() {
 		let blockNumber = this.data.watchHeight;
-		let curBlockNumber = await WatchBlock.getValidBlockSyncHeight(this.chain);
+		let watchBlock = index.watchBlocks[this.chain];
+		let curBlockNumber = await watchBlock.getValidBlockSyncHeight();
 
 		while (blockNumber++ < curBlockNumber) {
-			let logsAll = [] as {info: ContractInfo, logs: TransactionLog[]}[];
-
-			for (let i = 0; i < this._dsList.length; i++) {
-				let ds = this._dsList[i];
-				if (ds.state == 0) {
-					let logs = await db.select<TransactionLog>(
-					`transaction_log_${this.chain}`, {address: ds.address, blockNumber}, {order: 'logIndex'});
-					if (logs.length) {
-						logsAll.push({info: ds, logs});
-					}
-				}
-			}
+			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber, this._dsList);
 
 			await db.transaction(async (db)=>{
 				for (let logs of logsAll) {

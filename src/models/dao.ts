@@ -6,7 +6,7 @@
 import somes from 'somes';
 import db, { DAO, ChainType, Member, UserLikeDAO,LedgerType } from '../db';
 import errno from '../errno';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 import {escape} from 'somes/db';
 import {getLimit} from './utils';
 import { DAOExtend, DAOSummarys } from './define_ext';

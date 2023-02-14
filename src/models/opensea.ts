@@ -20,7 +20,7 @@ import errno from '../errno';
 import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
 import {DatabaseCRUD} from 'somes/db';
 

@@ -4,7 +4,7 @@
  */
 
 import db, { ContractInfo, ChainType } from '../db';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 
 export let isEnableCache = true;
 

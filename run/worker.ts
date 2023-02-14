@@ -22,7 +22,7 @@ export default async function runWorker() {
 	await (await import('bclib/init')).initialize(db.main_db, db.local_db); console.timeLog('bclib init');
 	await (await import('../src/db')).initialize(); console.timeLog('SmartHolder-Server db');
 	await (await import('../src/keys')).default.initialize(); console.timeLog('keys');
-	await (await import('bclib/redis')).initialize(true); console.timeLog('redis');
+	await (await import('bclib/redis')).default.initialize(false); console.timeLog('redis');
 	if (!env.disableWeb) {
 		await (await import('../src/server')).default.start(); console.timeLog('server');
 	}

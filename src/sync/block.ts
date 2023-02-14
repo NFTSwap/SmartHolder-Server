@@ -5,29 +5,51 @@
 
 import '../uncaught';
 import somes from 'somes';
-import buffer from 'somes/buffer';
 import {WatchCat} from 'bclib/watch';
-import db, { storage, ChainType, Transaction as ITransaction } from '../db';
+import db_, { storage as storage_, ChainType,
+	Transaction as ITransaction, ContractInfo,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
 import {Transaction, TransactionReceipt} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import * as contract from '../models/contract';
 import {postWatchBlock} from '../message';
-import * as redis from 'bclib/redis';
-import * as utils from '../utils';
+import redis_, {Redis} from 'bclib/redis';
 import pool from 'somes/mysql/pool';
+import * as cfg from '../../config';
+import {MysqlTools} from 'somes/mysql';
+import {Storage} from 'bclib/storage';
+import * as env from '../env';
 
 export class WatchBlock implements WatchCat {
 	readonly web3: MvpWeb3;
-	readonly workers: number;// = 1;
-	readonly worker: number;// = 0;
+	readonly db: typeof db_;
+	readonly redis: Redis;
+	readonly storage: Storage;
+
+	private readonly workers: number;// = 1;
+	private readonly worker: number;// = 0;
+
+	private _watchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
 
 	constructor(web3: MvpWeb3, worker = 0, workers = 1) {
 		this.web3 = web3;
 		this.worker = worker;
 		this.workers = workers;
+
 		pool.MAX_CONNECT_COUNT = 10; // max 50
+
+		let cfg_ = cfg.watchBlock;
+		this.db = cfg_.mysql.host ? new MysqlTools(cfg_.mysql): db_;
+		this.redis = cfg_.redis ? new Redis(cfg_.redis): redis_;
+		this.storage = this.db === db_ ? storage_: new Storage();
+	}
+
+	async initialize() {
+		if (redis_ !== this.redis)
+			await this.redis.initialize();
+		if (storage_ !== this.storage)
+			this.storage.initialize(this.db);
 	}
 
 	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
@@ -60,9 +82,9 @@ export class WatchBlock implements WatchCat {
 		let tx = await getTx();
 		let transactionHash = receipt.transactionHash;
 		let tx_id = 0;
-		let tx_ = (await db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
+		let tx_ = (await this.db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
 		if ( !tx_ ) {
-			tx_id = await db.insert(`transaction_${chain}`, {
+			tx_id = await this.db.insert(`transaction_${chain}`, {
 				nonce: tx.nonce,
 				blockNumber: receipt.blockNumber,
 				fromAddress: receipt.from,
@@ -96,12 +118,12 @@ export class WatchBlock implements WatchCat {
 		let logIndex = 0;
 		for (let log of receipt.logs) { // event logs
 			let address = log.address;
-			if ( !await db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
+			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
 					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
 					log.data = 'rpc:fetch';
 				}
-				await db.insert(`transaction_log_${chain}`, {
+				await this.db.insert(`transaction_log_${chain}`, {
 					tx_id,
 					address,
 					topic0: log.topics[0] || '',
@@ -169,18 +191,18 @@ export class WatchBlock implements WatchCat {
 		}
 	}
 
-	static async getBlockSyncHeight(chain: ChainType, worker = 0) {
-		let key = `Block_Sync_Height_${ChainType[chain]}`;
-		let num = await redis.client.hGet(key, `worker_${worker}`);
+	async getBlockSyncHeight(worker = 0) {
+		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		let num = await this.redis.client.hGet(key, `worker_${worker}`);
 		if (!num)
-			num = await storage.get(`${key}_${worker}`);
+			num = await this.storage.get(`${key}_${worker}`);
 		return (num || 0) as number;
 	}
 
-	static async getValidBlockSyncHeight(chain: ChainType) {
-		let workers = await this.getWatchBlockWorkers(chain);
-		let key = `Block_Sync_Height_${ChainType[chain]}`;
-		let heightAll = await redis.client.hGetAll(key);
+	async getValidBlockSyncHeight() {
+		let workers = await this.getWatchBlockWorkers();
+		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		let heightAll = await this.redis.client.hGetAll(key);
 
 		let [height, ...heights] = Array.from({length:workers})
 				.map((_,i)=>(Number(heightAll[`worker_${i}`]) || 0))
@@ -194,17 +216,39 @@ export class WatchBlock implements WatchCat {
 		return height;
 	}
 
-	private static _WatchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
+	async getTransactionLogsFrom(blockNumber: number, list: ContractInfo[]) {
+		let chain = this.web3.chain;
+		let logsAll = [] as {info: ContractInfo, logs: TransactionLog[]}[];
 
-	private static async getWatchBlockWorkers(chain: ChainType) {
+		for (let i = 0; i < list.length; i++) {
+			let ds = list[i];
+			if (ds.state == 0) {
+				let logs = await this.db.select<TransactionLog>(
+				`transaction_log_${chain}`, {address: ds.address, blockNumber}, {order: 'logIndex'});
+				if (logs.length) {
+					logsAll.push({info: ds, logs});
+				}
+			}
+		}
+		return logsAll;
+	}
+
+	async getTransaction(txHash: string) {
+		let tx = await this.db.selectOne<ITransaction>(
+			`transaction_${this.web3.chain}`, { transactionHash: txHash });
+		return tx;
+	}
+
+	private async getWatchBlockWorkers() {
+		let chain: ChainType = this.web3.chain;
 		let key = `Block_Sync_Workers_${ChainType[chain]}`;
-		let cache = this._WatchBlockWorkersCaches[chain] || {value:0,timeout: 0};
+		let cache = this._watchBlockWorkersCaches[chain] || {value:0,timeout: 0};
 
 		if (cache.timeout < Date.now()) {
-			let workers = (await redis.get<number>(key))!;
+			let workers = (await this.redis.get<number>(key))!;
 			if (!workers)
-				workers = await storage.get(key) || 1;
-			this._WatchBlockWorkersCaches[chain] = {
+				workers = await this.storage.get(key) || 1;
+			this._watchBlockWorkersCaches[chain] = {
 				value: workers, timeout: Date.now() + 1e4, // 10 second
 			};
 			return workers;
@@ -215,17 +259,20 @@ export class WatchBlock implements WatchCat {
 
 	private async saveBlockSyncHeight(blockNumber: number, worker = 0) {
 		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
-		await storage.set(`${key}_${worker}`, blockNumber);
-		await redis.client.hSet(key, `worker_${worker}`, blockNumber);
+		await this.storage.set(`${key}_${worker}`, blockNumber);
+		await this.redis.client.hSet(key, `worker_${worker}`, blockNumber);
 	}
-	
+
 	private async saveBlockSyncWorkers() {
 		let key = `Block_Sync_Workers_${ChainType[this.web3.chain]}`;
-		await storage.set(key, this.workers);
-		await redis.set(key, this.workers);
+		await this.storage.set(key, this.workers);
+		await this.redis.set(key, this.workers);
 	}
 
 	async cat() {
+		if (!env.watch_main)
+			return true;
+
 		// await this._Test();
 		await this.saveBlockSyncWorkers();
 
@@ -233,10 +280,10 @@ export class WatchBlock implements WatchCat {
 		let chain = web3.chain;
 		let key = (worker: number)=> `Block_Sync_Height_${ChainType[chain]}_${worker}`;
 
-		let blockNumber = await storage.get<number>(key(this.worker)) || 0;
+		let blockNumber = await this.storage.get<number>(key(this.worker)) || 0;
 		if (!blockNumber) {
 			for (let i = 0; i < this.workers; i++) {
-				let num = await storage.get<number>(key(i));
+				let num = await this.storage.get<number>(key(i));
 				if (num) {
 					blockNumber = blockNumber ? Math.min(blockNumber, num): num;
 				}

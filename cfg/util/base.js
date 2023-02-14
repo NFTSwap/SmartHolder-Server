@@ -55,4 +55,8 @@ module.exports = {
 	logs: { event: 1, sync: 1, block_no_resolve: 1, rpc: 0 }, // 日志输出开关
 	redis: 'redis://127.0.0.1:6379/1', // redis cfg
 	atomicLock: 'http://127.0.0.1:9802', // atomic lock service
+	watchBlock: {
+		mysql: { host: '', port: 0, user: '', password: '', database: '' },
+		redis: '', // redis cfg
+	},
 };

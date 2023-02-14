@@ -19,7 +19,7 @@ export const storage = new Storage();
 
 // "animation_url": "https://storage.opensea.io/files/059b00a2e3443f5579742e8ae5392b9d.mp4"
 
-export const main_db: DatabaseTools = cfg.mysql ? new MysqlTools(cfg.mysql as any): new sqlite.SQLiteTools(`${paths.var}/shs.db`);
+export const main_db: DatabaseTools = cfg.mysql ? new MysqlTools(cfg.mysql): new sqlite.SQLiteTools(`${paths.var}/shs.db`);
 export const local_db: DatabaseTools = new sqlite.SQLiteTools(`${paths.var}/mvp-ser-local.db`); // local db
 
 if (pool) {

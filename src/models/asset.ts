@@ -10,7 +10,7 @@ import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 import errno from '../errno';
 
 async function tryBeautifulAsset(asset: Asset, chain: ChainType) {
