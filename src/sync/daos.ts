@@ -88,6 +88,9 @@ export class DAOs extends ContractScaner {
 				if (Second != addressZero) {
 					assetCirculationTax = await (await web3.contract(Second)).methods.seller_fee_basis_points().call();
 				}
+				if (Root != addressZero) {
+					defaultVoteTime = Number(await (await web3.contract(Root)).methods.lifespan().call());
+				}
 
 				let image = '';
 				try {
