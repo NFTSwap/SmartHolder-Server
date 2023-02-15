@@ -8,6 +8,8 @@ import { TokenURIInfo } from './define';
 import {storage} from '../utils';
 
 export function getLimit(limit?: number|number[]) {
+	// if (!limit)
+	// 	return undefined;
 	limit = limit ? limit: [0, 100];
 	if (!Array.isArray(limit))
 		limit = [0,limit];

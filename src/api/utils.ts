@@ -94,11 +94,11 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetOrderFrom() 通过dao地址与fromAddres地址获订单列表
 	 * */ 
-	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit}: {
+	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit,orderBy}: {
 		chain: ChainType, host: string, fromAddres?: string,
-		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[]
+		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,limit);
+		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,orderBy,limit);
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
@@ -123,10 +123,10 @@ export default class extends ApiController {
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,type,time,state,limit}: {
-		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[]
+	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[], orderBy?: string
 	}) {
-		return ledger.getLedgerItemsFromHost(chain,host,type,time,state,limit);
+		return ledger.getLedgerItemsFromHost(chain,host,type,time,state,orderBy,limit);
 	}
 
 	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
@@ -147,15 +147,17 @@ export default class extends ApiController {
 	/**
 	 * @method getVoteProposalFrom() 通过投票合约地址 address、proposal_id（可选） 获投票提案列表
 	 * */ 
-	getVoteProposalFrom({chain,address,proposal_id,limit}: { chain: ChainType, address: string, proposal_id?: string, limit?: number | number[]}) {
-		return vp.getVoteProposalFrom(chain,address,proposal_id,limit);
+	getVoteProposalFrom({chain,address,proposal_id,limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id?: string, limit?: number | number[], orderBy?: string}) {
+		return vp.getVoteProposalFrom(chain,address,proposal_id,orderBy, limit);
 	}
 
 	/**
 	 * @method getVotesFrom() 通过投票合约地址 address、proposal_id、成员id（可选） 获投票信息
 	 * */ 
-	getVotesFrom({chain,address,proposal_id,member_id,limit}: { chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[]}) {
-		return vp.getVotesFrom(chain,address,proposal_id,member_id,limit);
+	getVotesFrom({chain,address,proposal_id,member_id,limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[], orderBy?: string}) {
+		return vp.getVotesFrom(chain,address,proposal_id,member_id,orderBy,limit);
 	}
 
 	/**

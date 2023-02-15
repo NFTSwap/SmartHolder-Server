@@ -95,7 +95,7 @@ export function setAssetState(chain: ChainType, token: string, tokenId: string, 
 // 作品名称,开始时间/结束时间,作品所属,购买用户
 export async function getAssetOrderFrom(
 	chain: ChainType, host: string, fromAddres?: string, toAddress?: string, tokenId?: string,
-	name?: string, time?: [number,number], limit?: number | number[]
+	name?: string, time?: [number,number], order?: string, limit?: number | number[]
 ) {
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
 	let sql = `
@@ -115,6 +115,8 @@ export async function getAssetOrderFrom(
 		sql += `and a.name like ${escape(name+'%')} `;
 	if (time)
 		sql += `and ao.time>=${escape(time[0])} and ao.time<=${escape(time[1])} `;
+	if (order)
+		sql += `order by ${order} `;
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 

@@ -51,13 +51,15 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 }
 
 export async function getAllDAOs(chain: ChainType,
-	name?: string, limit?: number | number[], user_id?: number, owner?: string
+	name?: string, user_id?: number, owner?: string, order?: string, limit?: number | number[]
 ) {
 	somes.assert(chain, '#dao#getAllDAOs Bad argument. chain');
 
 	let sql = `select * from dao_${chain} `;
 	if (name)
 		sql += `where name like ${escape(name+'%')} `;
+	if (order)
+		sql += `order by ${order} `;
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 

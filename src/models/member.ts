@@ -11,7 +11,7 @@ import {escape} from 'somes/db';
 
 export async function getMembersFrom(
 	chain: ChainType, host: string,
-	owner?: string, time?: number | number[], orderBy?: string, limit?: number | number[]
+	owner?: string, time?: number | number[], order?: string, limit?: number | number[]
 ) {
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
 	let sql = `select * from member_${chain} where token=${escape(dao.member)} `;
@@ -24,8 +24,8 @@ export async function getMembersFrom(
 		if(e)
 			sql += `and time<=${escape(e)} `;
 	}
-	if (orderBy)
-		sql += `order by ${orderBy} `;
+	if (order)
+		sql += `order by ${order} `;
 	// order by time desc
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
