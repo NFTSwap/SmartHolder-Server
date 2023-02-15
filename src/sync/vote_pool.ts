@@ -112,30 +112,6 @@ export class VotePool extends ContractScaner {
 	}
 
 	async getProposal(id: string): Promise<VoteProposal> {
-		// id           int primary key auto_increment,
-		// token        varchar (64)               not null, -- address
-		// tokenId      varchar (72)               not null, -- id
-		// uri          varchar (512)              not null, -- tokenURI
-		// owner        varchar (64)  default ('') not null, -- 持有人
-		// author       varchar (64)  default ('') not null, -- 作者地址
-		// selling      int           default (0)  not null, -- 销售类型: 0未销售,1其它平台,2销售opensea
-		// sellPrice    varchar (72)  default ('') not null, -- 销售价格
-		// state        int           default (0)  not null, -- 状态: 0正常,1删除
-		// time         bigint                     not null, -- 数据入库时间
-		// modify       bigint                     not null, -- 修改时间（非链上数据修改）
-		// name                   varchar (256)  default ('') not null,  -- 名称
-		// imageOrigin            varchar (512)  default ('') not null,  -- origin image uri
-		// mediaOrigin            varchar (512)  default ('') not null,  -- origin media uri
-		// description            varchar (2048) default ('') not null,  -- 详细信息
-		// externalLink           varchar (512)  default ('') not null,  -- 外部链接
-		// properties             json                            null,  -- 附加信息
-		// blockNumber            int            default (0)  not null,  -- 创建区块号
-		// created_member_id      varchar (72)   default ('') not null,  -- 创建人成员id
-		// backgroundColor        varchar (32)   default ('') not null,  -- 背景
-		// categorie              int            default (0)  not null,  -- 类别
-		// retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
-		// retryTime              bigint         default (0)  not null   -- 抓取数据最后重试时间
-
 		// struct Proposal {
 		// 	uint256   id; // 随机256位长度id
 		// 	string    name; // 名称

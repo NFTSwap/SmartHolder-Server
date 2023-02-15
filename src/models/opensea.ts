@@ -382,15 +382,29 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 }
 
-export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '', db_?: DatabaseCRUD) {
+export async function maskOrderSelling(
+	chain: ChainType, token: string, tokenId: string,
+	selling: Selling, sellPrice = '', sold = false, db_?: DatabaseCRUD
+) {
 	let id = formatHex(tokenId, 32);
-	let num = await (db_||db).update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: id });
-	// somes.assert(num == 1);
+	let data: Dict = {selling};
+	if (selling !== Selling.UnsellOrUnknown) {
+		data.sellingTime = Date.now();
+		if (sellPrice)
+			data.sellPrice = sellPrice;
+	}
+	else if (selling === Selling.UnsellOrUnknown && sold)
+		data.soldTime = Date.now();
+	await (db_||db).update(`asset_${chain}`, data, { token, tokenId: id });
 	// console.log('maskOrderSelling', num, token, id);
 }
 
 export async function maskOrderClose(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', db_);
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', false, db_);
+}
+
+export async function maskOrderSold(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', true, db_);
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {

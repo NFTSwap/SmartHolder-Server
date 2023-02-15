@@ -85,7 +85,7 @@ async function load_main_db() {
 				author       varchar (64)  default ('') not null, -- 作者地址
 				selling      int           default (0)  not null, -- 销售类型: 0未销售,1其它平台,2销售opensea
 				sellPrice    varchar (72)  default ('') not null, -- 销售价格
-				minimumPrice varchar (66)  default ('') not null, -- 最小销售价格
+				minimumPrice varchar (72)  default ('') not null, -- 最小销售价格
 				state        int           default (0)  not null, -- 状态: 0正常,1删除
 				time         bigint                     not null, -- 数据入库时间
 				modify       bigint                     not null, -- 修改时间（非链上数据修改）
@@ -96,11 +96,12 @@ async function load_main_db() {
 				externalLink           varchar (512)  default ('') not null,  -- 外部链接
 				properties             json                            null,  -- 附加信息
 				blockNumber            int            default (0)  not null,  -- 创建区块号
-				created_member_id      varchar (72)   default ('') not null,  -- 创建人成员id
 				backgroundColor        varchar (32)   default ('') not null,  -- 背景
 				categorie              int            default (0)  not null,  -- 类别
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
-				retryTime              bigint         default (0)  not null   -- 抓取数据最后重试时间
+				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
+				sellingTime            bigint         default (0)  not null,  -- 最后上架销售时间
+				soldTime               bigint         default (0)  not null   -- 最后售出时间
 			);
 
 			create table if not exists asset_json_${chain} (
@@ -280,12 +281,13 @@ async function load_main_db() {
 			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null`, //  -- 外部链接
 			`alter table asset_${chain} add properties           json                            null`, //  -- 附加信息
 			`alter table asset_${chain} add blockNumber          int            default (0)  not null`, //  -- 创建区块号
-			`alter table asset_${chain} add created_member_id    varchar (72)   default ('') not null`, //  -- 创建人成员id
 			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null`, //  -- 背景
 			`alter table asset_${chain} add categorie            int            default (0)  not null`, //  -- 类别
 			`alter table asset_${chain} add retry                int            default (0)  not null`, //  -- 抓取数据重试次数, sync uri data retry count
 			`alter table asset_${chain} add retryTime            bigint         default (0)  not null`, //  -- 抓取数据最后重试时间
-			`alter table asset_${chain} add minimumPrice         varchar (66)   default ('') not null`, //  -- 最小销售价格
+			`alter table asset_${chain} add minimumPrice         varchar (72)   default ('') not null`, //  -- 最小销售价格
+			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
+			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,

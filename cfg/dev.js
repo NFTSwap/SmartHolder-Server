@@ -7,7 +7,6 @@ module.exports = {
 	web3s: {
 		HCETH: rpc.HCETH,
 	},
-	tx_api: 'http://127.0.0.1:8002/service-api',
 	// Map port to local （映射端口到本地）
 	// ssh -f -N -g -R 8002:0.0.0.0:8002 root@dttyd.stars-mine.com
 	publicURL: 'https://smart-dao-dev.stars-mine.com',

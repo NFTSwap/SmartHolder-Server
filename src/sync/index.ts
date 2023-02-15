@@ -7,6 +7,7 @@ import somes from 'somes';
 import '../uncaught';
 import errno from '../errno';
 import * as env from '../env';
+import * as cfg from '../../config';
 import {WatchCat} from 'bclib/watch';
 import { ChainType } from '../db';
 import {web3s} from '../web3+';
@@ -56,8 +57,10 @@ export class Sync {
 		await this.assetMetaDataSync.initialize();
 
 		for (var [k,v] of Object.entries(web3s)) {
+			let useRpc = cfg.useRpc && !env.watch_main;
 			_sync.watchBlocks[k] = env.workers ?
-				new WatchBlock(v, env.workers.id, env.workers.workers): new WatchBlock(v, 0, 1);
+				new WatchBlock(v, env.workers.id, env.workers.workers, useRpc):
+				new WatchBlock(v, 0, 1, useRpc);
 			if (env.watch_main)
 				addWatch(_sync.watchBlocks[k]);
 			await _sync.watchBlocks[k].initialize();

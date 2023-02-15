@@ -59,4 +59,5 @@ module.exports = {
 		mysql: { host: '', port: 0, user: '', password: '', database: '' },
 		redis: '', // redis cfg
 	},
+	useRpc: false,
 };

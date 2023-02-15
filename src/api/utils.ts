@@ -67,19 +67,21 @@ export default class extends ApiController {
 	 * @method getMembersFrom() 通过dao地址与owner获取dao成员列表
 	 * @param host string dao 地址
 	 * */ 
-	async getMembersFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
-		let ms = await member.getMembersFrom(chain,host,owner,limit);
+	async getMembersFrom({chain,host,owner,time,orderBy,limit}: { 
+		chain: ChainType, host: string, owner?: string, time?: number |number[], orderBy?: string, limit?: number | number[]
+	}) {
+		let ms = await member.getMembersFrom(chain,host,owner,time,orderBy,limit);
 		return ms.map(e=>((e as any).avatar=e.image,e)); // Compatible with older versions
 	}
 
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,state,name,time,selling,limit}: {
-		chain: ChainType, host: string, owner?: string, state?: State,
-		name?: string, time?: [number,number], selling?: Selling, limit?: number | number[]
+	getAssetFrom({chain,host,owner,author,state,name,time,selling,orderBy,limit}: {
+		chain: ChainType, host: string, owner?: string, author?: string, state?: State,
+		name?: string, time?: [number,number], selling?: Selling, orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom(chain,host,owner,state,name,time,selling,limit);
+		return asset.getAssetFrom(chain,host,owner,author,state,name,time,selling,orderBy,limit);
 	}
 
 	/**
@@ -106,10 +108,10 @@ export default class extends ApiController {
 		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
 	}
 
-	getAssetTotalFrom({chain,host,owner,state,name,time,selling}: { 
-		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling}: { 
+		chain: ChainType, host: string, owner?: string, author?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
 	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
+		return asset.getAssetTotalFrom(chain,host,owner,author,state,name,time,selling);
 	}
 
 	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
@@ -199,8 +201,8 @@ export default class extends ApiController {
 		return dao.getDAOsTotalFromOwner(chain,owner);
 	}
 
-	getMembersTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string}) {
-		return member.getMembersTotalFrom(chain,host,owner);
+	getMembersTotalFrom({chain,host,owner,time}: { chain: ChainType, host: string, owner?: string, time?:number| number[]}) {
+		return member.getMembersTotalFrom(chain,host,owner,time);
 	}
 
 	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {

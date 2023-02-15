@@ -98,7 +98,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 			if (!asset.minimumPrice && this.type == ContractType.AssetShell) {
 				let m = await this.methods();
 				let v = await m.minimumPrice(tokenId).call();
-				data.minimumPrice = formatHex(v);
+				data.minimumPrice = BigInt(v) + '';//formatHex(v);
 			}
 
 			await db.update(`asset_${this.chain}`, data, { id: asset.id });

@@ -7,17 +7,36 @@ import db, {ChainType, Member} from '../db';
 import redis from 'bclib/redis';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
+import {escape} from 'somes/db';
 
-export async function getMembersFrom(chain: ChainType, host: string, owner?: string, limit?: number | number[]) {
+export async function getMembersFrom(
+	chain: ChainType, host: string, 
+	owner?: string, time?: number | number[], orderBy?: string, limit?: number | number[]
+) {
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
-	return await db.select<Member>(`member_${chain}`, {token: dao.member, owner}, {limit: getLimit(limit)});
+	let sql = `select * from member_${chain} where token=${escape(dao.member)} order by time desc`;
+
+	if (owner)
+		sql += `and owner=${escape(owner)} `;
+	if (time) {
+		let [s,e] = Array.isArray(time) ? time: [time];
+		sql += `and time>=${escape(s)} `;
+		if(e)
+			sql += `and time<=${escape(e)} `;
+	}
+	if (orderBy)
+		sql += `order by ${orderBy} `;
+	if (limit)
+		sql += `limit ${getLimit(limit).join(',')} `;
+
+	return await db.query<Member>(sql);
 }
 
-export async function getMembersTotalFrom(chain: ChainType, host: string, owner?: string) {
-	let key = `getMembersTotalFrom_${chain}_${owner}`;
+export async function getMembersTotalFrom(chain: ChainType, host: string, owner?: string, time?: number | number[]) {
+	let key = `getMembersTotalFrom_${chain}_${owner}_${time}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getMembersFrom(chain, host);
+		let ls = await getMembersFrom(chain, host, owner, time);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;

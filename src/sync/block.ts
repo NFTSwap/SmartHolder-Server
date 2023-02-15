@@ -16,26 +16,38 @@ import * as contract from '../models/contract';
 import {postWatchBlock} from '../message';
 import redis_, {Redis} from 'bclib/redis';
 import pool from 'somes/mysql/pool';
+import {Charsets} from 'somes/mysql/constants';
 import * as cfg from '../../config';
 import {MysqlTools} from 'somes/mysql';
 import {Storage} from 'bclib/storage';
 import * as env from '../env';
+import api from '../request';
+
+export async function testDB() {
+	await somes.sleep(1e3);
+	pool.CHAREST_NUMBER = Charsets.UTF8MB4_UNICODE_CI;
+	let cfg_ = cfg.watchBlock;
+	let db = new MysqlTools(cfg_.mysql);
+	await db.load('', [], []);
+}
 
 export class WatchBlock implements WatchCat {
 	readonly web3: MvpWeb3;
 	readonly db: typeof db_;
 	readonly redis: Redis;
 	readonly storage: Storage;
+	readonly useRpc: boolean;
 
 	private readonly workers: number;// = 1;
 	private readonly worker: number;// = 0;
 
 	private _watchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
 
-	constructor(web3: MvpWeb3, worker = 0, workers = 1) {
+	constructor(web3: MvpWeb3, worker = 0, workers = 1, useRpc = false) {
 		this.web3 = web3;
 		this.worker = worker;
 		this.workers = workers;
+		this.useRpc = useRpc;
 
 		pool.MAX_CONNECT_COUNT = 10; // max 50
 
@@ -46,8 +58,15 @@ export class WatchBlock implements WatchCat {
 	}
 
 	async initialize() {
+		if (this.db !== db_)
+			await this.db.load('', [], []);
 		if (redis_ !== this.redis)
 			await this.redis.initialize();
+		else {
+			if (this.db !== db_)
+				// reset Block_Sync_Height data for redis
+				this.redis.del(`Block_Sync_Height_${ChainType[this.web3.chain]}`);
+		}
 		if (storage_ !== this.storage)
 			this.storage.initialize(this.db);
 	}
@@ -192,6 +211,9 @@ export class WatchBlock implements WatchCat {
 	}
 
 	async getBlockSyncHeight(worker = 0) {
+		if (this.useRpc)
+			return (await api.get('chain/getBlockSyncHeight', {chain: this.web3.chain,worker})).data;
+
 		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
 		let num = await this.redis.client.hGet(key, `worker_${worker}`);
 		if (!num)
@@ -200,9 +222,25 @@ export class WatchBlock implements WatchCat {
 	}
 
 	async getValidBlockSyncHeight() {
+		if (this.useRpc) {
+			let data = await api.get<number>('chain/getValidBlockSyncHeight', {chain: this.web3.chain});
+			return data.data;
+		}
+
 		let workers = await this.getWatchBlockWorkers();
 		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
 		let heightAll = await this.redis.client.hGetAll(key);
+
+		if (!heightAll || !Array.from({length:workers}).every((_,j)=>heightAll[`worker_${j}`])) {
+			// read block height for mysql db
+			heightAll = {};
+			let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+			let ls = await this.db.query<{kkey:string, value: any}>(
+				`select * from storage where kkey like '${key}'`);
+			for (let it of ls) {
+				heightAll['worker' + it.kkey.substring(key.length)] = it.value;
+			}
+		}
 
 		let [height, ...heights] = Array.from({length:workers})
 				.map((_,i)=>(Number(heightAll[`worker_${i}`]) || 0))
@@ -216,12 +254,20 @@ export class WatchBlock implements WatchCat {
 		return height;
 	}
 
-	async getTransactionLogsFrom(blockNumber: number, list: ContractInfo[]) {
+	async getTransactionLogsFrom<T extends {state: number,address: string}>(blockNumber: number, info: T[]) {
 		let chain = this.web3.chain;
-		let logsAll = [] as {info: ContractInfo, logs: TransactionLog[]}[];
+		let logsAll = [] as {info: T, logs: TransactionLog[]}[];
+		if (this.useRpc) {
+			let r = await api.post<typeof logsAll>('chain/getTransactionLogsFrom', {
+				chain: this.web3.chain, blockNumber, info: info.map(e=>({state: e.state,address:e.address}))
+			});
+			let data = r.data;
+			logsAll.forEach((e,j)=>{ e.info = info[j] });
+			return data;
+		}
 
-		for (let i = 0; i < list.length; i++) {
-			let ds = list[i];
+		for (let i = 0; i < info.length; i++) {
+			let ds = info[i];
 			if (ds.state == 0) {
 				let logs = await this.db.select<TransactionLog>(
 				`transaction_log_${chain}`, {address: ds.address, blockNumber}, {order: 'logIndex'});
@@ -234,6 +280,12 @@ export class WatchBlock implements WatchCat {
 	}
 
 	async getTransaction(txHash: string) {
+		if (this.useRpc) {
+			return (await api.get<ITransaction>('chain/getTransactionLogsFrom', {
+				chain: this.web3.chain, txHash
+			})).data;
+		}
+
 		let tx = await this.db.selectOne<ITransaction>(
 			`transaction_${this.web3.chain}`, { transactionHash: txHash });
 		return tx;

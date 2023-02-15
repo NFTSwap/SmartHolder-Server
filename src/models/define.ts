@@ -92,7 +92,6 @@ export interface Asset {
 	externalLink: string;//           varchar (512)  default ('') not null,  -- 外部链接
 	properties: any | null;//         json                            null,  -- 附加信息
 	blockNumber: number;//            int            default (0)  not null,  -- 创建区块号
-	created_member_id: string;//      varchar (72)   default ('') not null,  -- 创建人成员id
 	backgroundColor: string;//        varchar (32)   default ('') not null,  -- 背景
 	categorie: number;//              int            default (0)  not null,  -- 类别
 	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
@@ -170,9 +169,9 @@ export interface VoteProposal {
 	address: string;//      varchar (64)                 not null, -- 投票池合约地址
 	proposal_id: string;//  varchar (72)                 not null, -- 提案id
 	name: string;//         varchar (64)                 not null, -- 提案名称
-	description: string;//     varchar (1024)               not null, -- 提案描述
-	origin: string;//       varchar (64)                 not null, -- 发起人
-	originId: string;//       varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
+	description: string;//  varchar (1024)               not null, -- 提案描述
+	origin: string;//       varchar (64)                 not null, -- 发起人 address
+	originId: string;//     varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
 	target: string[];//     josn                             null, -- 执行目标合约地址
 	data: string[];//       text                             null, -- 执行参数数据
 	lifespan: number;//     bigint                       not null, -- 投票生命周期（minutes）

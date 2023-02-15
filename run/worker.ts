@@ -12,9 +12,10 @@ import somes from 'somes';
 somes.config = __dirname + '/..'; // set config dir
 
 export default async function runWorker() {
+	// await (await import('../src/sync/block')).testDB();
+
 	await import('../src/uncaught');
 	console.time('start');
-
 	// var cfg = await import('../config');
 	var env = await import('../src/env');
 	var db = await import('../src/db');
