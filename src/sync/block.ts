@@ -236,7 +236,7 @@ export class WatchBlock implements WatchCat {
 			heightAll = {};
 			let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
 			let ls = await this.db.query<{kkey:string, value: any}>(
-				`select * from storage where kkey like '${key}'`);
+				`select * from storage where kkey like '${key}%'`);
 			for (let it of ls) {
 				heightAll['worker' + it.kkey.substring(key.length)] = it.value;
 			}
