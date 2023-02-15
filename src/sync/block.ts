@@ -222,19 +222,20 @@ export class WatchBlock implements WatchCat {
 	}
 
 	async getValidBlockSyncHeight() {
+		let chain = this.web3.chain;
 		if (this.useRpc) {
-			let data = await api.get<number>('chain/getValidBlockSyncHeight', {chain: this.web3.chain});
+			let data = await api.get<number>('chain/getValidBlockSyncHeight', {chain});
 			return data.data;
 		}
 
 		let workers = await this.getWatchBlockWorkers();
-		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		let key = `Block_Sync_Height_${ChainType[chain]}`;
 		let heightAll = await this.redis.client.hGetAll(key);
 
 		if (!heightAll || !Array.from({length:workers}).every((_,j)=>heightAll[`worker_${j}`])) {
 			// read block height for mysql db
 			heightAll = {};
-			let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+			let key = `Block_Sync_Height_${ChainType[chain]}`;
 			let ls = await this.db.query<{kkey:string, value: any}>(
 				`select * from storage where kkey like '${key}%'`);
 			for (let it of ls) {
@@ -259,11 +260,10 @@ export class WatchBlock implements WatchCat {
 		let logsAll = [] as {info: T, logs: TransactionLog[]}[];
 		if (this.useRpc) {
 			let r = await api.post<typeof logsAll>('chain/getTransactionLogsFrom', {
-				chain: this.web3.chain, blockNumber, info: info.map(e=>({state: e.state,address:e.address}))
+				chain, blockNumber, info: info.map(e=>({state: e.state,address:e.address}))
 			});
-			let data = r.data;
-			logsAll.forEach((e,j)=>{ e.info = info[j] });
-			return data;
+			r.data.forEach((e,j)=>{ e.info = info[j] });
+			return r.data;
 		}
 
 		for (let i = 0; i < info.length; i++) {
