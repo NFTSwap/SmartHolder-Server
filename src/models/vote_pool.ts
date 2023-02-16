@@ -6,7 +6,7 @@
 import somes from 'somes';
 import db, {ChainType, Votes, VoteProposal } from '../db';
 import redis from 'bclib/redis';
-import {getLimit} from './utils';
+import {getLimit,LIMIT_MAX} from './utils';
 
 export function getVoteProposalFrom(chain: ChainType, address: string, proposal_id?: string, order?: string, limit?: number | number[]) {
 	somes.assert(address, '#utils#getVoteProposalFrom Bad argument. address');
@@ -22,7 +22,7 @@ export async function getVoteProposalTotalFrom(chain: ChainType, address: string
 	let key = `getVoteProposalTotalFrom_${chain}_${address}_${proposal_id}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getVoteProposalFrom(chain, address, proposal_id, undefined,-1);
+		let ls = await getVoteProposalFrom(chain, address, proposal_id, undefined,LIMIT_MAX);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
@@ -32,7 +32,7 @@ export async function getVotesTotalFrom(chain: ChainType, address: string, propo
 	let key = `getVotesTotalFrom_${chain}_${address}_${proposal_id}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getVotesFrom(chain, address, proposal_id, member_id, undefined,-1);
+		let ls = await getVotesFrom(chain, address, proposal_id, member_id, undefined,LIMIT_MAX);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;

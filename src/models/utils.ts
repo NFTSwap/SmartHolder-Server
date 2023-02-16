@@ -7,9 +7,11 @@ import somes from 'somes';
 import { TokenURIInfo } from './define';
 import {storage} from '../utils';
 
+export const LIMIT_MAX = -235681;
+
 export function getLimit(limit?: number|number[]) {
-	if (limit==-1)
-		return undefined; // not limit
+	if (LIMIT_MAX==limit)
+		return [0,10000]; // not limit
 	limit = limit ? limit: [0, 100];
 	if (!Array.isArray(limit))
 		limit = [0,limit];
