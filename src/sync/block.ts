@@ -258,7 +258,7 @@ export class WatchBlock implements WatchCat {
 
 	async getTransactionLogsFrom<T extends {state: number,address: string}>(
 		startBlockNumber: number, endBlockNumber: number, info: T[]
-	) {debugger
+	) {
 		let chain = this.web3.chain;
 		let logsAll = {
 			info,

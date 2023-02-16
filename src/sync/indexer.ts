@@ -170,9 +170,9 @@ export class Indexer implements WatchCat {
 					await setBlockNumber(blockNumber = block.blockNumber);
 				});
 			}
-		}
-		if (blockNumber != curBlockNumber) {
-			await setBlockNumber(curBlockNumber);
+			if (blockNumber != end) {
+				await setBlockNumber(blockNumber = end);
+			}
 		}
 
 		return true;
