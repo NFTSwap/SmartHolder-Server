@@ -11,7 +11,7 @@ export default class extends ApiController {
 		return Promise.resolve(true);
 	}
 
-	protected _web3() { return web3s[Number(this.params.chain || this.headers.chain) || 1] };
+	protected _web3() { return web3s[Number(this.params.chain || this.headers.chain || this.data.chain) || 1] };
 
 	protected get _chain() {
 		return this._web3().chain;
