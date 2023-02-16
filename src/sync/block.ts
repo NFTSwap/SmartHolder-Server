@@ -19,6 +19,7 @@ import pool from 'somes/mysql/pool';
 import {Charsets} from 'somes/mysql/constants';
 import * as cfg from '../../config';
 import {MysqlTools} from 'somes/mysql';
+import {escape} from 'somes/db';
 import {Storage} from 'bclib/storage';
 import * as env from '../env';
 import api from '../request';
@@ -255,27 +256,73 @@ export class WatchBlock implements WatchCat {
 		return height;
 	}
 
-	async getTransactionLogsFrom<T extends {state: number,address: string}>(blockNumber: number, info: T[]) {
+	async getTransactionLogsFrom<T extends {state: number,address: string}>(
+		startBlockNumber: number, endBlockNumber: number, info: T[]
+	) {debugger
 		let chain = this.web3.chain;
-		let logsAll = [] as {info: T, logs: TransactionLog[]}[];
+		let logsAll = {
+			info,
+			blocks: [] as {
+				blockNumber: number,
+				logs: { idx: number, logs: TransactionLog[] }[],
+			}[],
+		};
+
 		if (this.useRpc) {
 			let r = await api.post<typeof logsAll>('chain/getTransactionLogsFrom', {
-				chain, blockNumber, info: info.map(e=>({state: e.state,address:e.address}))
+				chain, startBlockNumber, endBlockNumber, info: info.map(e=>({state: e.state,address:e.address}))
 			});
-			r.data.forEach((e,j)=>{ e.info = info[j] });
+			r.data.info = info;
 			return r.data;
 		}
 
-		for (let i = 0; i < info.length; i++) {
-			let ds = info[i];
-			if (ds.state == 0) {
-				let logs = await this.db.select<TransactionLog>(
-				`transaction_log_${chain}`, {address: ds.address, blockNumber}, {order: 'logIndex'});
-				if (logs.length) {
-					logsAll.push({info: ds, logs});
+		let address = info.filter(e=>e.state==0).map(e=>escape(e.address)).join(',');
+		let num = Array.from({length: endBlockNumber - startBlockNumber + 1})
+			.map((_,j)=>startBlockNumber+j)
+			.map(e=>escape(e)).join(',');
+
+		let logs = await this.db.select<TransactionLog>(
+			`select * from transaction_log_${chain} \
+			where address in (${address}) and blockNumber in (${num}) order by blockNumber`);
+
+		let blogs = [] as {blockNumber: number, logs: TransactionLog[]}[];
+
+		for (let log of logs) {
+			let {blockNumber} = log
+			let blog = blogs.indexReverse(0);
+			if (blog) {
+				if (blog.blockNumber == blockNumber) {
+					blog.logs.push(log);
+				} else {
+					somes.assert(blog.blockNumber < blockNumber,
+						'#WatchBlock#getTransactionLogsFrom blockNumber order error');
+					blogs.push({blockNumber, logs: [log]});
 				}
+			} else {
+				blogs[0] = {blockNumber, logs: [log]};
 			}
 		}
+
+		for (let {blockNumber,logs} of blogs) { // each block
+			let block = { blockNumber, logs: [] } as typeof logsAll.blocks[0];
+			let logsDict: Dict<TransactionLog[]> = {};
+
+			for (let log of logs) {
+				let logs = logsDict[log.address];
+				if (!logs)
+					logsDict[log.address] = logs = [];
+				logs.push(log);
+			}
+
+			info.forEach((e,idx)=>{
+				let logs = logsDict[e.address];
+				if (logs)
+					block.logs.push({ idx, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
+			});
+
+			logsAll.blocks.push(block);
+		}
+
 		return logsAll;
 	}
 

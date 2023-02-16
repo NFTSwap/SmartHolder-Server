@@ -1,6 +1,6 @@
 
 // import _ from 'bclib/api/chain';
-import {ChainType,ContractInfo} from '../models/define';
+import {ChainType} from '../models/define';
 import sync from '../sync';
 import ApiController from '../api';
 import web3s from 'bclib/web3+';
@@ -29,8 +29,10 @@ export default class extends ApiController {
 		return sync.watchBlocks[this._chain].getValidBlockSyncHeight();
 	}
 
-	getTransactionLogsFrom({blockNumber,info}:{blockNumber: number, info: {state: number, address: string}[]}) {
-		return sync.watchBlocks[this._chain].getTransactionLogsFrom(blockNumber,info);
+	getTransactionLogsFrom({startBlockNumber,endBlockNumber,info}:{
+		startBlockNumber: number, endBlockNumber: number, info: {state: number, address: string}[]
+	}) {
+		return sync.watchBlocks[this._chain].getTransactionLogsFrom(startBlockNumber,endBlockNumber,info);
 	}
 
 	getTransaction({txHash}:{txHash: string}) {

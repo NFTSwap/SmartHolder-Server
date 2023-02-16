@@ -146,23 +146,35 @@ export class Indexer implements WatchCat {
 	}
 
 	async cat() {
+		let chain = this.chain;
 		let blockNumber = this.data.watchHeight;
-		let watchBlock = index.watchBlocks[this.chain];
+		let watchBlock = index.watchBlocks[chain];
 		let curBlockNumber = await watchBlock.getValidBlockSyncHeight();
 
-		while (blockNumber++ < curBlockNumber) {
-			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber, this._dsList);
+		let setBlockNumber = async (blockNumber: number)=>{
+			await db.update(`indexer_${chain}`, {watchHeight: blockNumber}, {id: this.data.id});
+			await redis.set(`indexer_hash_${chain}_${this.data.hash.toLowerCase()}`, blockNumber);
+			postIndexerNextBlock(chain, this.data.id, this.data.hash, blockNumber);
+			this.data.watchHeight = blockNumber;
+		};
 
-			await db.transaction(async (db)=>{
-				for (let logs of logsAll) {
-					await this.solveLogs(logs.logs, logs.info, db);
-				}
-				await db.update(`indexer_${this.chain}`, {watchHeight: blockNumber}, {id: this.data.id});
-				await redis.set(`indexer_hash_${this.chain}_${this.data.hash.toLowerCase()}`, blockNumber);
-				postIndexerNextBlock(this.chain, this.data.id, this.data.hash, blockNumber);
-				this.data.watchHeight = blockNumber;
-			});
+		while (blockNumber < curBlockNumber) {
+			let end = Math.min(blockNumber + 100, curBlockNumber);
+			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber+1, end, this._dsList);
+
+			for (let block of logsAll.blocks) {
+				await db.transaction(async (db)=>{
+					for (let logs of block.logs) {
+						await this.solveLogs(logs.logs, this._dsList[logs.idx], db);
+					}
+					await setBlockNumber(blockNumber = block.blockNumber);
+				});
+			}
 		}
+		if (blockNumber != curBlockNumber) {
+			await setBlockNumber(curBlockNumber);
+		}
+
 		return true;
 	}
 }
