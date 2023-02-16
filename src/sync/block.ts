@@ -258,7 +258,7 @@ export class WatchBlock implements WatchCat {
 
 	async getTransactionLogsFrom<T extends {state: number,address: string}>(
 		startBlockNumber: number, endBlockNumber: number, info: T[]
-	) {
+	) {debugger
 		let chain = this.web3.chain;
 		let logsAll = {
 			info,
@@ -281,7 +281,7 @@ export class WatchBlock implements WatchCat {
 			.map((_,j)=>startBlockNumber+j)
 			.map(e=>escape(e)).join(',');
 
-		let logs = await this.db.select<TransactionLog>(
+		let logs = await this.db.query<TransactionLog>(
 			`select * from transaction_log_${chain} \
 			where address in (${address}) and blockNumber in (${num}) order by blockNumber`);
 
