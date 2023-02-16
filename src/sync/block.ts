@@ -133,11 +133,9 @@ export class WatchBlock implements WatchCat {
 			let address = cryptoTx.checksumAddress(receipt.contractAddress);
 			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
-		// else if (receipt.to) { // Contract call
 
-		let logIndex = 0;
 		for (let log of receipt.logs) { // event logs
-			let address = log.address;
+			let {address,logIndex} = log;
 			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
 					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
@@ -158,9 +156,7 @@ export class WatchBlock implements WatchCat {
 					blockNumber,
 				});
 			}
-			logIndex++;
 		}
-		// } // else if (receipt.to) {
 	}
 
 	private async solveBlock(blockNumber: number) {
@@ -277,13 +273,13 @@ export class WatchBlock implements WatchCat {
 		}
 
 		let address = info.filter(e=>e.state==0).map(e=>escape(e.address)).join(',');
-		let num = Array.from({length: endBlockNumber - startBlockNumber + 1})
-			.map((_,j)=>startBlockNumber+j)
-			.map(e=>escape(e)).join(',');
+		let sql = `select * from transaction_log_${chain} where address in (${address}) 
+			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
+		`;
 
-		let logs = await this.db.query<TransactionLog>(
-			`select * from transaction_log_${chain} \
-			where address in (${address}) and blockNumber in (${num}) order by blockNumber`);
+		let logs = await this.db.query<TransactionLog>(sql);
+
+		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
 
 		let blogs = [] as {blockNumber: number, logs: TransactionLog[]}[];
 

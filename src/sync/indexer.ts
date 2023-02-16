@@ -170,7 +170,7 @@ export class Indexer implements WatchCat {
 					await setBlockNumber(blockNumber = block.blockNumber);
 				});
 			}
-			if (blockNumber != end) {
+			if (blockNumber < end) {
 				await setBlockNumber(blockNumber = end);
 			}
 		}
@@ -203,7 +203,7 @@ export class RunIndexer implements WatchCat {
 		if (await db.selectOne(`indexer_${chain}`, {hash}))
 			return;
 
-		let id = await db.transaction(async db=>{
+		let id = await db.transaction(async (db: DatabaseCRUD)=>{
 			let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
 
 			for (let {id:_, ...ds} of initDataSource) {

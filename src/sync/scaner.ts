@@ -160,13 +160,14 @@ export abstract class ContractScaner {
 		for (var [event, resolve] of Object.entries(this.events)) {
 			var abiItem = abiI.abi.find(e=>e.name==event);
 			if (abiItem) {
-				var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
-				if (signature == log.topics[0]) {
+				var signature = this.web3.eth.abi.encodeEventSignature(abiItem).toLowerCase();
+				if (signature == log.topics[0].toLowerCase()) {
 					await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
-					break;
+					return;
 				}
 			}
 		}
+		console.warn('#ContractScaner#solveReceiptLog Ignore Log', log);
 	}
 
 	private async solveReceiptLogFrom(
@@ -177,7 +178,8 @@ export abstract class ContractScaner {
 				this.web3.eth.abi.decodeLog(abiItem.inputs as AbiInput[], log.data, log.topics.slice(1));
 		} catch(err: any) {
 			uncaught.fault('#ContractScaner#solveReceiptLogFrom 1',
-				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
+				...err.filter(['errno', 'message', 'description', 'stack']), //err,
+				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
 			throw err;
 		}
@@ -202,8 +204,10 @@ export abstract class ContractScaner {
 			let blockTime = Date.now();
 			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
 		} catch(err:any) {
-			uncaught.fault('#ContractScaner#solveReceiptLogFrom 2',
-				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
+			uncaught.fault(
+				'#ContractScaner#solveReceiptLogFrom 2',
+				...err.filter(['errno', 'message', 'description', 'stack']), //err,
+				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
 			throw err;
 		}

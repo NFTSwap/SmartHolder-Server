@@ -29,6 +29,8 @@ export class DAOs extends ContractScaner {
 				let blockNumber = Number(event.blockNumber);
 				let web3 = this.web3;
 
+				console.log('DAOs.Created', tx.blockNumber);
+
 				if ( await this.db.selectOne(`dao_${chain}`, { address: host }) )
 					return;
 
@@ -77,7 +79,8 @@ export class DAOs extends ContractScaner {
 					Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
 					Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
 				];
-				await RunIndexer.addIndexer(chain, host, blockNumber, ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
+				await RunIndexer.addIndexer(chain, host, blockNumber,
+					ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
 
 				if (Member != addressZero) {
 					memberBaseName = await (await web3.contract(Member)).methods.name().call();
@@ -151,7 +154,7 @@ export class DAOs extends ContractScaner {
 							if (await member.methods.isPermissionFrom(tokenId, constants.Action_VotePool_Vote).call())
 								permissions.push(constants.Action_VotePool_Vote);
 
-								this.db.insert(`member_${chain}`, {
+							this.db.insert(`member_${chain}`, {
 								host, token: Member, tokenId, owner,
 								name: info.name, description: info.description,
 								image: info.image, votes: info.votes, time, modify: time,
