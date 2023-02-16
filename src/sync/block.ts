@@ -324,7 +324,7 @@ export class WatchBlock implements WatchCat {
 
 	async getTransaction(txHash: string) {
 		if (this.useRpc) {
-			return (await api.get<ITransaction>('chain/getTransactionLogsFrom', {
+			return (await api.get<ITransaction>('chain/getTransaction', {
 				chain: this.web3.chain, txHash
 			})).data;
 		}
