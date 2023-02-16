@@ -99,7 +99,7 @@ export class DAOs extends ContractScaner {
 				try {
 					image = await dao.methods.image().call();
 				} catch(err) {
-					console.warn('#daos#Created', err);
+					console.warn('#daos#Created dao.image() call error', err);
 				}
 
 				await this.db.insert(`dao_${chain}`, {
