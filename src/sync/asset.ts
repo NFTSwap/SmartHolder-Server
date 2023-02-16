@@ -103,9 +103,10 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 
 			await db.update(`asset_${this.chain}`, data, { id: asset.id });
 		} else {
-			await db.update(`asset_${this.chain}`, {
-				owner: '0x0000000000000000000000000000000000000000', modify: time,
-			}, { token, tokenId });
+			// await db.update(`asset_${this.chain}`, {
+			// 	owner: '0x0000000000000000000000000000000000000000', modify: time,
+			// }, { token, tokenId });
+			await db.delete(`asset_${this.chain}`, {token, tokenId});
 		}
 
 		var order = await db.selectOne(`asset_order_${this.chain}`, { txHash, token, tokenId });

@@ -77,11 +77,12 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,author,state,name,time,selling,orderBy,limit}: {
-		chain: ChainType, host: string, owner?: string, author?: string, state?: State,
+	getAssetFrom({chain,host,owner,author,state,name,time,selling,orderBy,limit,owner_not,author_not}: {
+		chain: ChainType, host: string, owner?: string, author?: string, 
+		owner_not?: string, author_not?: string, state?: State,
 		name?: string, time?: [number,number], selling?: Selling, orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom(chain,host,owner,author,state,name,time,selling,orderBy,limit);
+		return asset.getAssetFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling,orderBy,limit);
 	}
 
 	/**
@@ -108,10 +109,13 @@ export default class extends ApiController {
 		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
 	}
 
-	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling}: { 
-		chain: ChainType, host: string, owner?: string, author?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling,owner_not,author_not}: {
+		chain: ChainType, host: string, 
+		owner?: string, author?: string, 
+		owner_not?: string, author_not?: string,
+		state?: State, name?: string, time?: [number,number],selling?: Selling
 	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,author,state,name,time,selling);
+		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling);
 	}
 
 	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {

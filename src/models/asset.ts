@@ -50,6 +50,8 @@ export async function getAssetFrom(
 	host: string,
 	owner?: string,
 	author?: string,
+	owner_not?: string,
+	author_not?: string,
 	state = State.Enable,
 	name?: string,
 	time?: number | [number,number],
@@ -63,8 +65,12 @@ export async function getAssetFrom(
 		token in (${escape(dao.first)},${escape(dao.second)}) and state=${escape(state)} `;
 	if (owner)
 		sql += `and owner=${escape(owner)} `;
+	if (owner_not)
+		sql += `and owner!=${escape(owner_not)} `;
 	if (author)
 		sql += `and author=${escape(author)} `;
+	if (author_not)
+		sql += `and author!=${escape(author_not)} `;
 	if (name)
 		sql += `and name like ${escape(name+'%')} `;
 	if (time) {
@@ -162,13 +168,15 @@ export async function getOrderTotalAmount(chain: ChainType, host: string,
 }
 
 export async function getAssetTotalFrom(
-	chain: ChainType, host: string, owner?: string, author?: string,
+	chain: ChainType, host: string,
+	owner?: string, author?: string,
+	owner_not?: string, author_not?: string,
 	state = State.Enable, name?: string, time?: [number, number], selling?: Selling
 ) {
-	let key = `getAssetTotalFrom_${chain}_${owner}_${state}_${name}_${time?.join()}_${selling}`;
+	let key = `getAssetTotalFrom_${chain}_${owner}_${author}_${owner_not}_${author_not}_${state}_${name}_${time?.join()}_${selling}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getAssetFrom(chain, host, owner, author, state, name, time, selling, '', undefined, true);
+		let ls = await getAssetFrom(chain, host, owner, author, owner_not, author_not, state, name, time, selling, '', undefined, true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
@@ -177,12 +185,15 @@ export async function getAssetTotalFrom(
 export async function getAssetAmountTotal(
 	chain: ChainType, host: string,
 	owner?: string, author?: string,
+	owner_not?: string, author_not?: string,
 	state = State.Enable, name?: string
 ) {
-	let key = `getAssetAmountTotal_${chain}_${owner}_${state}_${name}`;
+	let key = `getAssetAmountTotal_${chain}_${owner}_${author}_${owner_not}_${author_not}_${state}_${name}`;
 	let total = await redis.get<{assetTotal: number, assetAmountTotal: string}>(key);
 	if (total === null) {
-		let ls = await getAssetFrom(chain, host, owner, author, state, name, undefined, undefined, '', undefined, true);
+		let ls = await getAssetFrom(chain, host, owner, author,
+			owner_not, author_not, state, name, undefined, undefined, '', undefined, true
+		);
 		let assetTotal = 0;
 		let assetAmountTotal = BigInt(0);
 
