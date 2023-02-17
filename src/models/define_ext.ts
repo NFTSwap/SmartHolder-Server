@@ -12,15 +12,15 @@ export interface DAOExtend extends DAO {
 }
 
 export interface DAOSummarys {
-	membersTotal: number;
+	membersTotal: number;      // members total
 	voteProposalTotal: number; // all proposals total
 	voteProposalPendingTotal: number; // ongoing proposals
 	voteProposalExecutedTotal: number; // resolutions complete executed
 	voteProposalResolveTotal: number; // resolve total
 	voteProposalRejectTotal: number; // reject total
-	assetTotal: number;
-	assetAmountTotal: string;
-	assetOrderTotal: number;
-	assetOrderAmountTotal: string; // Asset order Amount
-	assetLedgerIncomeTotal: string; // Asset Ledger Income
+	assetTotal: number;            // asset total
+	assetAmountTotal: string;      // asset total amount value
+	assetOrderTotal: number;       // Asset order total
+	assetOrderAmountTotal: string; // Asset order total amount value
+	assetLedgerIncomeTotal: string; // Asset Ledger total Income value
 }
