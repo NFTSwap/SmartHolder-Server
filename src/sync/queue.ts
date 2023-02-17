@@ -168,7 +168,6 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 	}
 
 	async dequeue() {
-		if (!env.watch_main) return;
 		if (this._runing >= this._runingLimit) return;
 		try {
 			this._runing++;
