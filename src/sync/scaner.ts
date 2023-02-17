@@ -3,7 +3,7 @@
  * @date 2021-09-26
  */
 
-import { ContractInfo, ContractType, ChainType } from '../models/def';
+import { ContractInfo, ContractType, ChainType } from '../models/define';
 import {IBcWeb3} from 'bclib/web3_tx';
 import {web3s, MvpWeb3} from '../web3+';
 import {EventData} from 'web3-tx';
@@ -15,9 +15,10 @@ import {AbiInput} from 'web3-utils';
 import * as cfg from '../../config';
 import {AbiItem} from 'web3-utils';
 import uncaught from '../uncaught';
-import {getContractInfo} from '../models/contract';
-
-const cryptoTx = require('crypto-tx');
+import * as contract from '../models/contract';
+import * as cryptoTx from 'crypto-tx';
+import {DatabaseCRUD} from 'somes/db';
+import db from '../db';
 
 export function formatHex(hex_str: string | number | bigint, btyes: number = 32) {
 	var s = '';
@@ -34,11 +35,11 @@ export function formatHex(hex_str: string | number | bigint, btyes: number = 32)
 	}
 }
 
-export async function blockTimeStamp(web3: IBcWeb3, blockNumber: number) {
-	var cur = await web3.getBlockNumber();
+export async function blockTimeStamp(web3: IBcWeb3, blockNumber: number, last: number = 0) {
+	last = last || await web3.getBlockNumber();
 	// var block = await web3.impl.eth.getBlock(blockNumber);
 	// var time0 = Number(block.timestamp) * 1e3;
-	return parseInt((Date.now() - (cur - blockNumber) * 13.545 * 1e3) as any);
+	return parseInt((Date.now() - (last - blockNumber) * 13.545 * 1e3) as any);
 }
 
 export function getNumber(num: number | string) {
@@ -49,8 +50,15 @@ export function getNumber(num: number | string) {
 	return num;
 }
 
+export interface HandleEventData {
+	event: EventData;
+	tx: Transaction;
+	blockTime: number;
+	blockNumber: number;
+}
+
 export interface ResolveEvent {
-	use(this: ContractScaner, e: EventData, tx: Transaction): Promise<void>;
+	handle(this: ContractScaner, e: HandleEventData): Promise<void>;
 	test?(this: ContractScaner, e: EventData, abi: AbiInterface): Promise<void>;
 }
 
@@ -67,6 +75,7 @@ export abstract class ContractScaner {
 	readonly address: string;
 	readonly type: ContractType;
 	readonly chain: ChainType;
+	readonly db: DatabaseCRUD;
 
 	abstract readonly events: Dict<ResolveEvent>;
 
@@ -75,8 +84,8 @@ export abstract class ContractScaner {
 	}
 
 	get web3() {
-		somes.assert(this._web3, `Chain type not supported => ${ChainType[this.chain]}`);
-		return this._web3 as MvpWeb3;
+		somes.assert(this._web3, `#ContractScaner#web3 Chain type not supported => ${ChainType[this.chain]}`);
+		return this._web3!;
 	}
 
 	asAsset(): IAssetScaner | null {
@@ -85,61 +94,23 @@ export abstract class ContractScaner {
 
 	async info() {
 		if (!this._info) {
-			// var [info] = await db.select(`contract_info_${this.chain}`, { address: this.address, chain: this.chain }) as ContractInfo[];
-			let info = await getContractInfo(this.address, this.chain) as ContractInfo;
-			somes.assert(info, `No match the ${this.address} contract_info_${this.chain}`);
-			this._info = info;
+			let info = await contract.select(this.address, this.chain)!;
+			somes.assert(info, `#ContractScaner#info No match the ${this.address} contract_info_${this.chain}`);
+			this._info = info!;
 		}
 		return this._info;
 	}
 
-	async host() {
-		return (await this.info()).host;
-	}
+	contract() { return this.web3.contract(this.address) }
+	async methods() { return (await this.contract()).methods }
+	async host() { return (await this.info()).host }
 
-	async contract() {
-		return this.web3.contract(this.address);
-	}
-
-	async methods() {
-		return (await this.contract()).methods;
-	}
-
-	constructor(address: string, type: ContractType, chain: ChainType) {
+	constructor(address: string, type: ContractType, chain: ChainType, db_?: DatabaseCRUD) {
 		this.address = cryptoTx.checksumAddress(address);
 		this.type = type;
 		this.chain = chain;
 		this._web3 = web3s[chain];
-	}
-
-	private async scanEvent(fromBlock: number, toBlock: number, event: string, resolve: ResolveEvent) {
-		var self = this;
-		var abiI = await getAbiByType(this.type) as AbiInterface;
-		var abiItem = abiI.abi.find(e=>e.name==event);
-		if (!abiItem) return 0;
-
-		var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
-		var logs: Log[] = await this.web3.eth.getPastLogs({
-			address: this.address, topics: [signature], fromBlock, toBlock,
-		});
-		var transactions: Dict<Transaction> = {};
-
-		async function getTransaction(hash: string) {
-			if (!transactions[hash])
-				transactions[hash] = await self.web3.eth.getTransaction(log.transactionHash);
-			return transactions[hash];
-		}
-
-		for (var log of logs) {
-			var tx = await getTransaction(log.transactionHash);
-			somes.assert(await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve), 'ContractScaner#scanEvent not solve log');
-
-			if (cfg.logs.event) {
-				console.log(ChainType[this.chain], ContractType[this.type], 
-						`event=${event}`, this.address, `blockNumber=${log.blockNumber}`, `idx=${log.transactionIndex}`, `hash=${log.transactionHash}`);
-			}
-		}
-		return logs.length;
+		this.db = db_ || db;
 	}
 
 	async scan(fromBlock: number, toBlock: number): Promise<number> {
@@ -153,18 +124,67 @@ export abstract class ContractScaner {
 		return events;
 	}
 
+	private async scanEvent(fromBlock: number, toBlock: number, event: string, resolve: ResolveEvent) {
+		let self = this;
+		let abiI = (await getAbiByType(this.type))!;
+		let abiItem = abiI.abi.find(e=>e.name==event);
+		if (!abiItem) return 0;
+
+		let signature = self.web3.eth.abi.encodeEventSignature(abiItem);
+		let logs: Log[] = await this.web3.eth.getPastLogs({
+			address: this.address, topics: [signature], fromBlock, toBlock,
+		});
+		let txs: Dict<Transaction> = {};
+
+		async function getTransaction(hash: string) {
+			if (!txs[hash])
+				txs[hash] = await self.web3.eth.getTransaction(hash);
+			return txs[hash];
+		}
+
+		for (let log of logs) {
+			let tx = await getTransaction(log.transactionHash);
+			await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
+
+			if (cfg.logs.event) {
+				console.log(ChainType[this.chain], ContractType[this.type], 
+						`event=${event}`, this.address, `blockNumber=${log.blockNumber}`, `idx=${log.transactionIndex}`, `hash=${log.transactionHash}`);
+			}
+		}
+		return logs.length;
+	}
+
+	async solveReceiptLog(log: Log, tx: Transaction) {
+		var abiI = (await getAbiByType(this.type))!;
+
+		for (var [event, resolve] of Object.entries(this.events)) {
+			var abiItem = abiI.abi.find(e=>e.name==event);
+			if (abiItem) {
+				var signature = this.web3.eth.abi.encodeEventSignature(abiItem).toLowerCase();
+				if (signature == log.topics[0].toLowerCase()) {
+					await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
+					return;
+				}
+			}
+		}
+		console.warn('#ContractScaner#solveReceiptLog Ignore Log', log);
+	}
+
 	private async solveReceiptLogFrom(
-		event: string, signature: string, abiItem: AbiItem,
-		log: Log, tx: Transaction, resolve: ResolveEvent, noErr?: boolean
+		event: string, signature: string, abiItem: AbiItem, log: Log, tx: Transaction, resolve: ResolveEvent
 	) {
 		try {
 			var returnValues = 
 				this.web3.eth.abi.decodeLog(abiItem.inputs as AbiInput[], log.data, log.topics.slice(1));
-		} catch(err) {
-			return false;
+		} catch(err: any) {
+			uncaught.fault('#ContractScaner#solveReceiptLogFrom 1',
+				...err.filter(['errno', 'message', 'description', 'stack']), //err,
+				this.address, ContractType[this.type], ChainType[this.chain], tx, log
+			);
+			throw err;
 		}
 
-		var e: EventData = {
+		let e: EventData = {
 			returnValues,
 			raw: {
 				data: log.data,
@@ -181,38 +201,16 @@ export abstract class ContractScaner {
 		};
 
 		try {
-			await resolve.use.call(this, e, tx);
+			let blockTime = Date.now();
+			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
 		} catch(err:any) {
-			uncaught[noErr ? 'warn': 'fault']('ContractScaner#solveReceiptLogFrom',
-				err.message, this.address, ContractType[this.type], ChainType[this.chain], tx, log
+			uncaught.fault(
+				'#ContractScaner#solveReceiptLogFrom 2',
+				...err.filter(['errno', 'message', 'description', 'stack']), //err,
+				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
-			if (noErr) {
-				return false;
-			} else {
-				throw err;
-			}
+			throw err;
 		}
-
-		return true;
-	}
-
-	async solveReceiptLog(log: Log, tx: Transaction) {
-		var abiI = await getAbiByType(this.type) as AbiInterface;
-
-		for (var [event, resolve] of Object.entries(this.events)) {
-			var abiItem = abiI.abi.find(e=>e.name==event);
-			if (abiItem) {
-				var signature = this.web3.eth.abi.encodeEventSignature(abiItem);
-				if (signature == log.topics[0]) {
-					somes.assert(
-						await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve),
-						'ContractScaner#solveReceiptLog not solve log'
-					);
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 }

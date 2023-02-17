@@ -5,82 +5,167 @@
 
 import '../uncaught';
 import somes from 'somes';
-import * as cfg from '../../config';
 import {WatchCat} from 'bclib/watch';
-import { storage, ChainType, ContractInfo, ContractType } from '../db';
+import db_, { storage as storage_, ChainType,
+	Transaction as ITransaction, ContractInfo,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
-import make from './mk_scaner';
-import {Transaction, TransactionReceipt, Log} from 'web3-core';
+import mk_scaner from './mk_scaner';
+import {Transaction, TransactionReceipt} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
-import {getContractInfo} from '../models/contract';
-import {broadcastWatchBlock} from '../message';
+import * as contract from '../models/contract';
+import {postWatchBlock} from '../message';
+import redis_, {Redis} from 'bclib/redis';
+import pool from 'somes/mysql/pool';
+import {Charsets} from 'somes/mysql/constants';
+import * as cfg from '../../config';
+import {MysqlTools} from 'somes/mysql';
+import {escape} from 'somes/db';
+import {Storage} from 'bclib/storage';
+import * as env from '../env';
+import api from '../request';
+
+export async function testDB() {
+	await somes.sleep(1e3);
+	pool.CHAREST_NUMBER = Charsets.UTF8MB4_UNICODE_CI;
+	let cfg_ = cfg.watchBlock;
+	let db = new MysqlTools(cfg_.mysql);
+	await db.load('', [], []);
+}
 
 export class WatchBlock implements WatchCat {
-	private _web3: MvpWeb3;
-	private _blockNumber = Infinity;
-	private _name: string;
-	private _workers = 1;
-	private _worker = 0;
+	readonly web3: MvpWeb3;
+	readonly db: typeof db_;
+	readonly redis: Redis;
+	readonly storage: Storage;
+	readonly useRpc: boolean;
 
-	// watch height
-	get blockNumber() {
-		return this._blockNumber;
+	private readonly workers: number;// = 1;
+	private readonly worker: number;// = 0;
+
+	private _watchBlockWorkersCaches = {} as Dict<{ value:number, timeout: number }>;
+
+	constructor(web3: MvpWeb3, worker = 0, workers = 1, useRpc = false) {
+		this.web3 = web3;
+		this.worker = worker;
+		this.workers = workers;
+		this.useRpc = useRpc;
+
+		pool.MAX_CONNECT_COUNT = 10; // max 50
+
+		let cfg_ = cfg.watchBlock;
+		this.db = cfg_.mysql.host ? new MysqlTools(cfg_.mysql): db_;
+		this.redis = cfg_.redis ? new Redis(cfg_.redis): redis_;
+		this.storage = this.db === db_ ? storage_: new Storage();
 	}
 
-	// @arg onlyTest only test asset type
-	constructor(web3: MvpWeb3, worker = 0, workers = 1, name = '') {
-		this._web3 = web3;
-		this._name = name;
-		this._worker = worker;
-		this._workers = workers;
+	async initialize() {
+		if (this.db !== db_)
+			await this.db.load('', [], []);
+		if (redis_ !== this.redis)
+			await this.redis.initialize();
+		else {
+			if (this.db !== db_)
+				// reset Block_Sync_Height data for redis
+				this.redis.del(`Block_Sync_Height_${ChainType[this.web3.chain]}`);
+		}
+		if (storage_ !== this.storage)
+			this.storage.initialize(this.db);
 	}
 
-	private printLog(ac: ContractInfo, log: Log) {
-		if (cfg.logs.block_no_resolve) 
-			console.warn('Not resolved TransactionReceipt',
-				ContractType[ac.type], ChainType[this._web3.chain],
-				'address:', ac.address,
-				'block:', log.blockNumber,
-				'tx:', log.transactionHash, 'topics:', log.topics, 'data:', log.data
-			);
-	}
-
-	private async _watchReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
-		var chain = this._web3.chain;
-		somes.assert(receipt, `WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
+		let chain = this.web3.chain;
+		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
 		if ('status' in receipt)
 			if (!receipt.status) return;
 
 		if (receipt.contractAddress) { // New contract
-			var address = cryptoTx.checksumAddress(receipt.contractAddress) as string;
+			let address = cryptoTx.checksumAddress(receipt.contractAddress);
 			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
 		else if (receipt.to) { // Contract call
-			for (var log of receipt.logs) { // event logs
-				var address = log.address;
-				// if (blockNumber == 11084609) {
-				// 	console.log('------------------------', blockNumber, address, '0x283703CC092EC7621F286dE09De5Ca9279AE4F98');
-				// 	if (address.toLowerCase() == '0x283703CC092EC7621F286dE09De5Ca9279AE4F98'.toLowerCase()) {
-				// 		debugger;
-				// 	}
-				// }
-				var info = await getContractInfo(address, chain);
+			for (let log of receipt.logs) { // event logs
+				let address = log.address;
+				let info = await contract.select(address, chain);
 				if (info && info.type) {
-					var scaner = make(address, info.type, chain);
+					let scaner = mk_scaner(address, info.type, chain);
 					await scaner.solveReceiptLog(log, await getTx());
 				}
 			}
 		} // else if (receipt.to) {
 	}
 
-	private async _watch(blockNumber: number) {
-		var web3 = this._web3;
-		var chain = web3.chain;
+	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
+		let chain = this.web3.chain;
+		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+
+		let tx = await getTx();
+		let transactionHash = receipt.transactionHash;
+		let tx_id = 0;
+		let tx_ = (await this.db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
+		if ( !tx_ ) {
+			tx_id = await this.db.insert(`transaction_${chain}`, {
+				nonce: tx.nonce,
+				blockNumber: receipt.blockNumber,
+				fromAddress: receipt.from,
+				toAddress: receipt.to || '0x0000000000000000000000000000000000000000',
+				value: '0x' + Number(tx.value).toString(16),
+				gasPrice: '0x' + Number(tx.gasPrice).toString(16),
+				gas: '0x' + Number(tx.gas).toString(16),
+				// data: tx.input,
+				blockHash: receipt.blockHash,
+				transactionHash: receipt.transactionHash,
+				transactionIndex: receipt.transactionIndex,
+				gasUsed: '0x' + Number(receipt.gasUsed).toString(16),
+				cumulativeGasUsed: '0x' + Number(receipt.cumulativeGasUsed).toString(16),
+				effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice).toString(16),
+				// logsBloom: receipt.logsBloom,
+				contractAddress: receipt.contractAddress,
+				status: receipt.status,
+				logsCount: receipt.logs.length,
+				time: Date.now(),
+			});
+		} else {
+			tx_id = tx_.id;
+		}
+
+		if (receipt.contractAddress) { // New contract
+			let address = cryptoTx.checksumAddress(receipt.contractAddress);
+			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
+		}
+
+		for (let log of receipt.logs) { // event logs
+			let {address,logIndex} = log;
+			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
+				if (log.data.length > 65535) {
+					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
+					log.data = 'rpc:fetch';
+				}
+				await this.db.insert(`transaction_log_${chain}`, {
+					tx_id,
+					address,
+					topic0: log.topics[0] || '',
+					topic1: log.topics[1],
+					topic2: log.topics[2],
+					topic3: log.topics[3],
+					data: log.data,
+					logIndex,
+					transactionIndex,
+					transactionHash,
+					blockHash: receipt.blockHash,
+					blockNumber,
+				});
+			}
+		}
+	}
+
+	private async solveBlock(blockNumber: number) {
+		let web3 = this.web3;
+		let chain = web3.chain;
 
 		//if (blockNumber % 100 === this._worker)
 
-		var txs: Transaction[] | null = null;
+		let txs: Transaction[] | null = null;
 
 		async function getTransaction(idx: number) {
 			if (!txs)
@@ -88,78 +173,234 @@ export class WatchBlock implements WatchCat {
 			return txs[idx];
 		}
 
-		var idx = 0;
+		// let lastBlockNumber = await web3.getBlockNumber();
+		let idx = 0;
 
 		if (await web3.hasSupportGetTransactionReceiptsByBlock()) {
-			var receipts: TransactionReceipt[] | undefined;
+			let receipts: TransactionReceipt[] | undefined;
 			try {
 				receipts = await web3.getTransactionReceiptsByBlock(blockNumber);
 			} catch(err: any) {
-				console.warn(`WatchBlock#_watchReceipt`, err);
+				console.warn(`#WatchBlock#_watchReceipt`, err);
 			}
 
 			if (receipts) {
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', receipts.length);
-				for (var item of receipts) {
+				for (let item of receipts) {
 					let _idx = idx++;
-					await this._watchReceipt(blockNumber, item, ()=>getTransaction(_idx));
+					await this.solveReceipt(blockNumber, item, _idx, ()=>getTransaction(_idx));
 				}
 				return;
 			}
 		}
 
-		var block = await web3.eth.getBlock(blockNumber);
+		// ----------------------- Compatibility Mode -----------------------
+
+		let block = await web3.eth.getBlock(blockNumber);
 
 		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', block.transactions.length);
 
-		for (var txHash of block.transactions) {
+		for (let txHash of block.transactions) {
 			let _idx = idx++;
-			var receipt = await web3.eth.getTransactionReceipt(txHash);
-			await this._watchReceipt(blockNumber, receipt, ()=>getTransaction(_idx));
+			let receipt = await web3.eth.getTransactionReceipt(txHash);
+			await this.solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
 		}
 	}
 
-	private async _Test() {
-		if (cfg.env == 'dev') {// test
-			if (this._web3.chain == ChainType.MUMBAI) { // matic test
-				// New contract  0x36763175b209853D022F2BAfd64eef71D5DF8dCF 0xf23128ed1c9cb13c02e0b500cc3a788f0e4abd6f24f603129e953e56d6d78830
-				//await this._Watch(0x1630ee0);
-				// mint Asset    0x36763175b209853D022F2BAfd64eef71D5DF8dCF 0xaf82f84eb432ae2455796744b870b77195d9b85fb640fc7766dccf56d3dec1ed
-				await this._watch(0x1630f98);
+	async getBlockSyncHeight(worker = 0) {
+		if (this.useRpc)
+			return (await api.get('chain/getBlockSyncHeight', {chain: this.web3.chain,worker})).data;
+
+		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		let num = await this.redis.client.hGet(key, `worker_${worker}`);
+		if (!num)
+			num = await this.storage.get(`${key}_${worker}`);
+		return (num || 0) as number;
+	}
+
+	async getValidBlockSyncHeight() {
+		let chain = this.web3.chain;
+		if (this.useRpc) {
+			let data = await api.get<number>('chain/getValidBlockSyncHeight', {chain});
+			return data.data;
+		}
+
+		let workers = await this.getWatchBlockWorkers();
+		let key = `Block_Sync_Height_${ChainType[chain]}`;
+		let heightAll = await this.redis.client.hGetAll(key);
+
+		if (!heightAll || !Array.from({length:workers}).every((_,j)=>heightAll[`worker_${j}`])) {
+			// read block height for mysql db
+			heightAll = {};
+			let key = `Block_Sync_Height_${ChainType[chain]}`;
+			let ls = await this.db.query<{kkey:string, value: any}>(
+				`select * from storage where kkey like '${key}%'`);
+			for (let it of ls) {
+				heightAll['worker' + it.kkey.substring(key.length)] = it.value;
 			}
 		}
+
+		let [height, ...heights] = Array.from({length:workers})
+				.map((_,i)=>(Number(heightAll[`worker_${i}`]) || 0))
+				.sort((a,b)=>a-b);
+
+		for (let i = 0; i < heights.length; i++) {
+			if (height + 1 != heights[i])
+				break;
+			height++;
+		}
+		return height;
+	}
+
+	async getTransactionLogsFrom<T extends {state: number,address: string}>(
+		startBlockNumber: number, endBlockNumber: number, info: T[]
+	) {
+		let chain = this.web3.chain;
+		let logsAll = {
+			info,
+			blocks: [] as {
+				blockNumber: number,
+				logs: { idx: number, logs: TransactionLog[] }[],
+			}[],
+		};
+
+		if (this.useRpc) {
+			let r = await api.post<typeof logsAll>('chain/getTransactionLogsFrom', {
+				chain, startBlockNumber, endBlockNumber, info: info.map(e=>({state: e.state,address:e.address}))
+			});
+			r.data.info = info;
+			return r.data;
+		}
+
+		let address = info.filter(e=>e.state==0).map(e=>escape(e.address)).join(',');
+		let sql = `select * from transaction_log_${chain} where address in (${address}) 
+			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
+		`;
+
+		let logs = await this.db.query<TransactionLog>(sql);
+
+		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
+
+		let blogs = [] as {blockNumber: number, logs: TransactionLog[]}[];
+
+		for (let log of logs) {
+			let {blockNumber} = log
+			let blog = blogs.indexReverse(0);
+			if (blog) {
+				if (blog.blockNumber == blockNumber) {
+					blog.logs.push(log);
+				} else {
+					somes.assert(blog.blockNumber < blockNumber,
+						'#WatchBlock#getTransactionLogsFrom blockNumber order error');
+					blogs.push({blockNumber, logs: [log]});
+				}
+			} else {
+				blogs[0] = {blockNumber, logs: [log]};
+			}
+		}
+
+		for (let {blockNumber,logs} of blogs) { // each block
+			let block = { blockNumber, logs: [] } as typeof logsAll.blocks[0];
+			let logsDict: Dict<TransactionLog[]> = {};
+
+			for (let log of logs) {
+				let logs = logsDict[log.address];
+				if (!logs)
+					logsDict[log.address] = logs = [];
+				logs.push(log);
+			}
+
+			info.forEach((e,idx)=>{
+				let logs = logsDict[e.address];
+				if (logs)
+					block.logs.push({ idx, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
+			});
+
+			logsAll.blocks.push(block);
+		}
+
+		return logsAll;
+	}
+
+	async getTransaction(txHash: string) {
+		if (this.useRpc) {
+			return (await api.get<ITransaction>('chain/getTransaction', {
+				chain: this.web3.chain, txHash
+			})).data;
+		}
+
+		let tx = await this.db.selectOne<ITransaction>(
+			`transaction_${this.web3.chain}`, { transactionHash: txHash });
+		return tx;
+	}
+
+	private async getWatchBlockWorkers() {
+		let chain: ChainType = this.web3.chain;
+		let key = `Block_Sync_Workers_${ChainType[chain]}`;
+		let cache = this._watchBlockWorkersCaches[chain] || {value:0,timeout: 0};
+
+		if (cache.timeout < Date.now()) {
+			let workers = (await this.redis.get<number>(key))!;
+			if (!workers)
+				workers = await this.storage.get(key) || 1;
+			this._watchBlockWorkersCaches[chain] = {
+				value: workers, timeout: Date.now() + 1e4, // 10 second
+			};
+			return workers;
+		} else {
+			return cache.value;
+		}
+	}
+
+	private async saveBlockSyncHeight(blockNumber: number, worker = 0) {
+		let key = `Block_Sync_Height_${ChainType[this.web3.chain]}`;
+		await this.storage.set(`${key}_${worker}`, blockNumber);
+		await this.redis.client.hSet(key, `worker_${worker}`, blockNumber);
+	}
+
+	private async saveBlockSyncWorkers() {
+		let key = `Block_Sync_Workers_${ChainType[this.web3.chain]}`;
+		await this.storage.set(key, this.workers);
+		await this.redis.set(key, this.workers);
 	}
 
 	async cat() {
+		if (!env.watch_main)
+			return true;
+
 		// await this._Test();
+		await this.saveBlockSyncWorkers();
 
-		var key0 = `WatchBlock_Cat_0_${ChainType[this._web3.chain]}_${this._name}`;
-		var key = `WatchBlock_Cat_${this._worker}_${ChainType[this._web3.chain]}_${this._name}`;
+		let web3 = this.web3;
+		let chain = web3.chain;
+		let key = (worker: number)=> `Block_Sync_Height_${ChainType[chain]}_${worker}`;
 
-		var key0_height = await storage.get<number>(key0) || await this._web3.getBlockNumber();
-
-		var blockNumber = await storage.get(key, Math.max(0, key0_height - this._workers));
-
-		this._blockNumber = blockNumber;
-		var delay = this._web3.chain == ChainType.BSN || this._web3.chain == ChainType.MATIC ? 2: 0;
-		var blockNumberCur = await this._web3.getBlockNumber() - delay; // 延迟查询块
+		let blockNumber = await this.storage.get<number>(key(this.worker)) || 0;
+		if (!blockNumber) {
+			for (let i = 0; i < this.workers; i++) {
+				let num = await this.storage.get<number>(key(i));
+				if (num) {
+					blockNumber = blockNumber ? Math.min(blockNumber, num): num;
+				}
+			}
+		}
 
 		try {
-			while (this._blockNumber <= blockNumberCur) {
-				if (this._blockNumber % this._workers === this._worker) {
-					await this._watch(this._blockNumber);
-					await storage.set(key, this._blockNumber + 1);
-					broadcastWatchBlock(this._worker, this._blockNumber + 1, this._web3.chain);
+			// let delay = chain == ChainType.BSN || chain == ChainType.MATIC ? 2: 0;
+			let blockNumberCur = await web3.getBlockNumber();// - delay; // 延迟查询块
+
+			while (++blockNumber <= blockNumberCur) {
+				if (blockNumber % this.workers === this.worker) {
+					await this.solveBlock(blockNumber);
+					await this.saveBlockSyncHeight(blockNumber, this.worker); // complete save
+					postWatchBlock(this.worker, blockNumber, web3.chain);
 				}
-				this._blockNumber++;
 			}
 		} catch (err: any) {
-			await storage.set(key, this._blockNumber - 1);
-			if (isRpcLimitRequestAccount(this._web3, err)) {
-				this._web3.swatchRpc();
-				throw err;
+			if (isRpcLimitRequestAccount(web3, err)) {
+				web3.swatchRpc();
 			}
-			console.error('WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
+			console.error('#WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
 		}
 
 		return true;

@@ -3,13 +3,13 @@ import somes from 'somes';
 import auth, {Cache,User,AuthorizationManager,AuthorizationKeyType,AuthorizationMode} from 'bclib/auth';
 import errno from './errno';
 import {Notification} from 'somes/event';
-import * as redis from 'bclib/redis';
+import redis, {RedisClientType} from 'bclib/redis';
 
 export * from 'bclib/auth';
 
 class AuthCache implements Cache {
-	private _redis: redis.Redis;
-	constructor(redis: redis.Redis) {
+	private _redis: RedisClientType;
+	constructor(redis: RedisClientType) {
 		this._redis = redis;
 	}
 	async get(name: string): Promise<User | null> {
@@ -46,7 +46,7 @@ class Manager extends AuthorizationManager {
 
 	async initialize(msg?: Notification) {
 		await super.initialize(msg);
-		this.setCache(new AuthCache(redis.redis));
+		this.setCache(new AuthCache(redis.client));
 	}
 
 	async register(name: string, pkey: string, ref?: string) {

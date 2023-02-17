@@ -5,46 +5,51 @@
 
 import somes from 'somes';
 import {ContractScaner,ContractUnknown} from './scaner';
-import {ContractType, ChainType, ContractInfo } from '../models/def';
+import {ContractType, ChainType, ContractInfo } from '../models/define';
 import {DAO} from './dao';
-import {AssetERC721} from './erc721';
+import {AssetERC721} from './asset';
 import {Ledger} from './ledger';
 import {Member} from './member';
 import {VotePool} from './vote_pool';
+import {DAOs} from './daos';
+import {DatabaseCRUD} from 'somes/db';
 
 export * from './scaner';
 
-export function makeFrom(info: ContractInfo, chain: ChainType) {
-	return make(info.address, info.type, chain);
+export function makeFrom(info: ContractInfo, chain: ChainType, db?: DatabaseCRUD) {
+	return make(info.address, info.type, chain, db);
 }
 
-export default function make(address: string, type: ContractType, chain: ChainType): ContractScaner {
+export default function make(address: string, type: ContractType, chain: ChainType, db?: DatabaseCRUD): ContractScaner {
 	var cs: ContractScaner;
 	somes.assert(chain, 'scaner#make chain Invalid');
 
 	if (type == ContractType.DAO) {
-		cs = new DAO(address, type, chain);
+		cs = new DAO(address, type, chain, db);
 	}
 	else if (type == ContractType.ERC721) { // 721
-		cs = new AssetERC721(address, type, chain);
+		cs = new AssetERC721(address, type, chain, db);
 	}
 	else if (type == ContractType.Asset) { // 721
-		cs = new AssetERC721(address, type, chain);
+		cs = new AssetERC721(address, type, chain, db);
 	}
 	else if (type == ContractType.AssetShell) { // 721
-		cs = new AssetERC721(address, type, chain);
+		cs = new AssetERC721(address, type, chain, db);
 	}
 	else if (type == ContractType.Ledger) {
-		cs = new Ledger(address, type, chain);
+		cs = new Ledger(address, type, chain, db);
 	}
 	else if (type == ContractType.Member) {
-		cs = new Member(address, type, chain);
+		cs = new Member(address, type, chain, db);
 	}
 	else if (type == ContractType.VotePool) {
-		cs = new VotePool(address, type, chain);
+		cs = new VotePool(address, type, chain, db);
+	}
+	else if (type == ContractType.DAOs) {
+		cs = new DAOs(address, type, chain, db);
 	}
 	else {
-		cs = new ContractUnknown(address, ContractType.Invalid, chain);
+		cs = new ContractUnknown(address, ContractType.Invalid, chain, db);
 	}
 	return cs;
 }

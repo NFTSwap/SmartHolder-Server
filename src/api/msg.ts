@@ -5,9 +5,5 @@
 
 import {WSAPI} from '../api';
 
-export default class Message extends WSAPI {
-	
-	EVENTs() {
-		return ['MakeDAOComplete'];
-	}
+export default class extends WSAPI {
 }

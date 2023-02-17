@@ -11,15 +11,15 @@ import {MysqlTools} from 'somes/mysql';
 import pool from 'somes/mysql/pool';
 import {Charsets} from 'somes/mysql/constants';
 import * as cfg from '../config';
-import {ChainType} from './models/def';
+import {ChainType} from './models/define';
 
-export * from './models/def';
+export * from './models/define';
 
 export const storage = new Storage();
 
 // "animation_url": "https://storage.opensea.io/files/059b00a2e3443f5579742e8ae5392b9d.mp4"
 
-export const main_db: DatabaseTools = cfg.mysql ? new MysqlTools(cfg.mysql as any): new sqlite.SQLiteTools(`${paths.var}/shs.db`);
+export const main_db: DatabaseTools = cfg.mysql ? new MysqlTools(cfg.mysql): new sqlite.SQLiteTools(`${paths.var}/shs.db`);
 export const local_db: DatabaseTools = new sqlite.SQLiteTools(`${paths.var}/mvp-ser-local.db`); // local db
 
 if (pool) {
@@ -34,27 +34,31 @@ async function load_main_db() {
 
 			create table if not exists dao_${chain} (
 				id           int primary key auto_increment,
-				host         varchar (64)                       not null, -- dao host or self address
-				address      varchar (64)                       not null,
+				host         varchar (42)                       not null, -- dao host or self address
+				address      varchar (42)                       not null,
 				name         varchar (64)                       not null,
 				mission      varchar (1024)                     not null,
 				description  varchar (1024)                     not null,
-				root         varchar (64)                       not null,
-				operator     varchar (64)                       not null,
-				member       varchar (64)                       not null,
-				ledger       varchar (64)                       not null,
-				openseaFirst  varchar (64)                      not null,
-				openseaSecond varchar (64)                      not null,
-				asset        varchar (64)                       not null,
+				root         varchar (42)                       not null,
+				operator     varchar (42)                       not null,
+				executor     varchar (66)        default ('')   not null,
+				member       varchar (42)                       not null,
+				ledger       varchar (42)                       not null,
+				first        varchar (42)                       not null, -- opensea first
+				second       varchar (42)                       not null, -- opensea second
+				asset        varchar (42)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
 				assetIssuanceTax    int          default (0)    not null,
 				assetCirculationTax int          default (0)    not null,
-				defaultVotePassRate int          default (0)    not null,
 				defaultVoteTime     bigint       default (0)    not null,
 				memberBaseName      varchar (32) default ('')   not null,
-				memberTotalLimit    int          default (0)    not null
+				memberTotalLimit    int          default (0)    not null,
+				likes               int          default (0)    not null,
+				members             int          default (0)    not null,
+				createdBy           varchar (42) default ('')   not null,
+				image               varchar (512) default ('')  not null
 			);
 
 			create table if not exists member_${chain} (
@@ -62,15 +66,14 @@ async function load_main_db() {
 				host         varchar (64)               not null, -- dao host
 				token        varchar (64)               not null, -- address
 				tokenId      varchar (72)               not null, -- id
-				uri          varchar (512)              not null, -- uri
 				owner        varchar (64)               not null, -- owner address
 				name         varchar (64)               not null, -- member name
 				description  varchar (512)              not null, -- member description
-				avatar       varchar (512)              not null, -- member head portrait
-				role         int           default (0)  not null, -- default 0
+				image        varchar (512)              not null, -- member head portrait
 				votes        int           default (0)  not null, -- default > 0
 				time         bigint                     not null,
-				modify       bigint                     not null
+				modify       bigint                     not null,
+				permissions  json                           null
 			);
 
 			create table if not exists asset_${chain} (
@@ -82,6 +85,7 @@ async function load_main_db() {
 				author       varchar (64)  default ('') not null, -- 作者地址
 				selling      int           default (0)  not null, -- 销售类型: 0未销售,1其它平台,2销售opensea
 				sellPrice    varchar (72)  default ('') not null, -- 销售价格
+				minimumPrice varchar (72)  default ('') not null, -- 最小销售价格
 				state        int           default (0)  not null, -- 状态: 0正常,1删除
 				time         bigint                     not null, -- 数据入库时间
 				modify       bigint                     not null, -- 修改时间（非链上数据修改）
@@ -92,11 +96,12 @@ async function load_main_db() {
 				externalLink           varchar (512)  default ('') not null,  -- 外部链接
 				properties             json                            null,  -- 附加信息
 				blockNumber            int            default (0)  not null,  -- 创建区块号
-				created_member_id      varchar (72)   default ('') not null,  -- 创建人成员id
 				backgroundColor        varchar (32)   default ('') not null,  -- 背景
 				categorie              int            default (0)  not null,  -- 类别
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
-				retryTime              bigint         default (0)  not null   -- 抓取数据最后重试时间
+				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
+				sellingTime            bigint         default (0)  not null,  -- 最后上架销售时间
+				soldTime               bigint         default (0)  not null   -- 最后售出时间
 			);
 
 			create table if not exists asset_json_${chain} (
@@ -104,8 +109,8 @@ async function load_main_db() {
 				asset_id               int    not null,
 				json_data              json       null
 			);
-	
-			create table if not exists asset_order_${chain} (      -- 资产订单 asset from -> to
+
+			create table if not exists asset_order_${chain} (           -- 资产订单 asset from -> to
 				id           int    primary key auto_increment not null,
 				txHash       char    (72)                      not null,  -- tx hash
 				blockNumber  int                               not null,
@@ -142,6 +147,7 @@ async function load_main_db() {
 				tokenId      char    (66)                 not null, -- 原始资产id
 				source       varchar (64)                 not null, -- 进账来源
 				balance      varchar (72)                 not null, -- 金额
+				price        varchar (72)                 not null, -- 成交价格
 				toAddress    varchar (64)                 not null, -- 资产转移目标地址
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
@@ -167,8 +173,9 @@ async function load_main_db() {
 				name         varchar (64)                 not null, -- 提案名称
 				description  varchar (1024)               not null, -- 提案描述
 				origin       varchar (64)                 not null, -- 发起人
-				target       varchar (64)                 not null, -- 执行目标合约地址
-				data         text                         not null, -- 执行参数数据
+				originId     varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
+				target       json                             null, -- 目标合约,决议执行合约地址列表
+				data         json                             null, -- 调用方法与实参列表
 				lifespan     bigint                       not null, -- 投票生命周期(minutes)
 				expiry       bigint                       not null, -- 过期时间（区块链时间单位）
 				passRate     int                          not null, -- 通过率不小于全体票数50% (0-10000)
@@ -195,49 +202,107 @@ async function load_main_db() {
 				blockNumber  int                          not null
 			);
 
-			create table if not exists contract_info_${chain} (
+			create table if not exists contract_info_${chain} (   -- 索引人监控数据源
 				id           int primary key auto_increment,
-				host         varchar (64)    default ('') not null,
-				address      varchar (64)                 not null,
+				host         char (42)                 not null,
+				address      char (42)                 not null,
 				type         int             default (0)  not null, -- contracts type
-				blockNumber  int                          not null,
+				blockNumber  int                          not null, -- init height
 				abi          text,                                  -- 协约abi json,为空时使用默认值
-				state        int             default (0) not null, -- 状态: 0启用, 1禁用
-				time         bigint                      not null  --
+				state        int             default (0)  not null, -- 状态: 0启用, 1禁用
+				time         bigint                       not null,  --
+				indexer_id   int             default (0)  not null
+			);
+
+			create table if not exists indexer_${chain} (   -- 索引人
+				id           int primary key auto_increment,
+				hash         varchar (66)                 not null,
+				watchHeight  int             default (0)  not null,
+				state        int             default (0)  not null
+			);
+
+			create table if not exists transaction_${chain} (
+				id                int primary key auto_increment,
+				nonce             int                          not null,
+				blockNumber       int                          not null, -- input
+				fromAddress       char (42)                    not null,
+				toAddress         char (42)                    not null,
+				value             varchar (66)                 not null,
+				gasPrice          varchar (66)                 not null,
+				gas               varchar (66)                 not null, -- gas limit
+				-- data              text                             null, -- input data hex format
+				blockHash         char (66)                    not null, -- receipt
+				transactionHash   char (66)                    not null,
+				transactionIndex  int                          not null,
+				gasUsed           varchar (66)                 not null, -- use gasd
+				cumulativeGasUsed varchar (66)                 not null,
+				effectiveGasPrice varchar (66)                 not null,
+				-- logsBloom         varchar (514)                not null,
+				contractAddress   char (42)                        null, -- created contract address
+				status            bit                          not null,
+				logsCount         int                          not null, -- logs count
+				time              bigint         default (0)   not null
+			);
+
+			create table if not exists transaction_log_${chain} (
+				id                int primary key auto_increment,
+				tx_id             int                          not null,
+				address           char (42)                    not null,
+				topic0            varchar (66)                 not null,
+				topic1            varchar (66)  default ('')   not null,
+				topic2            varchar (66)  default ('')   not null,
+				topic3            varchar (66)  default ('')   not null,
+				data              text                         null,
+				logIndex          int                          not null,
+				transactionIndex  int                          not null,
+				transactionHash   char (66)                    not null,
+				blockHash         char (66)                    not null,
+				blockNumber       int                          not null
 			);
 
 		`, [
 			// dao
 			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
 			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
-			`alter table dao_${chain}  add defaultVotePassRate   int          default (0)  not null`, // 
 			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
-			`alter table dao_${chain}  add openseaFirst          varchar (64) default ('')  not null`,
-			`alter table dao_${chain}  add openseaSecond         varchar (64) default ('')  not null`,
+			`alter table dao_${chain}  add first                 varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
+			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
+			`alter table dao_${chain}  add members               int          default (0)   not null`,
+			`alter table dao_${chain}  add createdBy             varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add image                 varchar (512) default ('') not null`,
 			// asset
-			`alter table asset_${chain} add name                 varchar (256)  default ('') not null  -- 名称`,
-			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null  -- origin image uri`,
-			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null  -- origin media uri`,
-			`alter table asset_${chain} add description          varchar (2048) default ('') not null  -- 详细信息`,
-			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null  -- 外部链接`,
-			`alter table asset_${chain} add properties           json                            null  -- 附加信息`,
-			`alter table asset_${chain} add blockNumber          int            default (0)  not null  -- 创建区块号`,
-			`alter table asset_${chain} add created_member_id    varchar (72)   default ('') not null  -- 创建人成员id`,
-			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null  -- 背景`,
-			`alter table asset_${chain} add categorie            int            default (0)  not null  -- 类别`,
-			`alter table asset_${chain} add retry                int            default (0)  not null  -- 抓取数据重试次数, sync uri data retry count`,
-			`alter table asset_${chain} add retryTime            bigint         default (0)  not null  -- 抓取数据最后重试时间`,
+			`alter table asset_${chain} add name                 varchar (256)  default ('') not null`, //  -- 名称
+			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null`, //  -- origin image uri
+			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null`, //  -- origin media uri
+			`alter table asset_${chain} add description          varchar (2048) default ('') not null`, //  -- 详细信息
+			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null`, //  -- 外部链接
+			`alter table asset_${chain} add properties           json                            null`, //  -- 附加信息
+			`alter table asset_${chain} add blockNumber          int            default (0)  not null`, //  -- 创建区块号
+			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null`, //  -- 背景
+			`alter table asset_${chain} add categorie            int            default (0)  not null`, //  -- 类别
+			`alter table asset_${chain} add retry                int            default (0)  not null`, //  -- 抓取数据重试次数, sync uri data retry count
+			`alter table asset_${chain} add retryTime            bigint         default (0)  not null`, //  -- 抓取数据最后重试时间
+			`alter table asset_${chain} add minimumPrice         varchar (72)   default ('') not null`, //  -- 最小销售价格
+			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
+			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
+			// transaction
+			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
+			// contract_info
+			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
 			`create         index dao_${chain}_idx1              on dao_${chain}                    (name)`,
 			`create         index dao_${chain}_idx2              on dao_${chain}                    (asset)`,
-			`create         index dao_${chain}_idx3              on dao_${chain}                    (openseaFirst)`,
-			`create         index dao_${chain}_idx4              on dao_${chain}                    (openseaSecond)`,
+			`create         index dao_${chain}_idx3              on dao_${chain}                    (first)`,
+			`create         index dao_${chain}_idx4              on dao_${chain}                    (second)`,
+			`create         index dao_${chain}_idx5              on dao_${chain}                    (createdBy)`,
 			// member
 			`create         index member_${chain}_idx1           on member_${chain}                 (token)`,
 			`create unique  index member_${chain}_idx2           on member_${chain}                 (token,tokenId)`,
@@ -279,21 +344,32 @@ async function load_main_db() {
 			`create         index votes_${chain}_idx2            on votes_${chain}                  (address,member_id)`,
 			// contract_info
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
+			`create         index contract_info_${chain}_1       on contract_info_${chain}          (indexer_id)`,
+			// indexer
+			`create unique  index indexer_${chain}_0             on indexer_${chain}                (hash)`,
+			// transaction
+			`create unique  index transaction_${chain}_0         on transaction_${chain}            (transactionHash)`,
+			`create         index transaction_${chain}_1         on transaction_${chain}            (blockHash)`,
+			`create         index transaction_${chain}_2         on transaction_${chain}            (blockNumber)`,
+			`create         index transaction_${chain}_3         on transaction_${chain}            (blockNumber,fromAddress)`,
+			`create         index transaction_${chain}_4         on transaction_${chain}            (blockNumber,toAddress)`,
+			`create         index transaction_${chain}_5         on transaction_${chain}            (fromAddress)`,
+			`create         index transaction_${chain}_6         on transaction_${chain}            (toAddress)`,
+			//transaction_log
+			`create unique  index transaction_log_${chain}_0     on transaction_log_${chain}        (transactionHash,logIndex)`,
+			`create         index transaction_log_${chain}_1     on transaction_log_${chain}        (transactionHash)`,
+			`create         index transaction_log_${chain}_2     on transaction_log_${chain}        (blockNumber)`,
+			`create         index transaction_log_${chain}_3     on transaction_log_${chain}        (blockNumber,address)`,
+			`create         index transaction_log_${chain}_4     on transaction_log_${chain}        (address)`,
+			`create         index transaction_log_${chain}_5     on transaction_log_${chain}        (address,topic0)`,
+			`create         index transaction_log_${chain}_6     on transaction_log_${chain}        (address,topic0,topic1)`,
+			`create         index transaction_log_${chain}_7     on transaction_log_${chain}        (address,topic0,topic1,topic2)`,
+			`create         index transaction_log_${chain}_8     on transaction_log_${chain}        (address,topic0,topic1,topic2,topic3)`,
+			`create         index transaction_log_${chain}_9     on transaction_log_${chain}        (tx_id)`,
 		], `shs_${chain}`);
 	}
 
 	await main_db.load(`
-		create table if not exists tasks (
-			id           int primary        key auto_increment, -- 主键id
-			name         varchar (64)                 not null, -- 任务名称, MekeDAO#Name
-			args         json,                                  -- 执行参数数据
-			data         json,                                  -- 成功或失败的数据 {data, error}
-			step         int          default (0)     not null, -- 当前执行步骤
-			stepTime     bigint       default (0)     not null, -- 当前执行步骤的超时时间,可用于执行超时检查
-			user         varchar (64) default ('')    not null, -- 与用户的关联,完成后可以通知到客户端
-			state        int          default (0)     not null, -- 0进行中,1完成,2失败
-			time         bigint                       not null
-		);
 		create table if not exists events (
 			id                   int primary        key auto_increment, -- 主键id
 			host                 varchar (64)                 not null, -- dao host or self address
@@ -305,13 +381,34 @@ async function load_main_db() {
 			time                 bigint                       not null,
 			modify               bigint                       not null
 		);
+
+		create table if not exists user (
+			id                int primary key,
+			nickname          varchar (24)                 not null,
+			description       varchar (512)                not null,
+			image             varchar (512)                not null,
+			likes             int           default (0)    not null,
+			address           varchar (42)  default ('')   not null,  -- wallet address
+			time              bigint                       not null,
+			modify            bigint                       not null
+		);
+
+		create table if not exists user_like_dao (
+			id                int primary key auto_increment,
+			user_id           int                          not null,
+			dao_id            int                          not null,
+			chain             int                          not null,
+			state             int           default (0)    not null, -- 0正常,1删除
+			time              bigint                       not null
+		);
+
 		`, [], [
-		`create         index tasks_idx0    on    tasks          (name,state)`,
-		`create         index tasks_idx1    on    tasks          (name)`,
-		`create         index tasks_idx2    on    tasks          (state)`,
-		`create         index tasks_idx3    on    tasks          (user)`,
-		`create         index events_idx0    on   events         (chain,host,title)`,
-	], `shs`);
+		// events
+		`create         index events_idx0         on   events           (chain,host,title)`,
+		// like_user_dao
+		`create unique  index user_like_dao_0     on   user_like_dao    (user_id,dao_id,chain)`,
+		`create         index user_like_dao_1     on   user_like_dao    (user_id)`,
+	], `shs_0`);
 }
 
 export async function initialize() {

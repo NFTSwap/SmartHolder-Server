@@ -1,5 +1,5 @@
 
-import {ChainType} from '../src/models/def';
+import {ChainType} from '../src/models/define';
 import {web3s} from '../src/web3+';
 // import * as DAO from '../abi/DAO.json';
 

@@ -6,6 +6,8 @@
 import {RuleResult} from 'somes/router';
 import ApiController from '../api';
 import auth from '../auth';
+import * as user from '../models/user';
+import {User,ChainType} from '../models/define';
 
 const non_auth_apis = [
 	'authUser',
@@ -30,8 +32,33 @@ export default class extends ApiController {
 		return auth.register(opts.name, opts.pkey || (opts as any).key, opts.ref);
 	}
 
-	setUser(opts: {pkey?: string, key2?: string, ref?: string}) {
+	setAuthUser(opts: {pkey?: string, key2?: string, ref?: string}) {
 		return auth.setAuthorizationUserNoCheck(this.userName, opts);
+	}
+	
+	async getUser() {
+		let auth = await this.userNotErr();
+		return await user.getUser(auth?.id);
+	}
+
+	async setUser(opts: Partial<User>) {
+		let auth = await this.user();
+		await user.setUser(auth.id, opts);
+	}
+
+	async addLikeDAO({dao,chain}:{dao: number, chain: ChainType}) {
+		let auth = await this.user();
+		await user.addLikeDAO(auth.id, dao, chain);
+	}
+
+	async deleteLikeDAO({dao,chain}:{dao: number, chain: ChainType}) {
+		let auth = await this.user();
+		await user.deleteLikeDAO(auth.id, dao, chain);
+	}
+
+	async getUserLikeDAOs({chain}: {chain?: ChainType}) {
+		let auth = await this.user();
+		return await user.getUserLikeDAOs(auth.id, chain);
 	}
 
 }

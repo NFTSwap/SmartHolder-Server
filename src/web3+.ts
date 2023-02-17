@@ -2,11 +2,11 @@
 import bcweb3, {BcWeb3} from 'bclib/web3+';
 import {Web3,Contract,MPSwitchMode,MultipleProvider,BaseProvider,JsonRpcResponse} from 'web3-tx';
 import * as abi from 'bclib/abi';
-import {ContractType,ChainType} from './models/def';
+import {ContractType,ChainType} from './models/define';
 import * as cfg from '../config';
 import somes from 'somes';
 import {AbiInterface} from 'bclib/abi';
-import {getContractInfo} from './models/contract';
+import * as contract from './models/contract';
 import {WatchCat} from 'bclib/watch';
 import { env } from './env';
 
@@ -25,15 +25,15 @@ abi.setSaveAbiToLocal(false);
 abi.FetchAbiFunList.pop(); // delete default fetch fun
 
 abi.FetchAbiFunList.push(async (addr, chain)=>{
-	somes.assert(addr, 'fetchAbiFunList address Cannot be empty');
-	var info = await getContractInfo(addr, chain);
+	somes.assert(addr, '#shs#web3+#FetchAbiFunList fetchAbiFunList address Cannot be empty');
+	var info = await contract.select(addr, chain);
 
 	if (info && info.abi) {
 		try {
 			var abi: abi.AbiInterface = { address: addr, abi: JSON.parse(info.abi) };
 			return abi;
 		} catch(err:any) {
-			console.warn('mvp-ser#web3+#FetchAbiFunList', err.message);
+			console.warn('#shs#web3+#FetchAbiFunList', err.message);
 		}
 	}
 	// use default abi
@@ -45,6 +45,10 @@ abi.FetchAbiFunList.push(async (addr, chain)=>{
 		}
 	}
 });
+
+export function isZeroAddress(addr: string) {
+	return addr == '0x0000000000000000000000000000000000000000';
+}
 
 export function getAbiByType(type: ContractType) {
 	return abi.getLocalAbi(`${__dirname}/../abi/${ContractType[type]}.json`);
@@ -121,6 +125,16 @@ export class MvpWeb3 extends BcWeb3 {
 
 	constructor(chain: ChainType, _cfg: string[] | string) {
 		super(chain);
+
+		_cfg = typeof _cfg == 'string' ? [_cfg]: _cfg;
+
+		for (let i = 0; i < _cfg.length; i++) {
+			let j = somes.random(0, _cfg.length - 1);
+			let a = _cfg[i];
+			_cfg[i] = _cfg[j]; // swap
+			_cfg[j] = a;
+		}
+		
 		var chain_str = ChainType[chain];
 		this.chain = chain;
 		this.mode = (chain_str in cfg.web3Mode) ?
@@ -182,9 +196,9 @@ export class MvpWeb3 extends BcWeb3 {
 				await somes.timeout(this.eth.getBlockNumber(), 1e4); // 10s
 				// await this.hasSupportGetTransactionReceiptsByBlock();
 			} catch(err: any) { // fault
-				if (isRpcLimitRequestAccount(this, err)) { // Restrict access
-					this.swatchRpc();
-				}
+				//if (isRpcLimitRequestAccount(this, err)) { // Restrict access
+				this.swatchRpc();
+				//}
 			}
 		} else { // SINGLE
 			try {

@@ -1,19 +1,23 @@
 
 var base = require('./util/base');
 var rpc = require('./util/rpc');
-var impl = require('./util/impl');
 
 module.exports = {
 	...base,
 	web3s: {
-		RINKEBY: rpc.RINKEBY,
+		GOERLI: rpc.GOERLI.slice(1), // skip local
+		ETHEREUM: rpc.ETHEREUM.slice(1,2), // only use local
 	},
-	contractImpls: impl,
-	tx_api: 'http://127.0.0.1:8002/service-api',
-	mbus: 'mqtt://192.168.0.189:1883',
-	mbus_auth: 'nft_mqtt_dev:inmyshowD3', // user:password
-	env: 'dev',
+	root: '/data/apps/smart-dao/smart-dao',
+	publicURL: 'https://dao.smartholder.jp',
+	mbus: 'mqtt://172.16.3.114:1883',
+	mbus_auth: '', // user:password
+	mbus_topic: 'shs_default_prod',
+	enable_auth: true,
+	env: 'dev', // dev|prod
 	mysql: {
-		host: '192.168.0.189', port: 3306, user: 'root', password: 'uzBGtlhlHnAQFtxdKj*Z', database: 'mvp', // dev inner
+		host: '172.16.2.46', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao',
 	},
+	redis: 'redis://172.16.3.114:6379/1', // redis cfg
+	atomicLock: 'http://172.16.3.114:9802', // atomic lock service
 };

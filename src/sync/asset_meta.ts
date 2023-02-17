@@ -14,7 +14,7 @@ import {AssetSyncQueue} from './queue';
 import * as utils from '../utils';
 import errno from '../errno';
 import make from './mk_scaner';
-import {AssetERC721} from './erc721';
+import {AssetERC721} from './asset';
 import sync from '.';
 import {WatchCat} from 'bclib/watch';
 import {web3s} from '../web3+';
@@ -146,10 +146,6 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		return uri;
 	}
 
-	async isCanDequeue() {
-		return true;
-	}
-
 	private async _SyncFromData(data: any, asset: Asset, chain: ChainType, _uri: string) {
 		const {id, token, tokenId, uri} = asset;
 
@@ -279,8 +275,8 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 
 	async fetchFrom(asset: Asset, chain: ChainType, force?: boolean) {
 		var {id, token, uri, mediaOrigin} = asset;
-		if (await this.isQueue(id, chain))
-			return;
+		// if (await this.isQueue(id, chain))
+			// return;
 		if (force || !uri || !mediaOrigin) {
 			await this.enqueue(id, token, chain);
 		}
@@ -300,7 +296,7 @@ export class AssetMetaDataUpdate implements WatchCat {
 	async cat() {
 
 		for (let k of Object.keys(web3s)) {
-			let chain = Number(k) as unknown as ChainType;
+			let chain = Number(k) as ChainType;
 			let day = 10*24*3600*1e3; // 10天扫描一次数据
 			let offset = await storage.get(`NFTAssetDataSync_Offset_${chain}`, 0) as number;
 			if (offset === 0) {

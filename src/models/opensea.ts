@@ -8,7 +8,7 @@ import web3s from '../web3+';
 import db, { ChainType, Selling, DAO,SaleType } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from "seaport-smart/constants";
+import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from 'seaport-smart/constants';
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -20,8 +20,9 @@ import errno from '../errno';
 import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
+import {DatabaseCRUD} from 'somes/db';
 
 export {OrderComponents};
 
@@ -381,15 +382,29 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 }
 
-export async function maskOrderSelling(chain: ChainType, token: string, tokenId: string, selling: Selling = Selling.UnsellOrUnknown, sellPrice = '') {
+export async function maskOrderSelling(
+	chain: ChainType, token: string, tokenId: string,
+	selling: Selling, sellPrice = '', sold = false, db_?: DatabaseCRUD
+) {
 	let id = formatHex(tokenId, 32);
-	let num = await db.update(`asset_${chain}`, { selling: selling, sellPrice }, { token, tokenId: id });
-	// somes.assert(num == 1);
+	let data: Dict = {selling};
+	if (selling !== Selling.UnsellOrUnknown) {
+		data.sellingTime = Date.now();
+		if (sellPrice)
+			data.sellPrice = sellPrice;
+	}
+	else if (selling === Selling.UnsellOrUnknown && sold)
+		data.soldTime = Date.now();
+	await (db_||db).update(`asset_${chain}`, data, { token, tokenId: id });
 	// console.log('maskOrderSelling', num, token, id);
 }
 
-export async function maskOrderClose(chain: ChainType, token: string, tokenId: string) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '');
+export async function maskOrderClose(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', false, db_);
+}
+
+export async function maskOrderSold(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
+	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', true, db_);
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
@@ -477,8 +492,8 @@ function getOpenseaContractJSONFromDAO(dao?: DAO | null, type?: SaleType, addres
 		external_link: cfg.publicURL, // "external-link-url",
 		seller_fee_basis_points: Number(type == 1 ? dao.assetIssuanceTax: dao.assetCirculationTax) || 1000,// 1000 # Indicates a 10% seller fee.
 		fee_recipient: address ? address: // # Where seller fees will be paid to.
-			type == 1 ? dao.openseaFirst: 
-			type == 2 ? dao.openseaSecond: dao.ledger,
+			type == 1 ? dao.first: 
+			type == 2 ? dao.second: dao.ledger,
 	};
 }
 
@@ -498,11 +513,11 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType, ty
 export async function getOpenseaContractJSONFromToken(asset: string, chain: ChainType) {
 	let dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaFirst: asset });
 	if (dao) {
-		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaFirst);
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kFirst);
 	}
 	dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaSecond: asset });
 	if (dao) {
-		return getOpenseaContractJSONFromDAO(dao, SaleType.kOpenseaSecond);
+		return getOpenseaContractJSONFromDAO(dao, SaleType.kSecond);
 	}
 	return null;
 }

@@ -4,4 +4,5 @@ export * from 'bclib/env';
 
 const ENV = process.env;
 
-export const sync_main    = 'WATCH_SYNC_MAIN'    in ENV ? !!(Number(ENV.WATCH_SYNC_MAIN)    || 0): !!cfg.sync_main;
+export const watch_main    = 'WATCH_MAIN'      in ENV ? !!(Number(ENV.WATCH_MAIN)     || 0): !!cfg.watch_main;
+export const watch_indexer = 'WATCH_INDEXER'   in ENV ? !!(Number(ENV.WATCH_INDEXER)  || 0): !!cfg.watch_indexer;

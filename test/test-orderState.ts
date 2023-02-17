@@ -1,5 +1,5 @@
 
-import {ChainType} from '../src/models/def';
+import {ChainType} from '../src/models/define';
 import {getOrderState,getOrder} from '../src/models/opensea';
 
 export default async function() {

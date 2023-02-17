@@ -4,52 +4,22 @@
  */
 
 import bus from 'bclib/message';
-import {ChainType} from './models/def';
-import {disableWeb} from './env';
-import server from './server';
-import { WSAPI } from './api';
-import db, {Tasks} from './db';
+import {ChainType} from './models/define';
 
-export enum Events {
-	WatchBlock = 'WatchBlock',
-	TaskComplete = 'TaskComplete',
+export const EventWatchBlock = 'WatchBlock';
+export const EventNewIndexer = 'NewIndexer';
+export const EventIndexerNextBlock = 'IndexerNextBlock';
+
+export function postWatchBlock(worker: number, blockNumber: number, chain: ChainType) {
+	bus.post(EventWatchBlock, { worker, blockNumber, chain });
 }
 
-export function broadcastWatchBlock(worker: number, blockNumber: number, chain: ChainType) {
-	bus.post(Events.WatchBlock, { worker, blockNumber, chain });
+export function postNewIndexer(chain: ChainType, indexer_id: number) {
+	bus.post(EventNewIndexer, { chain, indexer_id });
 }
 
-export function broadcastTaskComplete(task_id: number) {
-	bus.post(Events.TaskComplete, { task_id });
+export function postIndexerNextBlock(chain: ChainType, indexer_id: number, hash: string, blockNumber: number ) {
+	bus.post(EventIndexerNextBlock, { chain, indexer_id, hash, blockNumber });
 }
-
-if (!disableWeb) {
-
-	bus.addEventListener(Events.TaskComplete, async function(e) {
-		let {task_id} = e.data as { task_id: number };
-		let tasks = await db.selectOne<Tasks>(`tasks`, {id: task_id});
-		if (!tasks || !tasks.user) return;
-		if (!server.isRun) return;
-
-		let [event] = tasks.name.split('#');
-
-		// publish to websocket client
-		for (var conv of server.wsConversations) {
-			var msg = conv.handles['msg'] as WSAPI;
-			if (msg) {
-				var user = await msg.userNotErr();
-				if (user && user.name == tasks.user) {
-					 // send to websocket user client
-					msg.trigger(`${event}Complete`, {
-						state: tasks.state, task: tasks, data: tasks.data, ok: tasks.state == 1
-					});
-					break;
-				}
-			}
-		}
-	});
-
-}
-
 
 export default bus;

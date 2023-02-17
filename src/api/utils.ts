@@ -4,16 +4,18 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling,LedgerType,SaleType } from '../db';
+import { ChainType, State,Selling,LedgerType,TokenURIInfo } from '../db';
 import * as utils from '../models/utils';
+import * as dao from '../models/dao';
+import * as asset from '../models/asset';
+import * as events from '../models/events';
+import * as member from '../models/member';
+import * as ledger from '../models/ledger';
+import * as vp from '../models/vote_pool';
 import * as qn from 'bclib/qn';
-import {TokenURIInfo} from '../models/utils';
-import * as opensea from '../models/opensea';
-import { RuleResult } from 'deps/bclib/deps/somes/router';
+import { RuleResult } from 'somes/router';
 
-const non_auth_apis = [
-	'getOpenseaContractJSON', 'printJSON',
-];
+const non_auth_apis = ['printJSON'];
 
 export default class extends ApiController {
 
@@ -23,12 +25,6 @@ export default class extends ApiController {
 		} else {
 			return Promise.resolve(true);
 		}
-	}
-
-	async getOpenseaContractJSON({host, chain, type, first,address}: {host: string, chain?: ChainType, type?: SaleType, first?: SaleType, address?: string}) {
-		let json = await opensea.getOpenseaContractJSON(host, chain, type || first, address);
-		var mine = this.server.getMime('json');
-		this.returnString(JSON.stringify(json), mine);
 	}
 
 	async printJSON(data: any) {
@@ -44,105 +40,128 @@ export default class extends ApiController {
 		this.returnString(JSON.stringify(json), this.server.getMime('json'));
 	}
 
+	// ------------------------ more apis ------------------------
+
 	/**
 	 * @method getDAO() 通过地址获取dao对像
 	 * */ 
 	getDAO({chain,address}: { chain: ChainType, address: string}) {
-		return utils.getDAO(chain,address);
+		return dao.getDAO(chain,address);
 	}
 
 	/**
 	 * @method getDAONoEmpty() 通过地址获取dao对像,如果dao为空会抛出异常
 	 * */ 
 	getDAONoEmpty({chain,address}: { chain: ChainType, address: string}) {
-		return utils.getDAONoEmpty(chain,address);
+		return dao.getDAONoEmpty(chain,address);
 	}
 
 	/**
 	 * @method getDAOsFromOwner() 通过owner钱包地址获取dao列表
 	 * */ 
 	getDAOsFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return utils.getDAOsFromOwner(chain,owner);
+		return dao.getDAOsFromOwner(chain,owner);
 	}
 
 	/**
 	 * @method getMembersFrom() 通过dao地址与owner获取dao成员列表
 	 * @param host string dao 地址
 	 * */ 
-	getMembersFrom({chain,host,owner,limit}: { chain: ChainType, host: string, owner?: string, limit?: number | number[]}) {
-		return utils.getMembersFrom(chain,host,owner,limit);
+	async getMembersFrom({chain,host,owner,time,orderBy,limit}: { 
+		chain: ChainType, host: string, owner?: string, time?: number |number[], orderBy?: string, limit?: number | number[]
+	}) {
+		let ms = await member.getMembersFrom(chain,host,owner,time,orderBy,limit);
+		return ms.map(e=>((e as any).avatar=e.image,e)); // Compatible with older versions
 	}
 
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,state,name,time,selling,limit}: {
-		chain: ChainType, host: string, owner?: string, state?: State,
-		name?: string, time?: [number,number], selling?: Selling, limit?: number | number[]
+	getAssetFrom({chain,host,owner,author,state,name,time,selling,orderBy,limit,owner_not,author_not}: {
+		chain: ChainType, host: string, owner?: string, author?: string, 
+		owner_not?: string, author_not?: string, state?: State,
+		name?: string, time?: [number,number], selling?: Selling, orderBy?: string, limit?: number | number[]
 	}) {
-		return utils.getAssetFrom(chain,host,owner,state,name,time,selling,limit);
+		return asset.getAssetFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling,orderBy,limit);
 	}
 
 	/**
 	 * @method setAssetState() 通过token、tokenId、设置资产状态默认为0
 	 * */ 
 	setAssetState({chain,token,tokenId,state}: { chain: ChainType, token: string, tokenId: string, state: State}) {
-		return utils.setAssetState(chain,token,tokenId,state);
+		return asset.setAssetState(chain,token,tokenId,state);
 	}
 
 	/**
 	 * @method getAssetOrderFrom() 通过dao地址与fromAddres地址获订单列表
 	 * */ 
-	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit}: {
+	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit,orderBy}: {
 		chain: ChainType, host: string, fromAddres?: string,
-		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[]
+		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return utils.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,limit);
+		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,orderBy,limit);
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return utils.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
+		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
+	}
+
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling,owner_not,author_not}: {
+		chain: ChainType, host: string, 
+		owner?: string, author?: string, 
+		owner_not?: string, author_not?: string,
+		state?: State, name?: string, time?: [number,number],selling?: Selling
+	}) {
+		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling);
+	}
+
+	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
 	}
 
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,type,time,state,limit}: {
-		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[]
+	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[], orderBy?: string
 	}) {
-		return utils.getLedgerItemsFromHost(chain,host,type,time,state,limit);
+		return ledger.getLedgerItemsFromHost(chain,host,type,time,state,orderBy,limit);
 	}
 
 	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return utils.getLedgerItemsTotalFromHost(chain,host,type,time,state);
+		return ledger.getLedgerItemsTotalFromHost(chain,host,type,time,state);
 	}
 
 	getLedgerTotalAmount({chain,host,type,time,state}: {chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return utils.getLedgerTotalAmount(chain,host,type,time,state);
+		return ledger.getLedgerTotalAmount(chain,host,type,time,state);
 	}
 
 	/**
 	 * @method setLedgerState() 设置财务记录状态
 	 * */ 
 	setLedgerState({chain,id,state}:{chain: ChainType, id: number, state: State}) {
-		return utils.setLedgerState(chain, id, state);
+		return ledger.setLedgerState(chain, id, state);
 	}
 	
 	/**
 	 * @method getVoteProposalFrom() 通过投票合约地址 address、proposal_id（可选） 获投票提案列表
 	 * */ 
-	getVoteProposalFrom({chain,address,proposal_id,limit}: { chain: ChainType, address: string, proposal_id?: string, limit?: number | number[]}) {
-		return utils.getVoteProposalFrom(chain,address,proposal_id,limit);
+	getVoteProposalFrom({chain,address,proposal_id,limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id?: string, limit?: number | number[], orderBy?: string}) {
+		return vp.getVoteProposalFrom(chain,address,proposal_id,orderBy, limit);
 	}
 
 	/**
 	 * @method getVotesFrom() 通过投票合约地址 address、proposal_id、成员id（可选） 获投票信息
 	 * */ 
-	getVotesFrom({chain,address,proposal_id,member_id,limit}: { chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[]}) {
-		return utils.getVotesFrom(chain,address,proposal_id,member_id,limit);
+	getVotesFrom({chain,address,proposal_id,member_id,limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id: string, member_id?: string, limit?: number | number[], orderBy?: string}) {
+		return vp.getVotesFrom(chain,address,proposal_id,member_id,orderBy,limit);
 	}
 
 	/**
@@ -162,54 +181,42 @@ export default class extends ApiController {
 	addEventsItem({chain,host,title,description,created_member_id}: {
 		chain: ChainType, host: string, title: string, description: string, created_member_id: string
 	}) {
-		return utils.addEventsItem(chain,host,title,description,created_member_id);
+		return events.addEventsItem(chain,host,title,description,created_member_id);
 	}
 
 	setEventsItem({id,title,description,state}: {
 		id: number, title?: string, description?: string, state?: State
 	}) {
-		return utils.setEventsItem(id,title,description,state);
+		return events.setEventsItem(id,title,description,state);
 	}
 
 	getEventsItems({chain, host, title, created_member_id, member, time, state, limit}:{
 		chain: ChainType, host: string, title?: string,
 		created_member_id?: string, member?: string, time?: [number, number], state?: State, limit?: number | number[]
 	}) {
-		return utils.getEventsItems(chain, host, title, created_member_id, member, time, state, limit);
+		return events.getEventsItems(chain, host, title, created_member_id, member, time, state, limit);
 	}
 
 	getEventsItemsTotal({chain, host, title, created_member_id,member,time,state}: {
 		chain: ChainType, host: string, title?: string, created_member_id?: string, member?: string, time?: [number, number], state?: State
 	}) {
-		return utils.getEventsItemsTotal(chain, host, title, created_member_id, member, time, state);
+		return events.getEventsItemsTotal(chain, host, title, created_member_id, member, time, state);
 	}
 
 	getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return utils.getDAOsTotalFromOwner(chain,owner);
+		return dao.getDAOsTotalFromOwner(chain,owner);
 	}
 
-	getMembersTotalFrom({chain,host,owner}: { chain: ChainType, host: string, owner?: string}) {
-		return utils.getMembersTotalFrom(chain,host,owner);
-	}
-
-	getAssetTotalFrom({chain,host,owner,state,name,time,selling}: { 
-		chain: ChainType, host: string, owner?: string, state?: State, name?: string, time?: [number,number],selling?: Selling
-	}) {
-		return utils.getAssetTotalFrom(chain,host,owner,state,name,time,selling);
-	}
-
-	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
-		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
-	}) {
-		return utils.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
+	getMembersTotalFrom({chain,host,owner,time}: { chain: ChainType, host: string, owner?: string, time?:number| number[]}) {
+		return member.getMembersTotalFrom(chain,host,owner,time);
 	}
 
 	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {
-		return utils.getVoteProposalTotalFrom(chain,address,proposal_id);
+		return vp.getVoteProposalTotalFrom(chain,address,proposal_id);
 	}
 
 	getVotesTotalFrom({chain,address,proposal_id,member_id}: { chain: ChainType, address: string, proposal_id: string, member_id?: string}) {
-		return utils.getVotesTotalFrom(chain,address,proposal_id,member_id);
+		return vp.getVotesTotalFrom(chain,address,proposal_id,member_id);
 	}
 
 }

@@ -11,6 +11,8 @@ async function start() {
 			await (await import('./run/daemon')).startWeb(workers);
 		} else if (target == 'watch') {
 			await (await import('./run/daemon')).startWatch(workers);
+		} else if (target == 'indexer') {
+			await (await import('./run/daemon')).startIndexer(workers);
 		} else if (target == 'tx') {
 			await (await import('./run/daemon')).startWeb3TxDequeue(workers);
 		}

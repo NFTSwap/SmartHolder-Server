@@ -4,12 +4,15 @@
  */
 
 import db, { ContractInfo, ChainType } from '../db';
-import * as redis from 'bclib/redis';
+import redis from 'bclib/redis';
 
-var isEnableCache = true;
+export let isEnableCache = true;
 
-export function setCache(enable: boolean) {
+export async function setCache(enable: boolean) {
 	isEnableCache = !!enable;
+	if (!isEnableCache) {
+		await redis.fulushAll();
+	}
 }
 
 export async function update(info: Partial<ContractInfo>, address: string, chain: ChainType) {
@@ -26,8 +29,8 @@ export async function insert(info: Partial<ContractInfo>, chain: ChainType) {
 	return id;
 }
 
-export async function getContractInfo(address: string, chain: ChainType): Promise<ContractInfo | null> {
-	if (isEnableCache) {
+export async function select(address: string, chain: ChainType, noCache?: boolean): Promise<ContractInfo | null> {
+	if (isEnableCache && !noCache) {
 		var info = await redis.get<ContractInfo>(`contract_info_${address}_${chain}`);
 		if (!info) {
 			info = await db.selectOne<ContractInfo>(`contract_info_${chain}`, {address});

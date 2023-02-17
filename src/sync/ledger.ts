@@ -3,24 +3,30 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner,formatHex,blockTimeStamp} from './scaner';
-import {EventData} from 'web3-tx';
 import db, {LedgerType,LedgerReleaseLog} from '../db';
+import {formatHex,HandleEventData} from './scaner';
+import {ModuleScaner} from './asset';
+import * as opensea from '../models/opensea';
 
-export class Ledger extends ContractScaner {
+export class Ledger extends ModuleScaner {
 	events = {
-
 		// event Receive(address indexed from, uint256 balance);
 		// event ReleaseLog(address indexed operator, uint256 balance, string log);
 		// event Deposit(address indexed from, uint256 balance, string name, string description);
 		// event Withdraw(address indexed target, uint256 balance, string description);
 		// event Release(uint256 indexed member, address indexed to, uint256 balance);
-		// event AssetIncome(address indexed token, uint256 indexed tokenId, 
-		// 	address indexed source, uint256 balance, address to, IAssetShell.SaleType saleType
+		// event AssetIncome(
+		// 	address indexed token, uint256 indexed tokenId,
+		// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
 		// );
 
+		Change: {
+			handle: (data: HandleEventData)=>this.onChange(data),
+		},
+
 		Receive: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {from,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
@@ -46,7 +52,7 @@ export class Ledger extends ContractScaner {
 						type: type,
 						target: from,
 						balance: formatHex(balance),
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -54,7 +60,8 @@ export class Ledger extends ContractScaner {
 		},
 
 		ReleaseLog: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {operator,balance,log} = e.returnValues;
 				let txHash = e.transactionHash;
 
@@ -72,7 +79,7 @@ export class Ledger extends ContractScaner {
 						operator,
 						balance: formatHex(balance),
 						log,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 						txHash,
 					});
@@ -82,7 +89,8 @@ export class Ledger extends ContractScaner {
 		},
 
 		Deposit: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {from,balance,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
@@ -96,7 +104,7 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						name: name,
 						description: description,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -104,15 +112,20 @@ export class Ledger extends ContractScaner {
 		},
 
 		AssetIncome: {
-			use: async (e: EventData)=>{
+			// event AssetIncome(
+			// 	address indexed token, uint256 indexed tokenId,
+			// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
+			// );
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {token,source,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
-					let time = await blockTimeStamp(this.web3, blockNumber);
 					let balance = formatHex(e.returnValues.balance);
+					let price = formatHex(e.returnValues.price);
 
 					let ledger_id = await db.insert(`ledger_${this.chain}`, {
 						host: await this.host(),
@@ -121,6 +134,7 @@ export class Ledger extends ContractScaner {
 						type: type,
 						target: source,
 						balance,
+						price,
 						name: '',
 						description: '',
 						time,
@@ -128,16 +142,18 @@ export class Ledger extends ContractScaner {
 					});
 
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						ledger_id, token, tokenId, source, balance, toAddress: to, saleType, blockNumber, time
+						ledger_id, token, tokenId, source, balance, price, toAddress: to, saleType, blockNumber, time
 					});
 
 					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
+					await opensea.maskOrderSold(this.chain, token, tokenId, this.db);
 				}
 			},
 		},
 
 		Withdraw: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {target,balance,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
@@ -150,7 +166,7 @@ export class Ledger extends ContractScaner {
 						balance: formatHex(balance),
 						target: target,
 						description: description,
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
@@ -158,11 +174,13 @@ export class Ledger extends ContractScaner {
 		},
 
 		Release: {
-			use: async (e: EventData)=>{
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
 				let {member,to,balance} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Release;
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: member}) ) {
+				let member_id = formatHex(member);
+				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) ) {
 					let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
 
 					await db.insert(`ledger_${this.chain}`, {
@@ -173,13 +191,25 @@ export class Ledger extends ContractScaner {
 						target: to,
 						balance: formatHex(balance),
 						description: log?.log || '',
-						member_id: '0x' + BigInt(member).toString(16),
-						time: await blockTimeStamp(this.web3, e.blockNumber),
+						member_id,
+						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
 				}
 			},
 		},
 	};
+
+	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
+		//await db.update(`dao_${this.chain}`, { description: desc, modify }, { address: this.address });
+	}
+
+	protected async onOperator({blockTime:modify}: HandleEventData, addr: string) {
+		//await db.update(`dao_${this.chain}`, { operator: addr, modify }, { address: this.address });
+	}
+
+	protected async onUpgrade(data: HandleEventData, addr: string) {
+		// noop
+	}
 
 }
