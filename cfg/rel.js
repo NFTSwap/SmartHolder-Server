@@ -8,7 +8,7 @@ module.exports = {
 		GOERLI: rpc.GOERLI.slice(1), // skip local
 		ETHEREUM: rpc.ETHEREUM.slice(1,2), // only use local
 	},
-	root: '/data/apps/smart-dao/smart-dao-new/.next',
+	root: '/data/apps/smart-dao/smart-dao-new/out',
 	publicURL: 'https://dao-rel.smartholder.jp',
 	mbus: 'mqtt://127.0.0.1:1883',
 	mbus_auth: '', // user:password
