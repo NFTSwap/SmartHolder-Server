@@ -61,17 +61,9 @@ export class Sync {
 			_sync.watchBlocks[k] = env.workers ?
 				new WatchBlock(v, env.workers.id, env.workers.workers, useRpc):
 				new WatchBlock(v, 0, 1, useRpc);
-			if (env.watch_main)
+			if (env.watch_main) // watch block
 				addWatch(_sync.watchBlocks[k]);
 			await _sync.watchBlocks[k].initialize();
-		}
-
-		if (env.watch_main) {
-			if (isMainWorker) {
-				addWatch(this.qiniuSync);
-				addWatch(this.assetMetaDataUpdate);
-			}
-			addWatch(this.assetMetaDataSync);
 		}
 
 		if (env.watch_indexer) {
@@ -81,6 +73,11 @@ export class Sync {
 				addWatch(_sync.watchIndexers[k] = run);
 				await run.initialize();
 			}
+			if (isMainWorker) {
+				addWatch(this.qiniuSync);
+				addWatch(this.assetMetaDataUpdate);
+			}
+			addWatch(this.assetMetaDataSync);
 		}
 
 		msg.addEventListener(EventIndexerNextBlock, async (e)=>{
