@@ -10,6 +10,7 @@ import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
 import * as constants from './constants';
 import sync from './index';
+import db_ from '../db';
 
 export abstract class ModuleScaner extends ContractScaner {
 
@@ -62,7 +63,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 	}
 
 	async asset(tokenId: string, blockNumber?: number) {
-		let db = this.db;
+		let db = db_;// || this.db;
 		var token = this.address;
 		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
