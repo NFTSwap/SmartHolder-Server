@@ -66,6 +66,14 @@ export class Sync {
 			await _sync.watchBlocks[k].initialize();
 		}
 
+		if ( env[cfg.watch_meta as 'watch_main' | 'watch_indexer']/* cfg.watch_meta == 'watch_main' && env.watch_main*/) {
+			if (isMainWorker) {
+				addWatch(this.qiniuSync);
+				addWatch(this.assetMetaDataUpdate);
+			}
+			addWatch(this.assetMetaDataSync);
+		}
+
 		if (env.watch_indexer) {
 			for (var [k,v] of Object.entries(web3s)) {
 				let run = env.workers ?
@@ -73,11 +81,6 @@ export class Sync {
 				addWatch(_sync.watchIndexers[k] = run);
 				await run.initialize();
 			}
-			if (isMainWorker) {
-				addWatch(this.qiniuSync);
-				addWatch(this.assetMetaDataUpdate);
-			}
-			addWatch(this.assetMetaDataSync);
 		}
 
 		msg.addEventListener(EventIndexerNextBlock, async (e)=>{
