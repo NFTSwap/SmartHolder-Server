@@ -31,4 +31,8 @@ export default class extends ApiController {
 		return dao.getDAOsTotalFromCreatedBy(chain,owner);
 	}
 
+	getDAOsAddress({chain}: { chain: ChainType}) {
+		return dao.getDAOsAddress(chain);
+	}
+
 }

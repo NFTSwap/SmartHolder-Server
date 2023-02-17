@@ -13,6 +13,7 @@ import { DAOExtend, DAOSummarys } from './define_ext';
 import {getVoteProposalFrom} from './vote_pool';
 import {getAssetAmountTotal,getOrderTotalAmount} from './asset';
 import {getLedgerTotalAmount} from './ledger';
+import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#dao#getDAO Bad argument. address');
@@ -178,4 +179,11 @@ export async function getDAOsTotalFromCreatedBy(chain: ChainType, createdBy: str
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;
+}
+
+export function getDAOsAddress(chain: ChainType) {
+	let chainName = ChainType[chain];
+	let info = deployInfo[chainName.toLowerCase() as 'goerli'];
+	somes.assert(info, `#dao.getDAOsAddress Deployment information not found by ${chainName}`);
+	return info.DAOsProxy.address;
 }
