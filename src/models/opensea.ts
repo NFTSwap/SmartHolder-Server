@@ -211,7 +211,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let onlyProxy = false;//href.indexOf('opensea') != -1;
+	let onlyProxy = href.indexOf('opensea') != -1;
 	let r = await get_(href, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -225,7 +225,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
-	let onlyProxy = false;//`${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1;
+	let onlyProxy = `${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -266,9 +266,9 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
 	// let sea = getSeaport(chain);
 
-	let taxs: [[string,number]] = [
+	let taxs: [string,number][] = [
 		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
-		['0x0000a26b00c1F0DF003000390027140000fAa719', 25], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+		//['0x0000a26b00c1F0DF003000390027140000fAa719', 5], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	];
 
 	let json = await getOpenseaContractJSONFromToken(token, chain);
@@ -277,6 +277,8 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
 		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
+
+	taxs = taxs.filter(e=>e[1])
 
 	let amount_ = BigInt(amount);
 	let amountMy = amount_;
@@ -308,12 +310,6 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		types: orderTypes,
 		value: {
 			offerer: owner,
-			zone: zone.zone,
-			zoneHash: zone.zoneHash,
-			startTime: String(now),
-			endTime: String(lastTime),
-			// orderType: OrderType.PARTIAL_RESTRICTED,
-			orderType: OrderType.FULL_OPEN,
 			offer: [
 				{
 					itemType: ItemType.ERC721,
@@ -334,9 +330,16 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 				})),
 			],
 			totalOriginalConsiderationItems: recipients.length + '',
-			salt: BigInt('0x' + rng(16).toString('hex')).toString(10),// "36980727087255389",
+
+			startTime: String(now),
+			endTime: String(lastTime),
+			// orderType: OrderType.PARTIAL_RESTRICTED,
+			orderType: OrderType.FULL_OPEN,
+			zone: zone.zone,
+			zoneHash: zone.zoneHash,
+			salt: BigInt('0x' + rng(32).toString('hex')).toString(10),// "36980727087255389",
 			conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-			counter: 0
+			counter: 0,
 		},
 		isApprovedForAll,
 		OPENSEA_CONDUIT_ADDRESS,
