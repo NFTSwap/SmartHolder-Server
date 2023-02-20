@@ -88,6 +88,11 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		let asset = await db.selectOne<Asset>(`asset_${chain}`, { id: asset_id });
 		if (!asset) {
 			await db.delete(this._name, {id: it.id}); // delete data
+			if (it.canRetry-- > 0) { // re enqueue
+				await db.insert(this._name, {
+					asset_id, contract_info_id: it.contract_info_id, canRetry: it.canRetry, chain: it.chain
+				});
+			}
 			throw Error.new(`#AssetSyncQueue#_Dequeue Asset data not found`,  {asset_id});
 		}
 
