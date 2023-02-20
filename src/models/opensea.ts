@@ -23,7 +23,6 @@ import {scopeLock} from 'bclib/atomic_lock';
 import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
 import {DatabaseCRUD} from 'somes/db';
-import mk_scaner from '../sync/mk_scaner';
 
 export {OrderComponents};
 
@@ -226,7 +225,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
-	let href = `${prefix}/${String.format(path, network)}`;
+	// let href = `${prefix}/${String.format(path, network)}`;
 	let onlyProxy = false;//href.indexOf('opensea') != -1;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
@@ -277,14 +276,14 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	if (json) {
 		// seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
 		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
-		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points / 10]);
+		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
 
 	let amount_ = BigInt(amount);
 	let amountMy = amount_;
 	let recipients: {amount: bigint; recipient: string; }[] = [
 		...taxs.map(([recipient,tax])=>{
-			let amount = amount_ * BigInt(tax) / BigInt(1000);
+			let amount = amount_ * BigInt(tax) / BigInt(10000);
 			amountMy -= amount;
 			return { recipient, amount };
 		}),
@@ -523,6 +522,9 @@ export async function getOpenseaContractJSONFromToken(asset: string, chain: Chai
 		let seller_fee_basis_points = await methods.seller_fee_basis_points().call() as number;
 		return seller_fee_basis_points;//dao.assetIssuanceTax = seller_fee_basis_points;
 	};
+
+	//let contractURI = await (await web3s(chain).contract(asset)).methods.contractURI().call();
+	//console.log(`${asset}.contractURI()`, contractURI);
 
 	let dao = await db.selectOne<DAO>(`dao_${chain}`, { first: asset });
 	if (dao) {
