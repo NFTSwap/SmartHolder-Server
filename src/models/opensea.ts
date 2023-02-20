@@ -290,6 +290,14 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		{ recipient: owner, amount: amountMy },
 	];
 
+	let zone = chain == ChainType.ETHEREUM ? {
+		zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00',
+		zoneHash: '0x3000000000000000000000000000000000000000000000000000000000000000',
+	}: {
+		zone: '0x0000000000000000000000000000000000000000',
+		zoneHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+	};
+
 	let data = {
 		primaryType: 'OrderComponents',
 		domain: {
@@ -301,10 +309,8 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		types: orderTypes,
 		value: {
 			offerer: owner,
-			zone: "0x0000000000000000000000000000000000000000", // opensea
-			// zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
-			// zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00', // element
-			zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+			zone: zone.zone,
+			zoneHash: zone.zoneHash,
 			startTime: String(now),
 			endTime: String(lastTime),
 			// orderType: OrderType.PARTIAL_RESTRICTED,
