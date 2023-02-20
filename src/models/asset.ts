@@ -139,6 +139,8 @@ export async function getAssetOrderFrom(
 		return asset as Asset;
 	}
 
+	order_1 = order_1.filter(e=>e.asset_id);
+
 	for (let it of order_1)
 		it.asset = await getAssetCache(chain, it.asset_id);
 	await beautifulAsset(order_1.map(e=>e.asset), chain);

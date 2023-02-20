@@ -10,8 +10,8 @@ import _hash from 'somes/hash';
 import * as opensea from '../models/opensea';
 import * as constants from './constants';
 import sync from './index';
-import db_ from '../db';
-import somes from 'somes';
+// import db_ from '../db';
+// import somes from 'somes';
 
 export abstract class ModuleScaner extends ContractScaner {
 
@@ -93,7 +93,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 			var asset = await this.asset(tokenId, blockNumber);
 			var data: Dict = { owner: to[0], modify: time };
 
-			if (!asset.author && !BigInt(from[0]) && BigInt(to[0])) { // update author
+			if (!BigInt(from[0]) && BigInt(to[0])) { // update author
 				Object.assign(data, { author: to[0], modify: time });
 			}
 			//somes.assert(data.owner, '#ERC721ModuleScaner.assetTransaction, data.owner!=empty str');
@@ -107,10 +107,9 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 
 			await db.update(`asset_${this.chain}`, data, { id: asset.id });
 		} else {
-			// await db.update(`asset_${this.chain}`, {
-			// 	owner: '0x0000000000000000000000000000000000000000', modify: time,
-			// }, { token, tokenId });
-			await db.delete(`asset_${this.chain}`, {token, tokenId});
+			await db.update(`asset_${this.chain}`, {
+				owner: '0x0000000000000000000000000000000000000000', modify: time,
+			}, { token, tokenId });
 		}
 
 		var order = await db.selectOne(`asset_order_${this.chain}`, { txHash, token, tokenId });
