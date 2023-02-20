@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import db, { ChainType, Selling, DAO,SaleType } from "../db";
+import db, { ChainType, Selling, DAO,SaleType,ContractType } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
 import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from 'seaport-smart/constants';
@@ -23,6 +23,7 @@ import {scopeLock} from 'bclib/atomic_lock';
 import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
 import {DatabaseCRUD} from 'somes/db';
+import mk_scaner from '../sync/mk_scaner';
 
 export {OrderComponents};
 
@@ -211,7 +212,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let isOpensea = href.indexOf('opensea') != -1;
+	let onlyProxy = false;//href.indexOf('opensea') != -1;
 	let r = await get_(href, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -219,14 +220,14 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
 			// 'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
 		},
-	}, isOpensea, 2);
+	}, onlyProxy, 2);
 	return r.data as any as T;
 }
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
 	let href = `${prefix}/${String.format(path, network)}`;
-	let isOpensea = href.indexOf('opensea') != -1;
+	let onlyProxy = false;//href.indexOf('opensea') != -1;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -234,7 +235,7 @@ async function post<T = any>(chain: ChainType, path: string, params?: Params): P
 			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
 			// 'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
 		},
-	}, isOpensea, 2);
+	}, onlyProxy, 2);
 	return r.data as any as T;
 }
 
@@ -498,7 +499,7 @@ function getOpenseaContractJSONFromDAO(dao?: DAO | null, type?: SaleType, addres
 		external_link: cfg.publicURL, // "external-link-url",
 		seller_fee_basis_points: Number(type == 1 ? dao.assetIssuanceTax: dao.assetCirculationTax) || 1000,// 1000 # Indicates a 10% seller fee.
 		fee_recipient: address ? address: // # Where seller fees will be paid to.
-			type == 1 ? dao.first: 
+			type == 1 ? dao.first:
 			type == 2 ? dao.second: dao.ledger,
 	};
 }
@@ -517,12 +518,22 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType, ty
 }
 
 export async function getOpenseaContractJSONFromToken(asset: string, chain: ChainType) {
-	let dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaFirst: asset });
+	let get_seller_fee_basis_points = async ()=>{
+		let methods = (await web3s(chain).contract(asset)).methods;
+		let seller_fee_basis_points = await methods.seller_fee_basis_points().call() as number;
+		return seller_fee_basis_points;//dao.assetIssuanceTax = seller_fee_basis_points;
+	};
+
+	let dao = await db.selectOne<DAO>(`dao_${chain}`, { first: asset });
 	if (dao) {
+		if (!dao.assetIssuanceTax)
+			dao.assetIssuanceTax = await get_seller_fee_basis_points();
 		return getOpenseaContractJSONFromDAO(dao, SaleType.kFirst);
 	}
-	dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaSecond: asset });
+	dao = await db.selectOne<DAO>(`dao_${chain}`, { second: asset });
 	if (dao) {
+		if (!dao.assetCirculationTax)
+			dao.assetCirculationTax = await get_seller_fee_basis_points();
 		return getOpenseaContractJSONFromDAO(dao, SaleType.kSecond);
 	}
 	return null;
