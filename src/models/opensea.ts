@@ -258,7 +258,7 @@ export function getSeaport(chain: ChainType) {
 export async function getOrderParameters(chain: ChainType, token: string, tokenId: string, amount: string, time?: number): Promise<OrderParametersAll> {
 	let web3 = web3s(chain);
 	let now = Math.floor(Date.now() / 1e3);
-	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600);
+	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600); /* 30 days default time*/
 	let methods = web3.createContract(token, abi.abi as any).methods;
 	let owner = await methods.ownerOf(tokenId).call() as string;
 	// let owner = '0x4ab17f69d1225eD66DE25A6C3c69f3F83766CBea';
