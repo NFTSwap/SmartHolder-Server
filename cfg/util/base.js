@@ -5,6 +5,7 @@ module.exports = {
 		host: process.env.SERVER_HOST || '0.0.0.0',
 		port: Number(process.env.SERVER_PORT) || 8100,
 	},
+	autoIndex: true,
 	var: '/data/shs/var_v2', // `${__dirname}/var`,
 	web3s: {}, // web3s 配置列表
 	// 0单一模式：优先选择第一个节点,当第一个节点比第二个节点小16个块时切换到第二个节点
