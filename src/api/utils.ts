@@ -153,10 +153,14 @@ export default class extends ApiController {
 	
 	/**
 	 * @method getVoteProposalFrom() 通过投票合约地址 address、proposal_id（可选） 获投票提案列表
+	 * @param target {string} target='[]' 表示普通提案
 	 * */ 
-	getVoteProposalFrom({chain,address,proposal_id,limit,orderBy}: {
-		chain: ChainType, address: string, proposal_id?: string, limit?: number | number[], orderBy?: string}) {
-		return vp.getVoteProposalFrom(chain,address,proposal_id,orderBy, limit);
+	getVoteProposalFrom({
+		chain,address,proposal_id, name, isAgree,isClose, isExecuted, target, limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id?: string,
+		name?: string, isAgree?: boolean,isClose?: boolean, isExecuted?: boolean, target?: string,
+		limit?: number | number[], orderBy?: string}) {
+		return vp.getVoteProposalFrom(chain,address,proposal_id, name, isAgree,isClose, isExecuted, target,orderBy,limit);
 	}
 
 	/**
@@ -214,8 +218,11 @@ export default class extends ApiController {
 		return member.getMembersTotalFrom(chain,host,owner,time);
 	}
 
-	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {
-		return vp.getVoteProposalTotalFrom(chain,address,proposal_id);
+	getVoteProposalTotalFrom({chain,address,proposal_id,name, isAgree, isClose, isExecuted, target}: {
+		chain: ChainType, address: string, proposal_id?: string,
+		name?: string, isAgree?: boolean, isClose?: boolean, isExecuted?: boolean, target?: string
+	}) {
+		return vp.getVoteProposalTotalFrom(chain,address,proposal_id,name, isAgree, isClose, isExecuted, target);
 	}
 
 	getVotesTotalFrom({chain,address,proposal_id,member_id}: { chain: ChainType, address: string, proposal_id: string, member_id?: string}) {
