@@ -211,7 +211,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let onlyProxy = href.indexOf('opensea') != -1;
+	let onlyProxy = false; //href.indexOf('opensea') != -1;
 	let r = await get_(href, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -225,7 +225,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
-	let onlyProxy = `${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1;
+	let onlyProxy = false;//`${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
