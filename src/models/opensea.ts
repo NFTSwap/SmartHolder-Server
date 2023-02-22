@@ -278,8 +278,6 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
 
-	// taxs = taxs.filter(e=>e[1]);
-
 	let amount_ = BigInt(amount);
 	let amountMy = amount_;
 	let recipients: {amount: bigint; recipient: string; }[] = [
