@@ -269,14 +269,13 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 	// let sea = getSeaport(chain);
 
 	let taxs: [string,number][] = [
-		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
+		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 700, // element 7%
+		['0x0000a26b00c1F0DF003000390027140000fAa719', 250], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	];
 
 	let json = await getOpenseaContractJSONFromToken(token, chain);
 	if (json && json.seller_fee_basis_points) {
-		taxs.push([json.fee_recipient, json.seller_fee_basis_points]);
-	} else {
-		//taxs.push(['0x0000a26b00c1F0DF003000390027140000fAa719', 25]); // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
 
 	// taxs = taxs.filter(e=>e[1]);
