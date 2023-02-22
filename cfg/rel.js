@@ -16,7 +16,7 @@ module.exports = {
 	mbus_topic: 'shs_default_rel',
 	enable_auth: true,
 	watch_meta: 'watch_indexer',
-	env: 'dev',
+	env: 'rel',
 	mysql: {
 		host: '127.0.0.1', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao', // rel inner
 	},

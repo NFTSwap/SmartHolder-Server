@@ -26,6 +26,8 @@ import {DatabaseCRUD} from 'somes/db';
 
 export {OrderComponents};
 
+const isDev = cfg.env == 'dev';
+
 const seaports: Map<ChainType, Seaport> = new Map();
 export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
 
@@ -211,7 +213,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let onlyProxy = false; //href.indexOf('opensea') != -1;
+	let onlyProxy = isDev ? href.indexOf('opensea') != -1: false;
 	let r = await get_(href, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
@@ -225,7 +227,7 @@ async function get<T = any>(chain: ChainType, path: string, params?: Params): Pr
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
 	let {prefix, network} = getPrefix(chain);
-	let onlyProxy = false;//`${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1;
+	let onlyProxy = isDev ? `${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1: false;
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
 		handleStatusCode: _handleStatusCode,
 		headers: {
