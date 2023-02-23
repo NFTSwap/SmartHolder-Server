@@ -36,6 +36,7 @@ export interface DAO {
 	members: number;
 	createdBy: string;
 	image: string;
+	state: State;
 }
 
 export interface Member {

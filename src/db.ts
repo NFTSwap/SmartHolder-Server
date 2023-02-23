@@ -58,7 +58,8 @@ async function load_main_db() {
 				likes               int          default (0)    not null,
 				members             int          default (0)    not null,
 				createdBy           varchar (42) default ('')   not null,
-				image               varchar (512) default ('')  not null
+				image               varchar (512) default ('')  not null,
+				state               int           default (0)   not null -- 状态: 0正常,1删除
 			);
 
 			create table if not exists member_${chain} (
@@ -273,6 +274,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add members               int          default (0)   not null`,
 			`alter table dao_${chain}  add createdBy             varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add image                 varchar (512) default ('') not null`,
+			`alter table dao_${chain}  add state                 int          default (0)   not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null`, //  -- 名称
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null`, //  -- origin image uri
