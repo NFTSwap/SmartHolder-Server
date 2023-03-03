@@ -14,6 +14,7 @@ export class Member extends ModuleScaner {
 		// event TransferVotes(uint256 indexed from, uint256 indexed to, uint32 votes);
 		// event AddPermissions(uint256[] ids, uint256[] actions);
 		// event RemovePermissions(uint256[] ids, uint256[] actions);
+		// event SetPermissions(uint256 indexed id, uint256[] addActions, uint256[] removeActions);
 
 		Change: {
 			handle: (data: HandleEventData)=>this.onChange(data),
@@ -159,6 +160,27 @@ export class Member extends ModuleScaner {
 				}
 			},
 		},
+		SetPermissions: {
+			handle: async ({event}: HandleEventData)=>{
+				let db = this.db;
+				let tokenId = formatHex(event.returnValues.id);
+				let addActions = (event.returnValues.addActions as []).map(e=>Number(e));
+				let removeActions = (event.returnValues.removeActions as []).map(e=>Number(e));
+				let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
+				if ( mbr ) {
+					let permissions = mbr.permissions || [];
+					for (let action of addActions) {
+						if (permissions.indexOf(action) == -1)
+							permissions.push(action);
+					}
+					for (let per of permissions) {
+						if (removeActions.indexOf(per) != -1)
+							permissions.deleteOf(per);
+					}
+					await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
+				}
+			},
+		}
 	};
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
