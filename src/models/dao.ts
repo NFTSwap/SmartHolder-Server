@@ -104,8 +104,20 @@ export async function getAllDAOs(chain: ChainType,
 	}
 
 	for (let dao of daos) {
-		dao.memberObjs = memberObjs ? await member.getMembersFrom(chain, dao.address, '', 0, '',
-			Math.min(memberObjs, 10)): [];
+		if (memberObjs) {
+			let key = `getAllDAOs_memberObjs_${chain}_${dao.address}_${memberObjs}`;
+			let objs = await redis.get<Member[]>(key);
+			if (objs) {
+				dao.memberObjs = objs;
+			} else {
+				objs = await member.getMembersFrom(chain, dao.address, '', 0, '',
+					Math.min(memberObjs, 10));
+				await redis.set(key, objs, somes.random(8e4, 1e5)); // 80-100 second
+			}
+			dao.memberObjs = objs;
+		} else {
+			dao.memberObjs = [];
+		}
 	}
 
 	return daos;
