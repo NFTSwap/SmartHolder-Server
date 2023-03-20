@@ -14,6 +14,7 @@ import {getVoteProposalFrom} from './vote_pool';
 import {getAssetAmountTotal,getOrderTotalAmount} from './asset';
 import {getLedgerTotalAmount} from './ledger';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
+import * as member from './member';
 
 export function getDAO(chain: ChainType, address: string) {
 	somes.assert(address, '#dao#getDAO Bad argument. address');
@@ -52,7 +53,7 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 }
 
 export async function getAllDAOs(chain: ChainType,
-	name?: string, user_id?: number, owner?: string, order?: string, limit?: number | number[]
+	name?: string, user_id?: number, owner?: string, order?: string, memberObjs = 0, limit?: number | number[]
 ) {
 	somes.assert(chain, '#dao#getAllDAOs Bad argument. chain');
 
@@ -100,6 +101,11 @@ export async function getAllDAOs(chain: ChainType,
 		for (let dao of daos) {
 			dao.isMember = !!membersMap[dao.member];
 		}
+	}
+
+	for (let dao of daos) {
+		dao.memberObjs = memberObjs ? await member.getMembersFrom(chain, dao.address, '', 0, '',
+			Math.min(memberObjs, 10)): [];
 	}
 
 	return daos;

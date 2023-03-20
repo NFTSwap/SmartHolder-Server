@@ -1,5 +1,5 @@
 
-import { DAO,AssetOrder,Asset } from './define';
+import { DAO,AssetOrder,Asset, Member } from './define';
 
 export interface AssetOrderExt extends AssetOrder {
 	asset_id: number,
@@ -9,6 +9,7 @@ export interface AssetOrderExt extends AssetOrder {
 export interface DAOExtend extends DAO {
 	isMember: boolean;
 	isLike: boolean;
+	memberObjs: Member[];
 }
 
 export interface DAOSummarys {

@@ -9,10 +9,10 @@ import { ChainType } from '../db';
 
 export default class extends ApiController {
 
-	async getAllDAOs({chain,name,limit, owner,orderBy}: {
-		chain: ChainType, name?: string, limit?: number | number[], owner?: string, orderBy?: string}) {
-		let user = await this.user();
-		return await dao.getAllDAOs(chain,name,user.id, owner,orderBy,limit);
+	async getAllDAOs({chain,name,limit, owner,orderBy,memberObjs}: {
+		chain: ChainType, name?: string, limit?: number | number[], owner?: string, orderBy?: string,memberObjs?: number}) {
+		let user = await this.userNotErr();
+		return await dao.getAllDAOs(chain,name,user?.id, owner,orderBy,memberObjs,limit);
 	}
 
 	getAllDAOsTotal({chain,name}: { chain: ChainType, name?: string}) {
