@@ -37,6 +37,7 @@ export interface DAO {
 	createdBy: string;
 	image: string;
 	state: State;
+	extend: any; // buffer
 }
 
 export interface Member {

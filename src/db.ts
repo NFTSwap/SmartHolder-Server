@@ -59,7 +59,8 @@ async function load_main_db() {
 				members             int          default (0)    not null,
 				createdBy           varchar (42) default ('')   not null,
 				image               varchar (512) default ('')  not null,
-				state               int           default (0)   not null -- 状态: 0正常,1删除
+				state               int           default (0)   not null, -- 状态: 0正常,1删除
+				extend              blob                        not null
 			);
 
 			create table if not exists member_${chain} (

@@ -9,6 +9,7 @@ import * as constants from './constants';
 import db, {DAO as IDAO,ContractType} from '../db';
 import watch from './index';
 import {Indexer} from './indexer';
+import  * as crypto from 'crypto-tx';
 
 export class DAO extends ModuleScaner {
 
@@ -87,9 +88,13 @@ export class DAO extends ModuleScaner {
 				let mission = await methods.mission().call();
 				await this.db.update(`dao_${chain}`, { mission, modify }, { address });
 				break;
-				case constants.Change_Tag_DAO_Image:
+			case constants.Change_Tag_DAO_Image:
 				let image = await methods.image().call();
 				await this.db.update(`dao_${chain}`, { image, modify }, { address });
+				break;
+			case constants.Change_Tag_DAO_Extend:
+				let extend = crypto.toBuffer(await methods.image().call());
+				await this.db.update(`dao_${chain}`, { extend, modify }, { address });
 				break;
 		}
 	}

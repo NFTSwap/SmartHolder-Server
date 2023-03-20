@@ -9,6 +9,7 @@ import db, {storage} from '../db';
 import * as DAO from '../../abi/DAO.json';
 import * as constants from './constants';
 import {RunIndexer} from './indexer';
+import buffer from 'somes/buffer';
 
 export class DAOs extends ContractScaner {
 
@@ -102,6 +103,13 @@ export class DAOs extends ContractScaner {
 					console.warn('#daos#Created dao.image() call error', err);
 				}
 
+				let extend = buffer.Zero;
+				try {
+					extend = await dao.methods.extend().call();
+				} catch(err) {
+					console.warn('#daos#Created dao.image() call error', err);
+				}
+
 				await this.db.insert(`dao_${chain}`, {
 					address: host,
 					host,
@@ -124,6 +132,7 @@ export class DAOs extends ContractScaner {
 					memberBaseName, // 成员base名称
 					createdBy: tx.from,
 					image,
+					extend,
 				});
 
 				if (Member != addressZero) {
