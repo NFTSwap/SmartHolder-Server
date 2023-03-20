@@ -276,6 +276,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add createdBy             varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add image                 varchar (512) default ('') not null`,
 			`alter table dao_${chain}  add state                 int          default (0)   not null`,
+			`alter table dao_${chain}  add extend                blob                       not null`,
 			// asset
 			`alter table asset_${chain} add name                 varchar (256)  default ('') not null`, //  -- 名称
 			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null`, //  -- origin image uri
