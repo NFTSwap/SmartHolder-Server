@@ -12,7 +12,7 @@ module.exports = {
 	root: '/data/apps/smart-dao/smart-dao',
 	publicURL: 'https://dao.smartholder.jp',
 	mbus: 'mqtt://172.16.3.114:1883',
-	mbus_auth: '', // user:password
+	mbus_auth: 'smartholder:xWhL#BP4QjsmartholderdSQGq%sKcM', // user:password
 	mbus_topic: 'shs_default_prod',
 	enable_auth: true,
 	env: 'prod', // dev|prod
