@@ -12,7 +12,7 @@ module.exports = {
 	root: '/data/apps/smart-dao/smart-dao-new/out',
 	publicURL: 'https://dao-rel.smartholder.jp',
 	mbus: 'mqtt://127.0.0.1:1883',
-	mbus_auth: '', // user:password
+	mbus_auth: 'nft_hardware_test:nft_hardware_test', // user:password
 	mbus_topic: 'shs_default_rel',
 	enable_auth: true,
 	watch_meta: 'watch_indexer',
