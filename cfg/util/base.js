@@ -55,7 +55,7 @@ module.exports = {
 	},
 	fastStart: false, // 是否快速启动,快速启动不检测数据库结构
 	logs: { event: 1, sync: 1, block_no_resolve: 1, rpc: 0 }, // 日志输出开关
-	redis: 'redis://127.0.0.1:6379/1', // redis cfg
+	redis: 'redis://127.0.0.1:6379/10', // redis cfg
 	atomicLock: 'http://127.0.0.1:9802', // atomic lock service
 	watchBlock: {
 		mysql: { host: '', port: 0, user: '', password: '', database: '' },

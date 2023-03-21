@@ -24,6 +24,6 @@ module.exports = {
 		mysql: {
 			host: '172.16.2.46', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao',
 		},
-		redis: 'redis://172.16.3.114:6379/1', // redis cfg
+		redis: 'redis://172.16.3.114:6379/10', // redis cfg
 	},
 };
