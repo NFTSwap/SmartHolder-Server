@@ -3,8 +3,9 @@
  * @date 2023-01-12
  */
 
-import db, {ChainType, User,DAO,UserLikeDAO,DAOExtend} from '../db';
+import db, {ChainType, User,DAO,UserLikeDAO} from '../db';
 import {fillMemberObjs} from './dao';
+import { DAOExtend } from './define_ext';
 
 export async function getUser(id?: number) {
 	let defaultValue: User = {
