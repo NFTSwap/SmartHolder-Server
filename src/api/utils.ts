@@ -62,8 +62,8 @@ export default class extends ApiController {
 	/**
 	 * @method getDAOsFromOwner() 通过owner钱包地址获取dao列表
 	 * */ 
-	getDAOsFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return dao.getDAOsFromOwner(chain,owner);
+	getDAOsFromOwner({chain,owner,memberObjs}: { chain: ChainType, owner: string, memberObjs?: number}) {
+		return dao.getDAOsFromOwner(chain,owner,memberObjs);
 	}
 
 	/**
