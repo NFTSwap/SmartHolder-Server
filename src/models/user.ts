@@ -3,7 +3,8 @@
  * @date 2023-01-12
  */
 
-import db, {ChainType, User,DAO,UserLikeDAO} from '../db';
+import db, {ChainType, User,DAO,UserLikeDAO,DAOExtend} from '../db';
+import {fillMemberObjs} from './dao';
 
 export async function getUser(id?: number) {
 	let defaultValue: User = {
@@ -66,9 +67,9 @@ export async function deleteLikeDAO(id: number, dao_id: number, chain: ChainType
 	}
 }
 
-export async function getUserLikeDAOs(id: number, chain?: ChainType) {
+export async function getUserLikeDAOs(id: number, chain?: ChainType, memberObjs?: number) {
 	let DAOsIDs: Dict<number[]> = {};
-	let DAOs = [] as DAO[];
+	let DAOs = [] as DAOExtend[];
 
 	for (let like of await db.select<UserLikeDAO>(`user_like_dao`, {user_id: id, chain, state: 0})) {
 		let IDs = DAOsIDs[like.chain] || (DAOsIDs[like.chain] = []);
@@ -78,6 +79,7 @@ export async function getUserLikeDAOs(id: number, chain?: ChainType) {
 	for (let [chain,IDs] of Object.entries(DAOsIDs)) {
 		let ls = await db.query<DAO>(
 			`select * from dao_${chain} where id in (${IDs.join(',')})`);
+		await fillMemberObjs(Number(chain), DAOs, memberObjs);
 		DAOs.push(...ls);
 	}
 

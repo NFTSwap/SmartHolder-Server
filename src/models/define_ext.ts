@@ -7,9 +7,9 @@ export interface AssetOrderExt extends AssetOrder {
 }
 
 export interface DAOExtend extends DAO {
-	isMember: boolean;
-	isLike: boolean;
-	memberObjs: Member[];
+	isMember?: boolean;
+	isLike?: boolean;
+	memberObjs?: Member[];
 }
 
 export interface DAOSummarys {

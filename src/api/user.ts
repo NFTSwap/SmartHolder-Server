@@ -56,9 +56,9 @@ export default class extends ApiController {
 		await user.deleteLikeDAO(auth.id, dao, chain);
 	}
 
-	async getUserLikeDAOs({chain}: {chain?: ChainType}) {
+	async getUserLikeDAOs({chain,memberObjs}: {chain?: ChainType, memberObjs?: number}) {
 		let auth = await this.user();
-		return await user.getUserLikeDAOs(auth.id, chain);
+		return await user.getUserLikeDAOs(auth.id, chain, memberObjs);
 	}
 
 }

@@ -28,17 +28,20 @@ export async function getDAONoEmpty(chain: ChainType, address: string) {
 	return dao!;
 }
 
-export async function getDAOsFromOwner(chain: ChainType, owner: string) {
+export async function getDAOsFromOwner(chain: ChainType, owner: string, memberObjs = 0) {
 	somes.assert(chain, '#dao#getDAOsFromOwner Bad argument. chain');
 	somes.assert(owner, '#dao#getDAOsFromOwner Bad argument. owner');
 
 	let ms = await db.select<Member>(`member_${chain}`, {owner}, {group: 'host'});
 	let hosts = ms.map(e=>`'${e.host}'`);
-	let DAOs: DAO[] = [];
+	let DAOs: DAOExtend[] = [];
 
 	if (hosts.length) {
 		DAOs = await db.query<DAO>(`select * from dao_${chain} where address in (${hosts.join(',')})`);
 	}
+
+	await fillMemberObjs(chain, DAOs, memberObjs);
+
 	return DAOs;
 }
 
@@ -50,6 +53,25 @@ export async function getDAOsTotalFromOwner(chain: ChainType, owner: string) {
 		await redis.set(key, total = DAOs.length, 1e4);
 	}
 	return total;
+}
+
+export async function fillMemberObjs(chain: ChainType, daos: DAOExtend[], memberObjs = 0) {
+	for (let dao of daos) {
+		if (memberObjs) {
+			let key = `getAllDAOs_memberObjs_${chain}_${dao.address}_${memberObjs}`;
+			let objs = await redis.get<Member[]>(key);
+			if (objs) {
+				dao.memberObjs = objs;
+			} else {
+				objs = await member.getMembersFrom(chain, dao.address, '', 0, '',
+					Math.min(memberObjs, 10));
+				await redis.set(key, objs, somes.random(8e4, 1e5)); // 80-100 second
+			}
+			dao.memberObjs = objs;
+		} else {
+			dao.memberObjs = [];
+		}
+	}
 }
 
 export async function getAllDAOs(chain: ChainType,
@@ -103,22 +125,7 @@ export async function getAllDAOs(chain: ChainType,
 		}
 	}
 
-	for (let dao of daos) {
-		if (memberObjs) {
-			let key = `getAllDAOs_memberObjs_${chain}_${dao.address}_${memberObjs}`;
-			let objs = await redis.get<Member[]>(key);
-			if (objs) {
-				dao.memberObjs = objs;
-			} else {
-				objs = await member.getMembersFrom(chain, dao.address, '', 0, '',
-					Math.min(memberObjs, 10));
-				await redis.set(key, objs, somes.random(8e4, 1e5)); // 80-100 second
-			}
-			dao.memberObjs = objs;
-		} else {
-			dao.memberObjs = [];
-		}
-	}
+	await fillMemberObjs(chain, daos, memberObjs);
 
 	return daos;
 }
@@ -182,10 +189,11 @@ export async function getDAOSummarys(chain: ChainType, host: string) {
 	return summarys;
 }
 
-export async function getDAOsFromCreatedBy(chain: ChainType, createdBy: string) {
+export async function getDAOsFromCreatedBy(chain: ChainType, createdBy: string, memberObjs = 0) {
 	somes.assert(chain, '#dao#getDAOsFromCreatedBy Bad argument. chain');
 	somes.assert(createdBy, '#dao#getDAOsFromCreatedBy Bad argument. createdBy');
-	let DAOs = await db.select<DAO>(`dao_${chain}`, {createdBy});
+	let DAOs = await db.select<DAOExtend>(`dao_${chain}`, {createdBy});
+	await fillMemberObjs(chain, DAOs, memberObjs);
 	return DAOs;
 }
 
