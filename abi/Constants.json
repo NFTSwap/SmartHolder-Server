@@ -1,128 +1,128 @@
 {
   "contractName": "Constants",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Constants.sol\":\"Constants\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Constants.sol\":{\"keccak256\":\"0xb7414577fe1c800d79b5e8dbd873b9bef94187c73627ad34ce60d913cc59c5e4\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ada6452e80c1bb6234167877d9fff5e20a4d077034911658fac3846c1135f253\",\"dweb:/ipfs/QmVSzWRejWCmENJy3oDkRFw2oSctJHGJuYyhQ4DnSfvyCQ\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122017d4a0b3796da271dcbe884c9ef904fc421a825ae02b6a0f8c831e7da834202164736f6c63430008110033",
-  "deployedBytecode": "0x6080604052600080fdfea264697066735822122017d4a0b3796da271dcbe884c9ef904fc421a825ae02b6a0f8c831e7da834202164736f6c63430008110033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Constants.sol\":\"Constants\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Constants.sol\":{\"keccak256\":\"0xde3008a46d33128b23258d7bf43a4408e8671c0c499fefa4741483939a28c9fb\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7963d1f8aecf6c9bc456b8908de9eddb82003c564b93cac612996cf42747e92e\",\"dweb:/ipfs/QmPxKNAwECXMq1K2Fo7ZegcpiLC7AW5Ld74tSiWoMG9Fqm\"]}},\"version\":1}",
+  "bytecode": "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220c8f9eaf6866ebe80f62ba855a63feb2309097f1ee19bd859926f060046c6ab6864736f6c63430008110033",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220c8f9eaf6866ebe80f62ba855a63feb2309097f1ee19bd859926f060046c6ab6864736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [],
-  "sourceMap": "2684:21:18:-:0;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "2684:21:18:-:0;;;;;",
-  "source": "//SPDX-License-Identifier: MIT\npragma solidity 0.8.17;\n\n// Module type\nbytes4 constant Module_Type = 0x6b27a068; // bytes4(keccak256('initDepartment(address,string,address)'))\nbytes4 constant AssetShell_Type = 0x43234e95; // bytes4(keccak256('initAssetShell(address,string,address,string)'))\nbytes4 constant Asset_Type = 0x68ca456f; // bytes4(keccak256('initAsset(address,string,address,string)'))\nbytes4 constant DAO_Type = 0xc7b55336; // bytes4(keccak256('initDAO(string,address,address,address,address,address,address)'))\nbytes4 constant Ledger_Type = 0xf4c38e51; // bytes4(keccak256('initLedger(address,string,address)'))\nbytes4 constant Member_Type = 0x23fc76b9; // bytes4(keccak256('initMember(address,string,address)'))\nbytes4 constant VotePool_Type = 0x0ddf27bf; // bytes4(keccak256('initVotePool(address,string)'))\n\n// Module indexed id\nuint256 constant Module_DAO_ID = 0;\nuint256 constant Module_MEMBER_ID = 1;\nuint256 constant Module_LEDGER_ID = 2;\nuint256 constant Module_ASSET_ID = 3;\nuint256 constant Module_ASSET_First_ID = 4;\nuint256 constant Module_ASSET_Second_ID = 5;\n\n// Departments Change tag\nuint256 constant Change_Tag_Common = 0;\nuint256 constant Change_Tag_Description = 1;\nuint256 constant Change_Tag_Operator = 2;\nuint256 constant Change_Tag_Upgrade = 3;\nuint256 constant Change_Tag_DAO_Mission = 4;\nuint256 constant Change_Tag_DAO_Module = 5;\nuint256 constant Change_Tag_Asset_set_seller_fee_basis_points = 6;\nuint256 constant Change_Tag_Asset_set_fee_recipient = 7;\nuint256 constant Change_Tag_Member_Set_Executor = 8;\nuint256 constant Change_Tag_DAO_Image = 9;\nuint256 constant Change_Tag_DAO_Extend = 10;\n\n// Action Permission defines\nuint256 constant Action_Member_Create = 0x22a25870; // bytes4(keccak256('create(address,string memory,Info memory,uint256[] memory)'))\nuint256 constant Action_VotePool_Create = 0xdc6b0b72; // bytes4(keccak256('create(Proposal memory)'))\nuint256 constant Action_VotePool_Vote = 0x678ea396;  // bytes4(keccak256('vote(uint256,uint256,int256,bool)'))\nuint256 constant Action_Asset_SafeMint = 0x59baef2a; // bytes4(keccak256('safeMint(address,uint256,string memory,bytes calldata)'))\nuint256 constant Action_DAO_Settings = 0xd0a4ad96; // bytes4(keccak256('DAO::settings()'))\nuint256 constant Action_DAO_SetModule = 0x5d29163; // bytes4(keccak256('setModule(uint256,address)'))\nuint256 constant Action_Asset_set_seller_fee_basis_points = 0x91eb3dee; // bytes4(keccak256('set_seller_fee_basis_points(uint32)'))\nuint256 constant Action_Asset_Shell_Withdraw = 0x2e1a7d4d; // bytes4(keccak256('withdraw(uint256)'))\nuint256 constant Action_Ledger_Withdraw = 0xf108a7d2; // bytes4(keccak256('withdraw(uint256,address,string)'))\n\ncontract Constants {}",
+  "sourceMap": "2684:20:18:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "2684:20:18:-:0;;;;;;;;",
+  "source": "//SPDX-License-Identifier: MIT\npragma solidity 0.8.17;\n\n// Module type\nbytes4 constant Module_Type = 0x6b27a068; // bytes4(keccak256('initDepartment(address,string,address)'))\nbytes4 constant AssetShell_Type = 0x43234e95; // bytes4(keccak256('initAssetShell(address,string,address,string)'))\nbytes4 constant Asset_Type = 0x68ca456f; // bytes4(keccak256('initAsset(address,string,address,string)'))\nbytes4 constant DAO_Type = 0xc7b55336; // bytes4(keccak256('initDAO(string,address,address,address,address,address,address)'))\nbytes4 constant Ledger_Type = 0xf4c38e51; // bytes4(keccak256('initLedger(address,string,address)'))\nbytes4 constant Member_Type = 0x23fc76b9; // bytes4(keccak256('initMember(address,string,address)'))\nbytes4 constant VotePool_Type = 0x0ddf27bf; // bytes4(keccak256('initVotePool(address,string)'))\n\n// Module indexed id\nuint256 constant Module_DAO_ID = 0;\nuint256 constant Module_MEMBER_ID = 1;\nuint256 constant Module_LEDGER_ID = 2;\nuint256 constant Module_ASSET_ID = 3;\nuint256 constant Module_ASSET_First_ID = 4;\nuint256 constant Module_ASSET_Second_ID = 5;\n\n// Departments Change tag\nuint256 constant Change_Tag_Common = 0;\nuint256 constant Change_Tag_Description = 1;\nuint256 constant Change_Tag_Operator = 2;\nuint256 constant Change_Tag_Upgrade = 3;\nuint256 constant Change_Tag_DAO_Mission = 4;\nuint256 constant Change_Tag_DAO_Module = 5;\nuint256 constant Change_Tag_Asset_set_seller_fee_basis_points = 6;\nuint256 constant Change_Tag_Asset_set_fee_recipient = 7;\nuint256 constant Change_Tag_Member_Set_Executor = 8;\nuint256 constant Change_Tag_DAO_Image = 9;\nuint256 constant Change_Tag_DAO_Extend = 10;\n\n// Action Permission defines\nuint256 constant Action_Member_Create = 0x22a25870; // bytes4(keccak256('create(address,string memory,Info memory,uint256[] memory)'))\nuint256 constant Action_VotePool_Create = 0xdc6b0b72; // bytes4(keccak256('create(Proposal memory)'))\nuint256 constant Action_VotePool_Vote = 0x678ea396;  // bytes4(keccak256('vote(uint256,uint256,int256,bool)'))\nuint256 constant Action_Asset_SafeMint = 0x59baef2a; // bytes4(keccak256('safeMint(address,uint256,string memory,bytes calldata)'))\nuint256 constant Action_DAO_Settings = 0xd0a4ad96; // bytes4(keccak256('DAO::settings()'))\nuint256 constant Action_DAO_SetModule = 0x5d29163; // bytes4(keccak256('setModule(uint256,address)'))\nuint256 constant Action_Asset_set_seller_fee_basis_points = 0x91eb3dee; // bytes4(keccak256('set_seller_fee_basis_points(uint32)'))\nuint256 constant Action_Asset_Shell_Withdraw = 0x2e1a7d4d; // bytes4(keccak256('withdraw(uint256)'))\nuint256 constant Action_Ledger_Withdraw = 0xf108a7d2; // bytes4(keccak256('withdraw(uint256,address,string)'))\n\nlibrary Constants {}",
   "sourcePath": "/Users/louis/Project/hc/NFTSwap/SmartHolder/contracts/libs/Constants.sol",
   "ast": {
     "absolutePath": "project:/contracts/libs/Constants.sol",
     "exportedSymbols": {
       "Action_Asset_SafeMint": [
-        5779
+        5784
       ],
       "Action_Asset_Shell_Withdraw": [
-        5791
+        5796
       ],
       "Action_Asset_set_seller_fee_basis_points": [
-        5788
+        5793
       ],
       "Action_DAO_SetModule": [
-        5785
+        5790
       ],
       "Action_DAO_Settings": [
-        5782
+        5787
       ],
       "Action_Ledger_Withdraw": [
-        5794
+        5799
       ],
       "Action_Member_Create": [
-        5770
+        5775
       ],
       "Action_VotePool_Create": [
-        5773
+        5778
       ],
       "Action_VotePool_Vote": [
-        5776
+        5781
       ],
       "AssetShell_Type": [
-        5701
+        5706
       ],
       "Asset_Type": [
-        5704
+        5709
       ],
       "Change_Tag_Asset_set_fee_recipient": [
-        5758
+        5763
       ],
       "Change_Tag_Asset_set_seller_fee_basis_points": [
-        5755
+        5760
       ],
       "Change_Tag_Common": [
-        5737
+        5742
       ],
       "Change_Tag_DAO_Extend": [
-        5767
+        5772
       ],
       "Change_Tag_DAO_Image": [
-        5764
+        5769
       ],
       "Change_Tag_DAO_Mission": [
-        5749
+        5754
       ],
       "Change_Tag_DAO_Module": [
-        5752
+        5757
       ],
       "Change_Tag_Description": [
-        5740
+        5745
       ],
       "Change_Tag_Member_Set_Executor": [
-        5761
+        5766
       ],
       "Change_Tag_Operator": [
-        5743
+        5748
       ],
       "Change_Tag_Upgrade": [
-        5746
+        5751
       ],
       "Constants": [
-        5795
+        5800
       ],
       "DAO_Type": [
-        5707
+        5712
       ],
       "Ledger_Type": [
-        5710
+        5715
       ],
       "Member_Type": [
-        5713
+        5718
       ],
       "Module_ASSET_First_ID": [
-        5731
+        5736
       ],
       "Module_ASSET_ID": [
-        5728
+        5733
       ],
       "Module_ASSET_Second_ID": [
-        5734
+        5739
       ],
       "Module_DAO_ID": [
-        5719
+        5724
       ],
       "Module_LEDGER_ID": [
-        5725
+        5730
       ],
       "Module_MEMBER_ID": [
-        5722
+        5727
       ],
       "Module_Type": [
-        5698
+        5703
       ],
       "VotePool_Type": [
-        5716
+        5721
       ]
     },
-    "id": 5796,
+    "id": 5801,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5695,
+        "id": 5700,
         "literals": [
           "solidity",
           "0.8",
@@ -133,12 +133,12 @@
       },
       {
         "constant": true,
-        "id": 5698,
+        "id": 5703,
         "mutability": "constant",
         "name": "Module_Type",
         "nameLocation": "87:11:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "71:40:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -147,7 +147,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5696,
+          "id": 5701,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "71:6:18",
@@ -158,7 +158,7 @@
         },
         "value": {
           "hexValue": "30783662323761303638",
-          "id": 5697,
+          "id": 5702,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -176,12 +176,12 @@
       },
       {
         "constant": true,
-        "id": 5701,
+        "id": 5706,
         "mutability": "constant",
         "name": "AssetShell_Type",
         "nameLocation": "192:15:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "176:44:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -190,7 +190,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5699,
+          "id": 5704,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "176:6:18",
@@ -201,7 +201,7 @@
         },
         "value": {
           "hexValue": "30783433323334653935",
-          "id": 5700,
+          "id": 5705,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -219,12 +219,12 @@
       },
       {
         "constant": true,
-        "id": 5704,
+        "id": 5709,
         "mutability": "constant",
         "name": "Asset_Type",
         "nameLocation": "308:10:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "292:39:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -233,7 +233,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5702,
+          "id": 5707,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "292:6:18",
@@ -244,7 +244,7 @@
         },
         "value": {
           "hexValue": "30783638636134353666",
-          "id": 5703,
+          "id": 5708,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -262,12 +262,12 @@
       },
       {
         "constant": true,
-        "id": 5707,
+        "id": 5712,
         "mutability": "constant",
         "name": "DAO_Type",
         "nameLocation": "414:8:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "398:37:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -276,7 +276,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5705,
+          "id": 5710,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "398:6:18",
@@ -287,7 +287,7 @@
         },
         "value": {
           "hexValue": "30786337623535333336",
-          "id": 5706,
+          "id": 5711,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -305,12 +305,12 @@
       },
       {
         "constant": true,
-        "id": 5710,
+        "id": 5715,
         "mutability": "constant",
         "name": "Ledger_Type",
         "nameLocation": "541:11:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "525:40:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -319,7 +319,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5708,
+          "id": 5713,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "525:6:18",
@@ -330,7 +330,7 @@
         },
         "value": {
           "hexValue": "30786634633338653531",
-          "id": 5709,
+          "id": 5714,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -348,12 +348,12 @@
       },
       {
         "constant": true,
-        "id": 5713,
+        "id": 5718,
         "mutability": "constant",
         "name": "Member_Type",
         "nameLocation": "642:11:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "626:40:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -362,7 +362,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5711,
+          "id": 5716,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "626:6:18",
@@ -373,7 +373,7 @@
         },
         "value": {
           "hexValue": "30783233666337366239",
-          "id": 5712,
+          "id": 5717,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -391,12 +391,12 @@
       },
       {
         "constant": true,
-        "id": 5716,
+        "id": 5721,
         "mutability": "constant",
         "name": "VotePool_Type",
         "nameLocation": "743:13:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "727:42:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -405,7 +405,7 @@
           "typeString": "bytes4"
         },
         "typeName": {
-          "id": 5714,
+          "id": 5719,
           "name": "bytes4",
           "nodeType": "ElementaryTypeName",
           "src": "727:6:18",
@@ -416,7 +416,7 @@
         },
         "value": {
           "hexValue": "30783064646632376266",
-          "id": 5715,
+          "id": 5720,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -434,12 +434,12 @@
       },
       {
         "constant": true,
-        "id": 5719,
+        "id": 5724,
         "mutability": "constant",
         "name": "Module_DAO_ID",
         "nameLocation": "863:13:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "846:34:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -448,7 +448,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5717,
+          "id": 5722,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "846:7:18",
@@ -459,7 +459,7 @@
         },
         "value": {
           "hexValue": "30",
-          "id": 5718,
+          "id": 5723,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -477,12 +477,12 @@
       },
       {
         "constant": true,
-        "id": 5722,
+        "id": 5727,
         "mutability": "constant",
         "name": "Module_MEMBER_ID",
         "nameLocation": "899:16:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "882:37:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -491,7 +491,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5720,
+          "id": 5725,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "882:7:18",
@@ -502,7 +502,7 @@
         },
         "value": {
           "hexValue": "31",
-          "id": 5721,
+          "id": 5726,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -520,12 +520,12 @@
       },
       {
         "constant": true,
-        "id": 5725,
+        "id": 5730,
         "mutability": "constant",
         "name": "Module_LEDGER_ID",
         "nameLocation": "938:16:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "921:37:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -534,7 +534,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5723,
+          "id": 5728,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "921:7:18",
@@ -545,7 +545,7 @@
         },
         "value": {
           "hexValue": "32",
-          "id": 5724,
+          "id": 5729,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -563,12 +563,12 @@
       },
       {
         "constant": true,
-        "id": 5728,
+        "id": 5733,
         "mutability": "constant",
         "name": "Module_ASSET_ID",
         "nameLocation": "977:15:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "960:36:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -577,7 +577,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5726,
+          "id": 5731,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "960:7:18",
@@ -588,7 +588,7 @@
         },
         "value": {
           "hexValue": "33",
-          "id": 5727,
+          "id": 5732,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -606,12 +606,12 @@
       },
       {
         "constant": true,
-        "id": 5731,
+        "id": 5736,
         "mutability": "constant",
         "name": "Module_ASSET_First_ID",
         "nameLocation": "1015:21:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "998:42:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -620,7 +620,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5729,
+          "id": 5734,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "998:7:18",
@@ -631,7 +631,7 @@
         },
         "value": {
           "hexValue": "34",
-          "id": 5730,
+          "id": 5735,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -649,12 +649,12 @@
       },
       {
         "constant": true,
-        "id": 5734,
+        "id": 5739,
         "mutability": "constant",
         "name": "Module_ASSET_Second_ID",
         "nameLocation": "1059:22:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1042:43:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -663,7 +663,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5732,
+          "id": 5737,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1042:7:18",
@@ -674,7 +674,7 @@
         },
         "value": {
           "hexValue": "35",
-          "id": 5733,
+          "id": 5738,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -692,12 +692,12 @@
       },
       {
         "constant": true,
-        "id": 5737,
+        "id": 5742,
         "mutability": "constant",
         "name": "Change_Tag_Common",
         "nameLocation": "1131:17:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1114:38:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -706,7 +706,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5735,
+          "id": 5740,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1114:7:18",
@@ -717,7 +717,7 @@
         },
         "value": {
           "hexValue": "30",
-          "id": 5736,
+          "id": 5741,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -735,12 +735,12 @@
       },
       {
         "constant": true,
-        "id": 5740,
+        "id": 5745,
         "mutability": "constant",
         "name": "Change_Tag_Description",
         "nameLocation": "1171:22:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1154:43:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -749,7 +749,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5738,
+          "id": 5743,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1154:7:18",
@@ -760,7 +760,7 @@
         },
         "value": {
           "hexValue": "31",
-          "id": 5739,
+          "id": 5744,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -778,12 +778,12 @@
       },
       {
         "constant": true,
-        "id": 5743,
+        "id": 5748,
         "mutability": "constant",
         "name": "Change_Tag_Operator",
         "nameLocation": "1216:19:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1199:40:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -792,7 +792,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5741,
+          "id": 5746,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1199:7:18",
@@ -803,7 +803,7 @@
         },
         "value": {
           "hexValue": "32",
-          "id": 5742,
+          "id": 5747,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -821,12 +821,12 @@
       },
       {
         "constant": true,
-        "id": 5746,
+        "id": 5751,
         "mutability": "constant",
         "name": "Change_Tag_Upgrade",
         "nameLocation": "1258:18:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1241:39:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -835,7 +835,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5744,
+          "id": 5749,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1241:7:18",
@@ -846,7 +846,7 @@
         },
         "value": {
           "hexValue": "33",
-          "id": 5745,
+          "id": 5750,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -864,12 +864,12 @@
       },
       {
         "constant": true,
-        "id": 5749,
+        "id": 5754,
         "mutability": "constant",
         "name": "Change_Tag_DAO_Mission",
         "nameLocation": "1299:22:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1282:43:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -878,7 +878,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5747,
+          "id": 5752,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1282:7:18",
@@ -889,7 +889,7 @@
         },
         "value": {
           "hexValue": "34",
-          "id": 5748,
+          "id": 5753,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -907,12 +907,12 @@
       },
       {
         "constant": true,
-        "id": 5752,
+        "id": 5757,
         "mutability": "constant",
         "name": "Change_Tag_DAO_Module",
         "nameLocation": "1344:21:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1327:42:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -921,7 +921,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5750,
+          "id": 5755,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1327:7:18",
@@ -932,7 +932,7 @@
         },
         "value": {
           "hexValue": "35",
-          "id": 5751,
+          "id": 5756,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -950,12 +950,12 @@
       },
       {
         "constant": true,
-        "id": 5755,
+        "id": 5760,
         "mutability": "constant",
         "name": "Change_Tag_Asset_set_seller_fee_basis_points",
         "nameLocation": "1388:44:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1371:65:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -964,7 +964,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5753,
+          "id": 5758,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1371:7:18",
@@ -975,7 +975,7 @@
         },
         "value": {
           "hexValue": "36",
-          "id": 5754,
+          "id": 5759,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -993,12 +993,12 @@
       },
       {
         "constant": true,
-        "id": 5758,
+        "id": 5763,
         "mutability": "constant",
         "name": "Change_Tag_Asset_set_fee_recipient",
         "nameLocation": "1455:34:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1438:55:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1007,7 +1007,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5756,
+          "id": 5761,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1438:7:18",
@@ -1018,7 +1018,7 @@
         },
         "value": {
           "hexValue": "37",
-          "id": 5757,
+          "id": 5762,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1036,12 +1036,12 @@
       },
       {
         "constant": true,
-        "id": 5761,
+        "id": 5766,
         "mutability": "constant",
         "name": "Change_Tag_Member_Set_Executor",
         "nameLocation": "1512:30:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1495:51:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1050,7 +1050,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5759,
+          "id": 5764,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1495:7:18",
@@ -1061,7 +1061,7 @@
         },
         "value": {
           "hexValue": "38",
-          "id": 5760,
+          "id": 5765,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1079,12 +1079,12 @@
       },
       {
         "constant": true,
-        "id": 5764,
+        "id": 5769,
         "mutability": "constant",
         "name": "Change_Tag_DAO_Image",
         "nameLocation": "1565:20:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1548:41:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1093,7 +1093,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5762,
+          "id": 5767,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1548:7:18",
@@ -1104,7 +1104,7 @@
         },
         "value": {
           "hexValue": "39",
-          "id": 5763,
+          "id": 5768,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1122,12 +1122,12 @@
       },
       {
         "constant": true,
-        "id": 5767,
+        "id": 5772,
         "mutability": "constant",
         "name": "Change_Tag_DAO_Extend",
         "nameLocation": "1608:21:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1591:43:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1136,7 +1136,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5765,
+          "id": 5770,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1591:7:18",
@@ -1147,7 +1147,7 @@
         },
         "value": {
           "hexValue": "3130",
-          "id": 5766,
+          "id": 5771,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1165,12 +1165,12 @@
       },
       {
         "constant": true,
-        "id": 5770,
+        "id": 5775,
         "mutability": "constant",
         "name": "Action_Member_Create",
         "nameLocation": "1683:20:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1666:50:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1179,7 +1179,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5768,
+          "id": 5773,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1666:7:18",
@@ -1190,7 +1190,7 @@
         },
         "value": {
           "hexValue": "30783232613235383730",
-          "id": 5769,
+          "id": 5774,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1208,12 +1208,12 @@
       },
       {
         "constant": true,
-        "id": 5773,
+        "id": 5778,
         "mutability": "constant",
         "name": "Action_VotePool_Create",
         "nameLocation": "1818:22:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1801:52:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1222,7 +1222,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5771,
+          "id": 5776,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1801:7:18",
@@ -1233,7 +1233,7 @@
         },
         "value": {
           "hexValue": "30786463366230623732",
-          "id": 5772,
+          "id": 5777,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1251,12 +1251,12 @@
       },
       {
         "constant": true,
-        "id": 5776,
+        "id": 5781,
         "mutability": "constant",
         "name": "Action_VotePool_Vote",
         "nameLocation": "1920:20:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "1903:50:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1265,7 +1265,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5774,
+          "id": 5779,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "1903:7:18",
@@ -1276,7 +1276,7 @@
         },
         "value": {
           "hexValue": "30783637386561333936",
-          "id": 5775,
+          "id": 5780,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1294,12 +1294,12 @@
       },
       {
         "constant": true,
-        "id": 5779,
+        "id": 5784,
         "mutability": "constant",
         "name": "Action_Asset_SafeMint",
         "nameLocation": "2031:21:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2014:51:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1308,7 +1308,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5777,
+          "id": 5782,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2014:7:18",
@@ -1319,7 +1319,7 @@
         },
         "value": {
           "hexValue": "30783539626165663261",
-          "id": 5778,
+          "id": 5783,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1337,12 +1337,12 @@
       },
       {
         "constant": true,
-        "id": 5782,
+        "id": 5787,
         "mutability": "constant",
         "name": "Action_DAO_Settings",
         "nameLocation": "2163:19:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2146:49:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1351,7 +1351,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5780,
+          "id": 5785,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2146:7:18",
@@ -1362,7 +1362,7 @@
         },
         "value": {
           "hexValue": "30786430613461643936",
-          "id": 5781,
+          "id": 5786,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1380,12 +1380,12 @@
       },
       {
         "constant": true,
-        "id": 5785,
+        "id": 5790,
         "mutability": "constant",
         "name": "Action_DAO_SetModule",
         "nameLocation": "2254:20:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2237:49:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1394,7 +1394,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5783,
+          "id": 5788,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2237:7:18",
@@ -1405,7 +1405,7 @@
         },
         "value": {
           "hexValue": "307835643239313633",
-          "id": 5784,
+          "id": 5789,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1423,12 +1423,12 @@
       },
       {
         "constant": true,
-        "id": 5788,
+        "id": 5793,
         "mutability": "constant",
         "name": "Action_Asset_set_seller_fee_basis_points",
         "nameLocation": "2356:40:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2339:70:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1437,7 +1437,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5786,
+          "id": 5791,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2339:7:18",
@@ -1448,7 +1448,7 @@
         },
         "value": {
           "hexValue": "30783931656233646565",
-          "id": 5787,
+          "id": 5792,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1466,12 +1466,12 @@
       },
       {
         "constant": true,
-        "id": 5791,
+        "id": 5796,
         "mutability": "constant",
         "name": "Action_Asset_Shell_Withdraw",
         "nameLocation": "2488:27:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2471:57:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1480,7 +1480,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5789,
+          "id": 5794,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2471:7:18",
@@ -1491,7 +1491,7 @@
         },
         "value": {
           "hexValue": "30783265316137643464",
-          "id": 5790,
+          "id": 5795,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1509,12 +1509,12 @@
       },
       {
         "constant": true,
-        "id": 5794,
+        "id": 5799,
         "mutability": "constant",
         "name": "Action_Ledger_Withdraw",
         "nameLocation": "2589:22:18",
         "nodeType": "VariableDeclaration",
-        "scope": 5796,
+        "scope": 5801,
         "src": "2572:52:18",
         "stateVariable": false,
         "storageLocation": "default",
@@ -1523,7 +1523,7 @@
           "typeString": "uint256"
         },
         "typeName": {
-          "id": 5792,
+          "id": 5797,
           "name": "uint256",
           "nodeType": "ElementaryTypeName",
           "src": "2572:7:18",
@@ -1534,7 +1534,7 @@
         },
         "value": {
           "hexValue": "30786631303861376432",
-          "id": 5793,
+          "id": 5798,
           "isConstant": false,
           "isLValue": false,
           "isPure": true,
@@ -1555,22 +1555,22 @@
         "baseContracts": [],
         "canonicalName": "Constants",
         "contractDependencies": [],
-        "contractKind": "contract",
+        "contractKind": "library",
         "fullyImplemented": true,
-        "id": 5795,
+        "id": 5800,
         "linearizedBaseContracts": [
-          5795
+          5800
         ],
         "name": "Constants",
-        "nameLocation": "2693:9:18",
+        "nameLocation": "2692:9:18",
         "nodeType": "ContractDefinition",
         "nodes": [],
-        "scope": 5796,
-        "src": "2684:21:18",
+        "scope": 5801,
+        "src": "2684:20:18",
         "usedErrors": []
       }
     ],
-    "src": "31:2674:18"
+    "src": "31:2673:18"
   },
   "compiler": {
     "name": "solc",
@@ -1578,7 +1578,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-03-20T04:26:51.618Z",
+  "updatedAt": "2023-03-29T08:53:47.008Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},
