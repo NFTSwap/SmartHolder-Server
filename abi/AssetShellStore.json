@@ -15,18 +15,18 @@
     "absolutePath": "project:/contracts/gen/AssetShellProxy.sol",
     "exportedSymbols": {
       "AssetShellProxy": [
-        5043
+        5139
       ],
       "AssetShellStore": [
-        5014
+        5110
       ]
     },
-    "id": 5044,
+    "id": 5140,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4895,
+        "id": 4991,
         "literals": [
           "solidity",
           "0.8",
@@ -42,15 +42,15 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 4896,
+          "id": 4992,
           "nodeType": "StructuredDocumentation",
           "src": "57:162:10",
           "text": "@dev All contracts that need to implement upgrades should inherit this `AssetShellStore` contract, \n and it should be the first parent class inherited"
         },
         "fullyImplemented": true,
-        "id": 5014,
+        "id": 5110,
         "linearizedBaseContracts": [
-          5014
+          5110
         ],
         "name": "AssetShellStore",
         "nameLocation": "229:15:10",
@@ -58,16 +58,16 @@
         "nodes": [
           {
             "canonicalName": "AssetShellStore.EnumerableSet_Set",
-            "id": 4904,
+            "id": 5000,
             "members": [
               {
                 "constant": false,
-                "id": 4899,
+                "id": 4995,
                 "mutability": "mutable",
                 "name": "_values",
                 "nameLocation": "290:7:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4904,
+                "scope": 5000,
                 "src": "280:17:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -77,7 +77,7 @@
                 },
                 "typeName": {
                   "baseType": {
-                    "id": 4897,
+                    "id": 4993,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "280:7:10",
@@ -86,7 +86,7 @@
                       "typeString": "bytes32"
                     }
                   },
-                  "id": 4898,
+                  "id": 4994,
                   "nodeType": "ArrayTypeName",
                   "src": "280:9:10",
                   "typeDescriptions": {
@@ -98,12 +98,12 @@
               },
               {
                 "constant": false,
-                "id": 4903,
+                "id": 4999,
                 "mutability": "mutable",
                 "name": "_indexes",
                 "nameLocation": "332:8:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4904,
+                "scope": 5000,
                 "src": "304:36:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -112,9 +112,9 @@
                   "typeString": "mapping(bytes32 => uint256)"
                 },
                 "typeName": {
-                  "id": 4902,
+                  "id": 4998,
                   "keyType": {
-                    "id": 4900,
+                    "id": 4996,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "312:7:10",
@@ -130,7 +130,7 @@
                     "typeString": "mapping(bytes32 => uint256)"
                   },
                   "valueType": {
-                    "id": 4901,
+                    "id": 4997,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "323:7:10",
@@ -146,46 +146,46 @@
             "name": "EnumerableSet_Set",
             "nameLocation": "255:17:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "248:95:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.EnumerableSet_UintSet",
-            "id": 4908,
+            "id": 5004,
             "members": [
               {
                 "constant": false,
-                "id": 4907,
+                "id": 5003,
                 "mutability": "mutable",
                 "name": "_inner",
                 "nameLocation": "395:6:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4908,
+                "scope": 5004,
                 "src": "377:24:10",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$4904_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$5000_storage_ptr",
                   "typeString": "struct AssetShellStore.EnumerableSet_Set"
                 },
                 "typeName": {
-                  "id": 4906,
+                  "id": 5002,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 4905,
+                    "id": 5001,
                     "name": "EnumerableSet_Set",
                     "nameLocations": [
                       "377:17:10"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 4904,
+                    "referencedDeclaration": 5000,
                     "src": "377:17:10"
                   },
-                  "referencedDeclaration": 4904,
+                  "referencedDeclaration": 5000,
                   "src": "377:17:10",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$4904_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$5000_storage_ptr",
                     "typeString": "struct AssetShellStore.EnumerableSet_Set"
                   }
                 },
@@ -195,46 +195,46 @@
             "name": "EnumerableSet_UintSet",
             "nameLocation": "351:21:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "344:60:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.EnumerableSet_Bytes32Set",
-            "id": 4912,
+            "id": 5008,
             "members": [
               {
                 "constant": false,
-                "id": 4911,
+                "id": 5007,
                 "mutability": "mutable",
                 "name": "_inner",
                 "nameLocation": "461:6:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4912,
+                "scope": 5008,
                 "src": "443:24:10",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$4904_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$5000_storage_ptr",
                   "typeString": "struct AssetShellStore.EnumerableSet_Set"
                 },
                 "typeName": {
-                  "id": 4910,
+                  "id": 5006,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 4909,
+                    "id": 5005,
                     "name": "EnumerableSet_Set",
                     "nameLocations": [
                       "443:17:10"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 4904,
+                    "referencedDeclaration": 5000,
                     "src": "443:17:10"
                   },
-                  "referencedDeclaration": 4904,
+                  "referencedDeclaration": 5000,
                   "src": "443:17:10",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$4904_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$5000_storage_ptr",
                     "typeString": "struct AssetShellStore.EnumerableSet_Set"
                   }
                 },
@@ -244,46 +244,46 @@
             "name": "EnumerableSet_Bytes32Set",
             "nameLocation": "412:24:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "405:65:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.EnumerableMap_Bytes32ToBytes32Map",
-            "id": 4920,
+            "id": 5016,
             "members": [
               {
                 "constant": false,
-                "id": 4915,
+                "id": 5011,
                 "mutability": "mutable",
                 "name": "_keys",
                 "nameLocation": "542:5:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4920,
+                "scope": 5016,
                 "src": "517:30:10",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$4912_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$5008_storage_ptr",
                   "typeString": "struct AssetShellStore.EnumerableSet_Bytes32Set"
                 },
                 "typeName": {
-                  "id": 4914,
+                  "id": 5010,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 4913,
+                    "id": 5009,
                     "name": "EnumerableSet_Bytes32Set",
                     "nameLocations": [
                       "517:24:10"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 4912,
+                    "referencedDeclaration": 5008,
                     "src": "517:24:10"
                   },
-                  "referencedDeclaration": 4912,
+                  "referencedDeclaration": 5008,
                   "src": "517:24:10",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$4912_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$5008_storage_ptr",
                     "typeString": "struct AssetShellStore.EnumerableSet_Bytes32Set"
                   }
                 },
@@ -291,12 +291,12 @@
               },
               {
                 "constant": false,
-                "id": 4919,
+                "id": 5015,
                 "mutability": "mutable",
                 "name": "_values",
                 "nameLocation": "580:7:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4920,
+                "scope": 5016,
                 "src": "552:35:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -305,9 +305,9 @@
                   "typeString": "mapping(bytes32 => bytes32)"
                 },
                 "typeName": {
-                  "id": 4918,
+                  "id": 5014,
                   "keyType": {
-                    "id": 4916,
+                    "id": 5012,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "560:7:10",
@@ -323,7 +323,7 @@
                     "typeString": "mapping(bytes32 => bytes32)"
                   },
                   "valueType": {
-                    "id": 4917,
+                    "id": 5013,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "571:7:10",
@@ -339,46 +339,46 @@
             "name": "EnumerableMap_Bytes32ToBytes32Map",
             "nameLocation": "478:33:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "471:119:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.EnumerableMap_UintToAddressMap",
-            "id": 4924,
+            "id": 5020,
             "members": [
               {
                 "constant": false,
-                "id": 4923,
+                "id": 5019,
                 "mutability": "mutable",
                 "name": "_inner",
                 "nameLocation": "667:6:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4924,
+                "scope": 5020,
                 "src": "633:40:10",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$4920_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$5016_storage_ptr",
                   "typeString": "struct AssetShellStore.EnumerableMap_Bytes32ToBytes32Map"
                 },
                 "typeName": {
-                  "id": 4922,
+                  "id": 5018,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 4921,
+                    "id": 5017,
                     "name": "EnumerableMap_Bytes32ToBytes32Map",
                     "nameLocations": [
                       "633:33:10"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 4920,
+                    "referencedDeclaration": 5016,
                     "src": "633:33:10"
                   },
-                  "referencedDeclaration": 4920,
+                  "referencedDeclaration": 5016,
                   "src": "633:33:10",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$4920_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$5016_storage_ptr",
                     "typeString": "struct AssetShellStore.EnumerableMap_Bytes32ToBytes32Map"
                   }
                 },
@@ -388,22 +388,22 @@
             "name": "EnumerableMap_UintToAddressMap",
             "nameLocation": "598:30:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "591:85:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.IAssetShell_AssetID",
-            "id": 4929,
+            "id": 5025,
             "members": [
               {
                 "constant": false,
-                "id": 4926,
+                "id": 5022,
                 "mutability": "mutable",
                 "name": "token",
                 "nameLocation": "717:5:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4929,
+                "scope": 5025,
                 "src": "709:13:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -412,7 +412,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 4925,
+                  "id": 5021,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "709:7:10",
@@ -426,12 +426,12 @@
               },
               {
                 "constant": false,
-                "id": 4928,
+                "id": 5024,
                 "mutability": "mutable",
                 "name": "tokenId",
                 "nameLocation": "735:7:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4929,
+                "scope": 5025,
                 "src": "727:15:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -440,7 +440,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 4927,
+                  "id": 5023,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "727:7:10",
@@ -455,46 +455,46 @@
             "name": "IAssetShell_AssetID",
             "nameLocation": "684:19:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "677:68:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.AssetShell_AssetData",
-            "id": 4937,
+            "id": 5033,
             "members": [
               {
                 "constant": false,
-                "id": 4932,
+                "id": 5028,
                 "mutability": "mutable",
                 "name": "meta",
                 "nameLocation": "798:4:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4937,
+                "scope": 5033,
                 "src": "778:24:10",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_IAssetShell_AssetID_$4929_storage_ptr",
+                  "typeIdentifier": "t_struct$_IAssetShell_AssetID_$5025_storage_ptr",
                   "typeString": "struct AssetShellStore.IAssetShell_AssetID"
                 },
                 "typeName": {
-                  "id": 4931,
+                  "id": 5027,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 4930,
+                    "id": 5026,
                     "name": "IAssetShell_AssetID",
                     "nameLocations": [
                       "778:19:10"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 4929,
+                    "referencedDeclaration": 5025,
                     "src": "778:19:10"
                   },
-                  "referencedDeclaration": 4929,
+                  "referencedDeclaration": 5025,
                   "src": "778:19:10",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_IAssetShell_AssetID_$4929_storage_ptr",
+                    "typeIdentifier": "t_struct$_IAssetShell_AssetID_$5025_storage_ptr",
                     "typeString": "struct AssetShellStore.IAssetShell_AssetID"
                   }
                 },
@@ -502,12 +502,12 @@
               },
               {
                 "constant": false,
-                "id": 4934,
+                "id": 5030,
                 "mutability": "mutable",
                 "name": "minimumPrice",
                 "nameLocation": "814:12:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4937,
+                "scope": 5033,
                 "src": "806:20:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -516,7 +516,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 4933,
+                  "id": 5029,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "806:7:10",
@@ -529,12 +529,12 @@
               },
               {
                 "constant": false,
-                "id": 4936,
+                "id": 5032,
                 "mutability": "mutable",
                 "name": "locked",
                 "nameLocation": "838:6:10",
                 "nodeType": "VariableDeclaration",
-                "scope": 4937,
+                "scope": 5033,
                 "src": "830:14:10",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -543,7 +543,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 4935,
+                  "id": 5031,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "830:7:10",
@@ -559,30 +559,30 @@
             "name": "AssetShell_AssetData",
             "nameLocation": "753:20:10",
             "nodeType": "StructDefinition",
-            "scope": 5014,
+            "scope": 5110,
             "src": "746:101:10",
             "visibility": "public"
           },
           {
             "canonicalName": "AssetShellStore.IAssetShell_SaleType",
-            "id": 4941,
+            "id": 5037,
             "members": [
               {
-                "id": 4938,
+                "id": 5034,
                 "name": "kDefault",
                 "nameLocation": "877:8:10",
                 "nodeType": "EnumValue",
                 "src": "877:8:10"
               },
               {
-                "id": 4939,
+                "id": 5035,
                 "name": "kFirst",
                 "nameLocation": "886:6:10",
                 "nodeType": "EnumValue",
                 "src": "886:6:10"
               },
               {
-                "id": 4940,
+                "id": 5036,
                 "name": "kSecond",
                 "nameLocation": "893:7:10",
                 "nodeType": "EnumValue",
@@ -596,12 +596,12 @@
           },
           {
             "constant": false,
-            "id": 4943,
+            "id": 5039,
             "mutability": "mutable",
             "name": "_impl",
             "nameLocation": "914:5:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "906:13:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -610,7 +610,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 4942,
+              "id": 5038,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "906:7:10",
@@ -624,12 +624,12 @@
           },
           {
             "constant": false,
-            "id": 4945,
+            "id": 5041,
             "mutability": "mutable",
             "name": "_initialized",
             "nameLocation": "928:12:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "922:18:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -638,7 +638,7 @@
               "typeString": "uint8"
             },
             "typeName": {
-              "id": 4944,
+              "id": 5040,
               "name": "uint8",
               "nodeType": "ElementaryTypeName",
               "src": "922:5:10",
@@ -651,12 +651,12 @@
           },
           {
             "constant": false,
-            "id": 4947,
+            "id": 5043,
             "mutability": "mutable",
             "name": "_initializing",
             "nameLocation": "948:13:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "943:18:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -665,7 +665,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 4946,
+              "id": 5042,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "943:4:10",
@@ -678,12 +678,12 @@
           },
           {
             "constant": false,
-            "id": 4951,
+            "id": 5047,
             "mutability": "mutable",
             "name": "_supportedInterfaces",
             "nameLocation": "988:20:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "964:44:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -692,9 +692,9 @@
               "typeString": "mapping(bytes4 => bool)"
             },
             "typeName": {
-              "id": 4950,
+              "id": 5046,
               "keyType": {
-                "id": 4948,
+                "id": 5044,
                 "name": "bytes4",
                 "nodeType": "ElementaryTypeName",
                 "src": "972:6:10",
@@ -710,7 +710,7 @@
                 "typeString": "mapping(bytes4 => bool)"
               },
               "valueType": {
-                "id": 4949,
+                "id": 5045,
                 "name": "bool",
                 "nodeType": "ElementaryTypeName",
                 "src": "982:4:10",
@@ -724,12 +724,12 @@
           },
           {
             "constant": false,
-            "id": 4953,
+            "id": 5049,
             "mutability": "mutable",
             "name": "_host",
             "nameLocation": "1019:5:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1011:13:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -738,7 +738,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 4952,
+              "id": 5048,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1011:7:10",
@@ -752,12 +752,12 @@
           },
           {
             "constant": false,
-            "id": 4955,
+            "id": 5051,
             "mutability": "mutable",
             "name": "_operator",
             "nameLocation": "1035:9:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1027:17:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -766,7 +766,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 4954,
+              "id": 5050,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1027:7:10",
@@ -780,12 +780,12 @@
           },
           {
             "constant": false,
-            "id": 4957,
+            "id": 5053,
             "mutability": "mutable",
             "name": "_description",
             "nameLocation": "1054:12:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1047:19:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -794,7 +794,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4956,
+              "id": 5052,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1047:6:10",
@@ -807,12 +807,12 @@
           },
           {
             "constant": false,
-            "id": 4961,
+            "id": 5057,
             "mutability": "mutable",
             "name": "__",
             "nameLocation": "1080:2:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1069:13:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -822,7 +822,7 @@
             },
             "typeName": {
               "baseType": {
-                "id": 4958,
+                "id": 5054,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1069:7:10",
@@ -831,10 +831,10 @@
                   "typeString": "uint256"
                 }
               },
-              "id": 4960,
+              "id": 5056,
               "length": {
                 "hexValue": "38",
-                "id": 4959,
+                "id": 5055,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -859,23 +859,23 @@
           },
           {
             "constant": false,
-            "id": 4966,
+            "id": 5062,
             "mutability": "mutable",
             "name": "_holderTokens",
             "nameLocation": "1127:13:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1085:55:10",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_EnumerableSet_UintSet_$4908_storage_$",
+              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_EnumerableSet_UintSet_$5004_storage_$",
               "typeString": "mapping(address => struct AssetShellStore.EnumerableSet_UintSet)"
             },
             "typeName": {
-              "id": 4965,
+              "id": 5061,
               "keyType": {
-                "id": 4962,
+                "id": 5058,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1093:7:10",
@@ -887,26 +887,26 @@
               "nodeType": "Mapping",
               "src": "1085:41:10",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_EnumerableSet_UintSet_$4908_storage_$",
+                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_EnumerableSet_UintSet_$5004_storage_$",
                 "typeString": "mapping(address => struct AssetShellStore.EnumerableSet_UintSet)"
               },
               "valueType": {
-                "id": 4964,
+                "id": 5060,
                 "nodeType": "UserDefinedTypeName",
                 "pathNode": {
-                  "id": 4963,
+                  "id": 5059,
                   "name": "EnumerableSet_UintSet",
                   "nameLocations": [
                     "1104:21:10"
                   ],
                   "nodeType": "IdentifierPath",
-                  "referencedDeclaration": 4908,
+                  "referencedDeclaration": 5004,
                   "src": "1104:21:10"
                 },
-                "referencedDeclaration": 4908,
+                "referencedDeclaration": 5004,
                 "src": "1104:21:10",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_UintSet_$4908_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_UintSet_$5004_storage_ptr",
                   "typeString": "struct AssetShellStore.EnumerableSet_UintSet"
                 }
               }
@@ -915,36 +915,36 @@
           },
           {
             "constant": false,
-            "id": 4969,
+            "id": 5065,
             "mutability": "mutable",
             "name": "_tokenOwners",
             "nameLocation": "1174:12:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1143:43:10",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$4924_storage",
+              "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$5020_storage",
               "typeString": "struct AssetShellStore.EnumerableMap_UintToAddressMap"
             },
             "typeName": {
-              "id": 4968,
+              "id": 5064,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 4967,
+                "id": 5063,
                 "name": "EnumerableMap_UintToAddressMap",
                 "nameLocations": [
                   "1143:30:10"
                 ],
                 "nodeType": "IdentifierPath",
-                "referencedDeclaration": 4924,
+                "referencedDeclaration": 5020,
                 "src": "1143:30:10"
               },
-              "referencedDeclaration": 4924,
+              "referencedDeclaration": 5020,
               "src": "1143:30:10",
               "typeDescriptions": {
-                "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$4924_storage_ptr",
+                "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$5020_storage_ptr",
                 "typeString": "struct AssetShellStore.EnumerableMap_UintToAddressMap"
               }
             },
@@ -952,12 +952,12 @@
           },
           {
             "constant": false,
-            "id": 4973,
+            "id": 5069,
             "mutability": "mutable",
             "name": "_tokenApprovals",
             "nameLocation": "1217:15:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1189:43:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -966,9 +966,9 @@
               "typeString": "mapping(uint256 => address)"
             },
             "typeName": {
-              "id": 4972,
+              "id": 5068,
               "keyType": {
-                "id": 4970,
+                "id": 5066,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1197:7:10",
@@ -984,7 +984,7 @@
                 "typeString": "mapping(uint256 => address)"
               },
               "valueType": {
-                "id": 4971,
+                "id": 5067,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1208:7:10",
@@ -999,12 +999,12 @@
           },
           {
             "constant": false,
-            "id": 4979,
+            "id": 5075,
             "mutability": "mutable",
             "name": "_operatorApprovals",
             "nameLocation": "1280:18:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1235:63:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1013,9 +1013,9 @@
               "typeString": "mapping(address => mapping(address => bool))"
             },
             "typeName": {
-              "id": 4978,
+              "id": 5074,
               "keyType": {
-                "id": 4974,
+                "id": 5070,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1243:7:10",
@@ -1031,9 +1031,9 @@
                 "typeString": "mapping(address => mapping(address => bool))"
               },
               "valueType": {
-                "id": 4977,
+                "id": 5073,
                 "keyType": {
-                  "id": 4975,
+                  "id": 5071,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "1262:7:10",
@@ -1049,7 +1049,7 @@
                   "typeString": "mapping(address => bool)"
                 },
                 "valueType": {
-                  "id": 4976,
+                  "id": 5072,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "1273:4:10",
@@ -1064,12 +1064,12 @@
           },
           {
             "constant": false,
-            "id": 4981,
+            "id": 5077,
             "mutability": "mutable",
             "name": "_name",
             "nameLocation": "1308:5:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1301:12:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1078,7 +1078,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4980,
+              "id": 5076,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1301:6:10",
@@ -1091,12 +1091,12 @@
           },
           {
             "constant": false,
-            "id": 4983,
+            "id": 5079,
             "mutability": "mutable",
             "name": "_symbol",
             "nameLocation": "1323:7:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1316:14:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1105,7 +1105,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4982,
+              "id": 5078,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1316:6:10",
@@ -1118,12 +1118,12 @@
           },
           {
             "constant": false,
-            "id": 4987,
+            "id": 5083,
             "mutability": "mutable",
             "name": "_tokenURIs",
             "nameLocation": "1360:10:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1333:37:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1132,9 +1132,9 @@
               "typeString": "mapping(uint256 => string)"
             },
             "typeName": {
-              "id": 4986,
+              "id": 5082,
               "keyType": {
-                "id": 4984,
+                "id": 5080,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1341:7:10",
@@ -1150,7 +1150,7 @@
                 "typeString": "mapping(uint256 => string)"
               },
               "valueType": {
-                "id": 4985,
+                "id": 5081,
                 "name": "string",
                 "nodeType": "ElementaryTypeName",
                 "src": "1352:6:10",
@@ -1164,12 +1164,12 @@
           },
           {
             "constant": false,
-            "id": 4989,
+            "id": 5085,
             "mutability": "mutable",
             "name": "_baseURI",
             "nameLocation": "1380:8:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1373:15:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1178,7 +1178,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4988,
+              "id": 5084,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1373:6:10",
@@ -1191,12 +1191,12 @@
           },
           {
             "constant": false,
-            "id": 4991,
+            "id": 5087,
             "mutability": "mutable",
             "name": "image",
             "nameLocation": "1398:5:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1391:12:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1205,7 +1205,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4990,
+              "id": 5086,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1391:6:10",
@@ -1218,12 +1218,12 @@
           },
           {
             "constant": false,
-            "id": 4993,
+            "id": 5089,
             "mutability": "mutable",
             "name": "external_link",
             "nameLocation": "1413:13:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1406:20:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1232,7 +1232,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4992,
+              "id": 5088,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1406:6:10",
@@ -1245,12 +1245,12 @@
           },
           {
             "constant": false,
-            "id": 4995,
+            "id": 5091,
             "mutability": "mutable",
             "name": "fee_recipient",
             "nameLocation": "1437:13:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1429:21:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1259,7 +1259,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 4994,
+              "id": 5090,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1429:7:10",
@@ -1273,12 +1273,12 @@
           },
           {
             "constant": false,
-            "id": 4997,
+            "id": 5093,
             "mutability": "mutable",
             "name": "seller_fee_basis_points",
             "nameLocation": "1460:23:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1453:30:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1287,7 +1287,7 @@
               "typeString": "uint32"
             },
             "typeName": {
-              "id": 4996,
+              "id": 5092,
               "name": "uint32",
               "nodeType": "ElementaryTypeName",
               "src": "1453:6:10",
@@ -1300,12 +1300,12 @@
           },
           {
             "constant": false,
-            "id": 4999,
+            "id": 5095,
             "mutability": "mutable",
             "name": "contractURIPrefix",
             "nameLocation": "1493:17:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1486:24:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1314,7 +1314,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 4998,
+              "id": 5094,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1486:6:10",
@@ -1327,23 +1327,23 @@
           },
           {
             "constant": false,
-            "id": 5004,
+            "id": 5100,
             "mutability": "mutable",
             "name": "_assetsData",
             "nameLocation": "1554:11:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1513:52:10",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_AssetShell_AssetData_$4937_storage_$",
+              "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_AssetShell_AssetData_$5033_storage_$",
               "typeString": "mapping(uint256 => struct AssetShellStore.AssetShell_AssetData)"
             },
             "typeName": {
-              "id": 5003,
+              "id": 5099,
               "keyType": {
-                "id": 5000,
+                "id": 5096,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1521:7:10",
@@ -1355,26 +1355,26 @@
               "nodeType": "Mapping",
               "src": "1513:40:10",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_AssetShell_AssetData_$4937_storage_$",
+                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_AssetShell_AssetData_$5033_storage_$",
                 "typeString": "mapping(uint256 => struct AssetShellStore.AssetShell_AssetData)"
               },
               "valueType": {
-                "id": 5002,
+                "id": 5098,
                 "nodeType": "UserDefinedTypeName",
                 "pathNode": {
-                  "id": 5001,
+                  "id": 5097,
                   "name": "AssetShell_AssetData",
                   "nameLocations": [
                     "1532:20:10"
                   ],
                   "nodeType": "IdentifierPath",
-                  "referencedDeclaration": 4937,
+                  "referencedDeclaration": 5033,
                   "src": "1532:20:10"
                 },
-                "referencedDeclaration": 4937,
+                "referencedDeclaration": 5033,
                 "src": "1532:20:10",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_AssetShell_AssetData_$4937_storage_ptr",
+                  "typeIdentifier": "t_struct$_AssetShell_AssetData_$5033_storage_ptr",
                   "typeString": "struct AssetShellStore.AssetShell_AssetData"
                 }
               }
@@ -1383,12 +1383,12 @@
           },
           {
             "constant": false,
-            "id": 5006,
+            "id": 5102,
             "mutability": "mutable",
             "name": "_lastLocked",
             "nameLocation": "1576:11:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1568:19:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1397,7 +1397,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 5005,
+              "id": 5101,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1568:7:10",
@@ -1410,36 +1410,36 @@
           },
           {
             "constant": false,
-            "id": 5009,
+            "id": 5105,
             "mutability": "mutable",
             "name": "saleType",
             "nameLocation": "1611:8:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1590:29:10",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_enum$_IAssetShell_SaleType_$4941",
+              "typeIdentifier": "t_enum$_IAssetShell_SaleType_$5037",
               "typeString": "enum AssetShellStore.IAssetShell_SaleType"
             },
             "typeName": {
-              "id": 5008,
+              "id": 5104,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 5007,
+                "id": 5103,
                 "name": "IAssetShell_SaleType",
                 "nameLocations": [
                   "1590:20:10"
                 ],
                 "nodeType": "IdentifierPath",
-                "referencedDeclaration": 4941,
+                "referencedDeclaration": 5037,
                 "src": "1590:20:10"
               },
-              "referencedDeclaration": 4941,
+              "referencedDeclaration": 5037,
               "src": "1590:20:10",
               "typeDescriptions": {
-                "typeIdentifier": "t_enum$_IAssetShell_SaleType_$4941",
+                "typeIdentifier": "t_enum$_IAssetShell_SaleType_$5037",
                 "typeString": "enum AssetShellStore.IAssetShell_SaleType"
               }
             },
@@ -1447,12 +1447,12 @@
           },
           {
             "constant": false,
-            "id": 5013,
+            "id": 5109,
             "mutability": "mutable",
             "name": "___1",
             "nameLocation": "1634:4:10",
             "nodeType": "VariableDeclaration",
-            "scope": 5014,
+            "scope": 5110,
             "src": "1622:16:10",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1462,7 +1462,7 @@
             },
             "typeName": {
               "baseType": {
-                "id": 5010,
+                "id": 5106,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1622:7:10",
@@ -1471,10 +1471,10 @@
                   "typeString": "uint256"
                 }
               },
-              "id": 5012,
+              "id": 5108,
               "length": {
                 "hexValue": "3136",
-                "id": 5011,
+                "id": 5107,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -1498,7 +1498,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 5044,
+        "scope": 5140,
         "src": "220:1437:10",
         "usedErrors": []
       },
@@ -1507,16 +1507,16 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 5016,
+              "id": 5112,
               "name": "AssetShellStore",
               "nameLocations": [
                 "2049:15:10"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 5014,
+              "referencedDeclaration": 5110,
               "src": "2049:15:10"
             },
-            "id": 5017,
+            "id": 5113,
             "nodeType": "InheritanceSpecifier",
             "src": "2049:15:10"
           }
@@ -1525,16 +1525,16 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 5015,
+          "id": 5111,
           "nodeType": "StructuredDocumentation",
           "src": "1659:361:10",
           "text": " @dev The context here is that the externally exposed contract entities are only used to store data, \n and the implemented business logic should be placed in the impl\n Any method that calls this contract will be directed to `fallback()`, \n and then use `delegatecall()` to call the actual implementation and pass the current data context to impl"
         },
         "fullyImplemented": true,
-        "id": 5043,
+        "id": 5139,
         "linearizedBaseContracts": [
-          5043,
-          5014
+          5139,
+          5110
         ],
         "name": "AssetShellProxy",
         "nameLocation": "2030:15:10",
@@ -1542,23 +1542,23 @@
         "nodes": [
           {
             "body": {
-              "id": 5026,
+              "id": 5122,
               "nodeType": "Block",
               "src": "2255:20:10",
               "statements": [
                 {
                   "expression": {
-                    "id": 5024,
+                    "id": 5120,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 5022,
+                      "id": 5118,
                       "name": "_impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 4943,
+                      "referencedDeclaration": 5039,
                       "src": "2259:5:10",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -1568,11 +1568,11 @@
                     "nodeType": "Assignment",
                     "operator": "=",
                     "rightHandSide": {
-                      "id": 5023,
+                      "id": 5119,
                       "name": "impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5019,
+                      "referencedDeclaration": 5115,
                       "src": "2267:4:10",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -1585,13 +1585,13 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 5025,
+                  "id": 5121,
                   "nodeType": "ExpressionStatement",
                   "src": "2259:12:10"
                 }
               ]
             },
-            "id": 5027,
+            "id": 5123,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
@@ -1599,17 +1599,17 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5020,
+              "id": 5116,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5019,
+                  "id": 5115,
                   "mutability": "mutable",
                   "name": "impl",
                   "nameLocation": "2242:4:10",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5027,
+                  "scope": 5123,
                   "src": "2234:12:10",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1618,7 +1618,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 5018,
+                    "id": 5114,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2234:7:10",
@@ -1634,12 +1634,12 @@
               "src": "2233:14:10"
             },
             "returnParameters": {
-              "id": 5021,
+              "id": 5117,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2255:0:10"
             },
-            "scope": 5043,
+            "scope": 5139,
             "src": "2222:53:10",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -1647,24 +1647,24 @@
           },
           {
             "body": {
-              "id": 5041,
+              "id": 5137,
               "nodeType": "Block",
               "src": "2306:224:10",
               "statements": [
                 {
                   "assignments": [
-                    5031,
-                    5033
+                    5127,
+                    5129
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 5031,
+                      "id": 5127,
                       "mutability": "mutable",
                       "name": "suc",
                       "nameLocation": "2316:3:10",
                       "nodeType": "VariableDeclaration",
-                      "scope": 5041,
+                      "scope": 5137,
                       "src": "2311:8:10",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -1673,7 +1673,7 @@
                         "typeString": "bool"
                       },
                       "typeName": {
-                        "id": 5030,
+                        "id": 5126,
                         "name": "bool",
                         "nodeType": "ElementaryTypeName",
                         "src": "2311:4:10",
@@ -1686,12 +1686,12 @@
                     },
                     {
                       "constant": false,
-                      "id": 5033,
+                      "id": 5129,
                       "mutability": "mutable",
                       "name": "_data",
                       "nameLocation": "2334:5:10",
                       "nodeType": "VariableDeclaration",
-                      "scope": 5041,
+                      "scope": 5137,
                       "src": "2321:18:10",
                       "stateVariable": false,
                       "storageLocation": "memory",
@@ -1700,7 +1700,7 @@
                         "typeString": "bytes"
                       },
                       "typeName": {
-                        "id": 5032,
+                        "id": 5128,
                         "name": "bytes",
                         "nodeType": "ElementaryTypeName",
                         "src": "2321:5:10",
@@ -1712,12 +1712,12 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 5039,
+                  "id": 5135,
                   "initialValue": {
                     "arguments": [
                       {
                         "expression": {
-                          "id": 5036,
+                          "id": 5132,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -1728,7 +1728,7 @@
                             "typeString": "msg"
                           }
                         },
-                        "id": 5037,
+                        "id": 5133,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1751,18 +1751,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 5034,
+                        "id": 5130,
                         "name": "_impl",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 4943,
+                        "referencedDeclaration": 5039,
                         "src": "2343:5:10",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         }
                       },
-                      "id": 5035,
+                      "id": 5131,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -1776,7 +1776,7 @@
                         "typeString": "function (bytes memory) returns (bool,bytes memory)"
                       }
                     },
-                    "id": 5038,
+                    "id": 5134,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1957,34 +1957,34 @@
                   "evmVersion": "petersburg",
                   "externalReferences": [
                     {
-                      "declaration": 5033,
+                      "declaration": 5129,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "2406:5:10",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 5033,
+                      "declaration": 5129,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "2432:5:10",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 5031,
+                      "declaration": 5127,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "2455:3:10",
                       "valueSize": 1
                     }
                   ],
-                  "id": 5040,
+                  "id": 5136,
                   "nodeType": "InlineAssembly",
                   "src": "2375:152:10"
                 }
               ]
             },
-            "id": 5042,
+            "id": 5138,
             "implemented": true,
             "kind": "fallback",
             "modifiers": [],
@@ -1992,25 +1992,25 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5028,
+              "id": 5124,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2286:2:10"
             },
             "returnParameters": {
-              "id": 5029,
+              "id": 5125,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2306:0:10"
             },
-            "scope": 5043,
+            "scope": 5139,
             "src": "2278:252:10",
             "stateMutability": "payable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 5044,
+        "scope": 5140,
         "src": "2021:511:10",
         "usedErrors": []
       }
@@ -2023,7 +2023,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-03-29T08:53:47.000Z",
+  "updatedAt": "2023-04-01T07:55:49.815Z",
   "devdoc": {
     "details": "All contracts that need to implement upgrades should inherit this `AssetShellStore` contract,  and it should be the first parent class inherited",
     "kind": "dev",

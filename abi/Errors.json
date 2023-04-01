@@ -1,146 +1,146 @@
 {
   "contractName": "Errors",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Errors.sol\":\"Errors\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Errors.sol\":{\"keccak256\":\"0xd0591e25fb5c3c8e31ec256c142e19cf1fbb64f55262146b508445fb570572af\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://f0ad17b31265c56143e20716e93a0c20367a089636344941f98733530d12c214\",\"dweb:/ipfs/Qmb47dWQMnn1V7NoiY3FTkqg4NKGK8wVW5yA136rab6MsN\"]}},\"version\":1}",
-  "bytecode": "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212207b8df8c2f930d71a1a2e9610dc30e5935721d272f1dee61e8bc13f7aea22038464736f6c63430008110033",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212207b8df8c2f930d71a1a2e9610dc30e5935721d272f1dee61e8bc13f7aea22038464736f6c63430008110033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Errors.sol\":\"Errors\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Errors.sol\":{\"keccak256\":\"0xd7159f8eb46f667a98e823dfb1e822e759b9ebffaac9695702005f3a5d848463\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://14058e1e07eb752188bc5f99a01d8f07e388e20bb66180c500ca7425fe691d34\",\"dweb:/ipfs/QmfRzMR9DUu3Gwj2NqU5xrGNmGogHJsEWRs7SZeXP5Z6LN\"]}},\"version\":1}",
+  "bytecode": "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220f47a249889e86eaa3935e6c05602bd44f823458fb59561b7d6504131a4935c4c64736f6c63430008110033",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220f47a249889e86eaa3935e6c05602bd44f823458fb59561b7d6504131a4935c4c64736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [],
-  "sourceMap": "2640:17:22:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "2640:17:22:-:0;;;;;;;;",
-  "source": "//SPDX-License-Identifier: MIT\npragma solidity 0.8.17;\n\n// error Test();\n// revert Test(type(uint8).max);\n\nerror InsufficientBalance(); // payable insufficient balance\nerror PayableInsufficientAmount(); // payable insufficient amount\nerror PayableAmountZero(); // aayable amount zero\nerror SendValueFail(); // send amount value fail\nerror PermissionDenied(); // permission denied\nerror PermissionDeniedForOnlyDAO(); // permission denied for only dao\nerror PermissionDeniedForMember(); // specific member no match\nerror CheckInterfaceNoMatch(bytes4 interfaceId);  // check interface or module no match\nerror AddressEmpty(); // address cannot be empty zero\nerror TokenIDEmpty(); // token Id cannot be empty zero\nerror PermissionDeniedInERC721(); // erc721 action permission denied\nerror TransferOfTokenIDThatIsNotOwnInERC721(); // transfer of token id that is not own in ERC721\nerror TokenIDNonExistentInERC721(); // nonexistent token id for ERC721\nerror TokenIDAlreadyMintedInERC721(); // token id already minted in ERC721\nerror ApprovalToOwnerInERC721(); // Cannot approve to owner\nerror ApproveAllToCallerInERC721(); // cannot approve all to caller or owner in ERC721\nerror NonERC721ReceiverImplementer(); // non ERC721 Receiver implementer\nerror OnlyOwnerAvailable(); // Only available to the owner\nerror NonContractAddress(); // non contract address\nerror AssetNonExistsInAssetShell(); // asset non exists\nerror NeedToUnlockAssetFirst(); // You need to unlock the asset first\nerror LockTokenIDEmptyInAssetShell(); // Lock cannot be empty in asset shell\nerror InsufficientVotesInMember(); // not votes power enough in member\nerror MemberNonExists(); // member non exists\nerror MemberAlreadyExists(); // member already exists\nerror MemberRequestJoinAlreadyExists(); // already exists member join request\nerror ProposalNonExistsInVotePool(); // proposal non exists\nerror ProposalAlreadyExistsInVotePool(); // proposal already exists\nerror ProposalDefaultLifespanLimitError(); // proposal lifespan not less than 12 hours\nerror CreateProposalVotePassEateLimitError(); // proposal vote pass rate not less than 50%\nerror CreateProposalLifespanLimitError(); // proposal lifespan not less than current setting lifespan days\nerror CreateProposalLoopTimeLimitError(); // Loop time must be greater than 1 minute\nerror VotesZero(); // votes cannot be zero\nerror ProposalClosed(); // proposal closed\nerror VotingMemberNoMatch();// Voting Membership Mismatch\nerror DuplicateVoteError(); // Cannot vote repeatedly\nerror VoteInsufficientVotes(); // vote insufficient votes\nerror VotingInProgress();\nerror ProposalNotPassed(); // Proposal was not passed\n\nlibrary Errors {}",
+  "sourceMap": "3073:17:22:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "3073:17:22:-:0;;;;;;;;",
+  "source": "//SPDX-License-Identifier: MIT\npragma solidity 0.8.17;\n\n// error Test();\n// revert Test(type(uint8).max);\n\nerror InsufficientBalance(); // 0xf4d678b8 payable insufficient balance\nerror PayableInsufficientAmount(); // 0x5bdb36f8 payable insufficient amount\nerror PayableAmountZero(); // 0x41a5bd5c payable amount zero\nerror SendValueFail(); // 0x9993a422 send amount value fail\nerror PermissionDenied(); // 0x1e092104 permission denied\nerror PermissionDeniedForOnlyDAO(); // 0xda002518 permission denied for only dao\nerror PermissionDeniedForMember(); // 0x7832bbc1 specific member no match\nerror CheckInterfaceNoMatch(bytes4 interfaceId);  // 0x2aae78ef check interface or module no match\nerror AddressEmpty(); // 0x5bb7a723 address cannot be empty zero\nerror TokenIDEmpty(); // 0x94e69af8 token Id cannot be empty zero\nerror PermissionDeniedInERC721(); // 0xd3a32745 erc721 action permission denied\nerror TransferOfTokenIDThatIsNotOwnInERC721(); // 0x11307032 transfer of token id that is not own in ERC721\nerror TokenIDNonExistentInERC721(); // 0x5449cd45 nonexistent token id for ERC721\nerror TokenIDAlreadyMintedInERC721(); // 0x082c3a4f token id already minted in ERC721\nerror ApprovalToOwnerInERC721(); // 0x65f090f7 Cannot approve to owner\nerror ApproveAllToCallerInERC721(); // 0x19095a8c cannot approve all to caller or owner in ERC721\nerror NonERC721ReceiverImplementer(); // 0x85d5821e non ERC721 Receiver implementer\nerror OnlyOwnerAvailable(); // 0x399c7579 Only available to the owner\nerror NonContractAddress(); // 0x4aa4cf51 non contract address\nerror AssetNonExistsInAssetShell(); // 0x54ac7492 asset non exists\nerror NeedToUnlockAssetFirst(); // 0xf31df50e You need to unlock the asset first\nerror LockTokenIDEmptyInAssetShell(); // 0x21c67f49 Lock cannot be empty in asset shell\nerror InsufficientVotesInMember(); // 0x252f4a32 not votes power enough in member\nerror MemberNonExists(); // 0x7f5c5df9 member non exists\nerror MemberAlreadyExists(); // 0xe0150952 member already exists\nerror MemberRequestJoinAlreadyExists(); // 0xa1ee8585 already exists member join request\nerror ProposalNonExistsInVotePool(); // 0xf0f63e9e proposal non exists\nerror ProposalAlreadyExistsInVotePool(); // 0xec297468 proposal already exists\nerror ProposalDefaultLifespanLimitError(); // 0x420e832e proposal lifespan not less than 12 hours\nerror CreateProposalVotePassEateLimitError(); // 0xeda2bb99 proposal vote pass rate not less than 50%\nerror CreateProposalLifespanLimitError(); // 0xc0c4b93d proposal lifespan not less than current setting lifespan days\nerror CreateProposalLoopTimeLimitError(); // 0x0d67e9dd Loop time must be greater than 1 minute\nerror VotesZero(); // 0xdd3b8d8f votes cannot be zero\nerror ProposalClosed(); // 0x1446e503 proposal closed\nerror VotingMemberNoMatch(); // 0x22dd3c54 Voting Membership Mismatch\nerror DuplicateVoteError(); // 0x29a56ece Cannot vote repeatedly\nerror VoteInsufficientVotes(); // 0xaccf9793 vote insufficient votes\nerror VotingInProgress(); // 0x1182db35\nerror ProposalNotPassed(); // 0xc8c93ba3 Proposal was not passed\n\nlibrary Errors {}",
   "sourcePath": "/Users/louis/Project/hc/NFTSwap/SmartHolder/contracts/libs/Errors.sol",
   "ast": {
     "absolutePath": "project:/contracts/libs/Errors.sol",
     "exportedSymbols": {
       "AddressEmpty": [
-        6910
+        7006
       ],
       "ApprovalToOwnerInERC721": [
-        6922
+        7018
       ],
       "ApproveAllToCallerInERC721": [
-        6924
+        7020
       ],
       "AssetNonExistsInAssetShell": [
-        6932
+        7028
       ],
       "CheckInterfaceNoMatch": [
-        6908
+        7004
       ],
       "CreateProposalLifespanLimitError": [
-        6954
+        7050
       ],
       "CreateProposalLoopTimeLimitError": [
-        6956
+        7052
       ],
       "CreateProposalVotePassEateLimitError": [
-        6952
+        7048
       ],
       "DuplicateVoteError": [
-        6964
+        7060
       ],
       "Errors": [
-        6971
+        7067
       ],
       "InsufficientBalance": [
-        6892
+        6988
       ],
       "InsufficientVotesInMember": [
-        6938
+        7034
       ],
       "LockTokenIDEmptyInAssetShell": [
-        6936
+        7032
       ],
       "MemberAlreadyExists": [
-        6942
+        7038
       ],
       "MemberNonExists": [
-        6940
+        7036
       ],
       "MemberRequestJoinAlreadyExists": [
-        6944
+        7040
       ],
       "NeedToUnlockAssetFirst": [
-        6934
+        7030
       ],
       "NonContractAddress": [
-        6930
+        7026
       ],
       "NonERC721ReceiverImplementer": [
-        6926
+        7022
       ],
       "OnlyOwnerAvailable": [
-        6928
+        7024
       ],
       "PayableAmountZero": [
-        6896
+        6992
       ],
       "PayableInsufficientAmount": [
-        6894
+        6990
       ],
       "PermissionDenied": [
-        6900
+        6996
       ],
       "PermissionDeniedForMember": [
-        6904
+        7000
       ],
       "PermissionDeniedForOnlyDAO": [
-        6902
+        6998
       ],
       "PermissionDeniedInERC721": [
-        6914
+        7010
       ],
       "ProposalAlreadyExistsInVotePool": [
-        6948
+        7044
       ],
       "ProposalClosed": [
-        6960
+        7056
       ],
       "ProposalDefaultLifespanLimitError": [
-        6950
+        7046
       ],
       "ProposalNonExistsInVotePool": [
-        6946
+        7042
       ],
       "ProposalNotPassed": [
-        6970
+        7066
       ],
       "SendValueFail": [
-        6898
+        6994
       ],
       "TokenIDAlreadyMintedInERC721": [
-        6920
+        7016
       ],
       "TokenIDEmpty": [
-        6912
+        7008
       ],
       "TokenIDNonExistentInERC721": [
-        6918
+        7014
       ],
       "TransferOfTokenIDThatIsNotOwnInERC721": [
-        6916
+        7012
       ],
       "VoteInsufficientVotes": [
-        6966
+        7062
       ],
       "VotesZero": [
-        6958
+        7054
       ],
       "VotingInProgress": [
-        6968
+        7064
       ],
       "VotingMemberNoMatch": [
-        6962
+        7058
       ]
     },
-    "id": 6972,
+    "id": 7068,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6890,
+        "id": 6986,
         "literals": [
           "solidity",
           "0.8",
@@ -151,12 +151,12 @@
       },
       {
         "errorSelector": "f4d678b8",
-        "id": 6892,
+        "id": 6988,
         "name": "InsufficientBalance",
         "nameLocation": "113:19:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6891,
+          "id": 6987,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "132:2:22"
@@ -165,107 +165,107 @@
       },
       {
         "errorSelector": "5bdb36f8",
-        "id": 6894,
+        "id": 6990,
         "name": "PayableInsufficientAmount",
-        "nameLocation": "174:25:22",
+        "nameLocation": "185:25:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6893,
+          "id": 6989,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "199:2:22"
+          "src": "210:2:22"
         },
-        "src": "168:34:22"
+        "src": "179:34:22"
       },
       {
         "errorSelector": "41a5bd5c",
-        "id": 6896,
+        "id": 6992,
         "name": "PayableAmountZero",
-        "nameLocation": "240:17:22",
+        "nameLocation": "262:17:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6895,
+          "id": 6991,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "257:2:22"
+          "src": "279:2:22"
         },
-        "src": "234:26:22"
+        "src": "256:26:22"
       },
       {
         "errorSelector": "9993a422",
-        "id": 6898,
+        "id": 6994,
         "name": "SendValueFail",
-        "nameLocation": "290:13:22",
+        "nameLocation": "323:13:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6897,
+          "id": 6993,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "303:2:22"
+          "src": "336:2:22"
         },
-        "src": "284:22:22"
+        "src": "317:22:22"
       },
       {
         "errorSelector": "1e092104",
-        "id": 6900,
+        "id": 6996,
         "name": "PermissionDenied",
-        "nameLocation": "339:16:22",
+        "nameLocation": "383:16:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6899,
+          "id": 6995,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "355:2:22"
+          "src": "399:2:22"
         },
-        "src": "333:25:22"
+        "src": "377:25:22"
       },
       {
         "errorSelector": "da002518",
-        "id": 6902,
+        "id": 6998,
         "name": "PermissionDeniedForOnlyDAO",
-        "nameLocation": "386:26:22",
+        "nameLocation": "441:26:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6901,
+          "id": 6997,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "412:2:22"
+          "src": "467:2:22"
         },
-        "src": "380:35:22"
+        "src": "435:35:22"
       },
       {
         "errorSelector": "7832bbc1",
-        "id": 6904,
+        "id": 7000,
         "name": "PermissionDeniedForMember",
-        "nameLocation": "456:25:22",
+        "nameLocation": "522:25:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6903,
+          "id": 6999,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "481:2:22"
+          "src": "547:2:22"
         },
-        "src": "450:34:22"
+        "src": "516:34:22"
       },
       {
         "errorSelector": "2aae78ef",
-        "id": 6908,
+        "id": 7004,
         "name": "CheckInterfaceNoMatch",
-        "nameLocation": "519:21:22",
+        "nameLocation": "596:21:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6907,
+          "id": 7003,
           "nodeType": "ParameterList",
           "parameters": [
             {
               "constant": false,
-              "id": 6906,
+              "id": 7002,
               "mutability": "mutable",
               "name": "interfaceId",
-              "nameLocation": "548:11:22",
+              "nameLocation": "625:11:22",
               "nodeType": "VariableDeclaration",
-              "scope": 6908,
-              "src": "541:18:22",
+              "scope": 7004,
+              "src": "618:18:22",
               "stateVariable": false,
               "storageLocation": "default",
               "typeDescriptions": {
@@ -273,10 +273,10 @@
                 "typeString": "bytes4"
               },
               "typeName": {
-                "id": 6905,
+                "id": 7001,
                 "name": "bytes4",
                 "nodeType": "ElementaryTypeName",
-                "src": "541:6:22",
+                "src": "618:6:22",
                 "typeDescriptions": {
                   "typeIdentifier": "t_bytes4",
                   "typeString": "bytes4"
@@ -285,443 +285,443 @@
               "visibility": "internal"
             }
           ],
-          "src": "540:20:22"
+          "src": "617:20:22"
         },
-        "src": "513:48:22"
+        "src": "590:48:22"
       },
       {
         "errorSelector": "5bb7a723",
-        "id": 6910,
+        "id": 7006,
         "name": "AddressEmpty",
-        "nameLocation": "607:12:22",
+        "nameLocation": "695:12:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6909,
+          "id": 7005,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "619:2:22"
+          "src": "707:2:22"
         },
-        "src": "601:21:22"
+        "src": "689:21:22"
       },
       {
         "errorSelector": "94e69af8",
-        "id": 6912,
+        "id": 7008,
         "name": "TokenIDEmpty",
-        "nameLocation": "661:12:22",
+        "nameLocation": "760:12:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6911,
+          "id": 7007,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "673:2:22"
+          "src": "772:2:22"
         },
-        "src": "655:21:22"
+        "src": "754:21:22"
       },
       {
         "errorSelector": "d3a32745",
-        "id": 6914,
+        "id": 7010,
         "name": "PermissionDeniedInERC721",
-        "nameLocation": "716:24:22",
+        "nameLocation": "826:24:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6913,
+          "id": 7009,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "740:2:22"
+          "src": "850:2:22"
         },
-        "src": "710:33:22"
+        "src": "820:33:22"
       },
       {
         "errorSelector": "11307032",
-        "id": 6916,
+        "id": 7012,
         "name": "TransferOfTokenIDThatIsNotOwnInERC721",
-        "nameLocation": "785:37:22",
+        "nameLocation": "906:37:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6915,
+          "id": 7011,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "822:2:22"
+          "src": "943:2:22"
         },
-        "src": "779:46:22"
+        "src": "900:46:22"
       },
       {
         "errorSelector": "5449cd45",
-        "id": 6918,
+        "id": 7014,
         "name": "TokenIDNonExistentInERC721",
-        "nameLocation": "882:26:22",
+        "nameLocation": "1014:26:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6917,
+          "id": 7013,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "908:2:22"
+          "src": "1040:2:22"
         },
-        "src": "876:35:22"
+        "src": "1008:35:22"
       },
       {
         "errorSelector": "082c3a4f",
-        "id": 6920,
+        "id": 7016,
         "name": "TokenIDAlreadyMintedInERC721",
-        "nameLocation": "953:28:22",
+        "nameLocation": "1096:28:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6919,
+          "id": 7015,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "981:2:22"
+          "src": "1124:2:22"
         },
-        "src": "947:37:22"
+        "src": "1090:37:22"
       },
       {
         "errorSelector": "65f090f7",
-        "id": 6922,
+        "id": 7018,
         "name": "ApprovalToOwnerInERC721",
-        "nameLocation": "1028:23:22",
+        "nameLocation": "1182:23:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6921,
+          "id": 7017,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1051:2:22"
+          "src": "1205:2:22"
         },
-        "src": "1022:32:22"
+        "src": "1176:32:22"
       },
       {
         "errorSelector": "19095a8c",
-        "id": 6924,
+        "id": 7020,
         "name": "ApproveAllToCallerInERC721",
-        "nameLocation": "1088:26:22",
+        "nameLocation": "1253:26:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6923,
+          "id": 7019,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1114:2:22"
+          "src": "1279:2:22"
         },
-        "src": "1082:35:22"
+        "src": "1247:35:22"
       },
       {
         "errorSelector": "85d5821e",
-        "id": 6926,
+        "id": 7022,
         "name": "NonERC721ReceiverImplementer",
-        "nameLocation": "1175:28:22",
+        "nameLocation": "1351:28:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6925,
+          "id": 7021,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1203:2:22"
+          "src": "1379:2:22"
         },
-        "src": "1169:37:22"
+        "src": "1345:37:22"
       },
       {
         "errorSelector": "399c7579",
-        "id": 6928,
+        "id": 7024,
         "name": "OnlyOwnerAvailable",
-        "nameLocation": "1248:18:22",
+        "nameLocation": "1435:18:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6927,
+          "id": 7023,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1266:2:22"
+          "src": "1453:2:22"
         },
-        "src": "1242:27:22"
+        "src": "1429:27:22"
       },
       {
         "errorSelector": "4aa4cf51",
-        "id": 6930,
+        "id": 7026,
         "name": "NonContractAddress",
-        "nameLocation": "1307:18:22",
+        "nameLocation": "1505:18:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6929,
+          "id": 7025,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1325:2:22"
+          "src": "1523:2:22"
         },
-        "src": "1301:27:22"
+        "src": "1499:27:22"
       },
       {
         "errorSelector": "54ac7492",
-        "id": 6932,
+        "id": 7028,
         "name": "AssetNonExistsInAssetShell",
-        "nameLocation": "1359:26:22",
+        "nameLocation": "1568:26:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6931,
+          "id": 7027,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1385:2:22"
+          "src": "1594:2:22"
         },
-        "src": "1353:35:22"
+        "src": "1562:35:22"
       },
       {
         "errorSelector": "f31df50e",
-        "id": 6934,
+        "id": 7030,
         "name": "NeedToUnlockAssetFirst",
-        "nameLocation": "1415:22:22",
+        "nameLocation": "1635:22:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6933,
+          "id": 7029,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1437:2:22"
+          "src": "1657:2:22"
         },
-        "src": "1409:31:22"
+        "src": "1629:31:22"
       },
       {
         "errorSelector": "21c67f49",
-        "id": 6936,
+        "id": 7032,
         "name": "LockTokenIDEmptyInAssetShell",
-        "nameLocation": "1485:28:22",
+        "nameLocation": "1716:28:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6935,
+          "id": 7031,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1513:2:22"
+          "src": "1744:2:22"
         },
-        "src": "1479:37:22"
+        "src": "1710:37:22"
       },
       {
         "errorSelector": "252f4a32",
-        "id": 6938,
+        "id": 7034,
         "name": "InsufficientVotesInMember",
-        "nameLocation": "1562:25:22",
+        "nameLocation": "1804:25:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6937,
+          "id": 7033,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1587:2:22"
+          "src": "1829:2:22"
         },
-        "src": "1556:34:22"
+        "src": "1798:34:22"
       },
       {
         "errorSelector": "7f5c5df9",
-        "id": 6940,
+        "id": 7036,
         "name": "MemberNonExists",
-        "nameLocation": "1633:15:22",
+        "nameLocation": "1886:15:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6939,
+          "id": 7035,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1648:2:22"
+          "src": "1901:2:22"
         },
-        "src": "1627:24:22"
+        "src": "1880:24:22"
       },
       {
         "errorSelector": "e0150952",
-        "id": 6942,
+        "id": 7038,
         "name": "MemberAlreadyExists",
-        "nameLocation": "1679:19:22",
+        "nameLocation": "1943:19:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6941,
+          "id": 7037,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1698:2:22"
+          "src": "1962:2:22"
         },
-        "src": "1673:28:22"
+        "src": "1937:28:22"
       },
       {
         "errorSelector": "a1ee8585",
-        "id": 6944,
+        "id": 7040,
         "name": "MemberRequestJoinAlreadyExists",
-        "nameLocation": "1733:30:22",
+        "nameLocation": "2008:30:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6943,
+          "id": 7039,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1763:2:22"
+          "src": "2038:2:22"
         },
-        "src": "1727:39:22"
+        "src": "2002:39:22"
       },
       {
         "errorSelector": "f0f63e9e",
-        "id": 6946,
+        "id": 7042,
         "name": "ProposalNonExistsInVotePool",
-        "nameLocation": "1811:27:22",
+        "nameLocation": "2097:27:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6945,
+          "id": 7041,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1838:2:22"
+          "src": "2124:2:22"
         },
-        "src": "1805:36:22"
+        "src": "2091:36:22"
       },
       {
         "errorSelector": "ec297468",
-        "id": 6948,
+        "id": 7044,
         "name": "ProposalAlreadyExistsInVotePool",
-        "nameLocation": "1871:31:22",
+        "nameLocation": "2168:31:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6947,
+          "id": 7043,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1902:2:22"
+          "src": "2199:2:22"
         },
-        "src": "1865:40:22"
+        "src": "2162:40:22"
       },
       {
         "errorSelector": "420e832e",
-        "id": 6950,
+        "id": 7046,
         "name": "ProposalDefaultLifespanLimitError",
-        "nameLocation": "1939:33:22",
+        "nameLocation": "2247:33:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6949,
+          "id": 7045,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "1972:2:22"
+          "src": "2280:2:22"
         },
-        "src": "1933:42:22"
+        "src": "2241:42:22"
       },
       {
         "errorSelector": "eda2bb99",
-        "id": 6952,
+        "id": 7048,
         "name": "CreateProposalVotePassEateLimitError",
-        "nameLocation": "2026:36:22",
+        "nameLocation": "2345:36:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6951,
+          "id": 7047,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2062:2:22"
+          "src": "2381:2:22"
         },
-        "src": "2020:45:22"
+        "src": "2339:45:22"
       },
       {
         "errorSelector": "c0c4b93d",
-        "id": 6954,
+        "id": 7050,
         "name": "CreateProposalLifespanLimitError",
-        "nameLocation": "2117:32:22",
+        "nameLocation": "2447:32:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6953,
+          "id": 7049,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2149:2:22"
+          "src": "2479:2:22"
         },
-        "src": "2111:41:22"
+        "src": "2441:41:22"
       },
       {
         "errorSelector": "0d67e9dd",
-        "id": 6956,
+        "id": 7052,
         "name": "CreateProposalLoopTimeLimitError",
-        "nameLocation": "2224:32:22",
+        "nameLocation": "2565:32:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6955,
+          "id": 7051,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2256:2:22"
+          "src": "2597:2:22"
         },
-        "src": "2218:41:22"
+        "src": "2559:41:22"
       },
       {
         "errorSelector": "dd3b8d8f",
-        "id": 6958,
+        "id": 7054,
         "name": "VotesZero",
-        "nameLocation": "2309:9:22",
+        "nameLocation": "2661:9:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6957,
+          "id": 7053,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2318:2:22"
+          "src": "2670:2:22"
         },
-        "src": "2303:18:22"
+        "src": "2655:18:22"
       },
       {
         "errorSelector": "1446e503",
-        "id": 6960,
+        "id": 7056,
         "name": "ProposalClosed",
-        "nameLocation": "2352:14:22",
+        "nameLocation": "2715:14:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6959,
+          "id": 7055,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2366:2:22"
+          "src": "2729:2:22"
         },
-        "src": "2346:23:22"
+        "src": "2709:23:22"
       },
       {
         "errorSelector": "22dd3c54",
-        "id": 6962,
+        "id": 7058,
         "name": "VotingMemberNoMatch",
-        "nameLocation": "2395:19:22",
+        "nameLocation": "2769:19:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6961,
+          "id": 7057,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2414:2:22"
+          "src": "2788:2:22"
         },
-        "src": "2389:28:22"
+        "src": "2763:28:22"
       },
       {
         "errorSelector": "29a56ece",
-        "id": 6964,
+        "id": 7060,
         "name": "DuplicateVoteError",
-        "nameLocation": "2453:18:22",
+        "nameLocation": "2839:18:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6963,
+          "id": 7059,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2471:2:22"
+          "src": "2857:2:22"
         },
-        "src": "2447:27:22"
+        "src": "2833:27:22"
       },
       {
         "errorSelector": "accf9793",
-        "id": 6966,
+        "id": 7062,
         "name": "VoteInsufficientVotes",
-        "nameLocation": "2507:21:22",
+        "nameLocation": "2904:21:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6965,
+          "id": 7061,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2528:2:22"
+          "src": "2925:2:22"
         },
-        "src": "2501:30:22"
+        "src": "2898:30:22"
       },
       {
         "errorSelector": "1182db35",
-        "id": 6968,
+        "id": 7064,
         "name": "VotingInProgress",
-        "nameLocation": "2565:16:22",
+        "nameLocation": "2973:16:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6967,
+          "id": 7063,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2581:2:22"
+          "src": "2989:2:22"
         },
-        "src": "2559:25:22"
+        "src": "2967:25:22"
       },
       {
         "errorSelector": "c8c93ba3",
-        "id": 6970,
+        "id": 7066,
         "name": "ProposalNotPassed",
-        "nameLocation": "2591:17:22",
+        "nameLocation": "3013:17:22",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 6969,
+          "id": 7065,
           "nodeType": "ParameterList",
           "parameters": [],
-          "src": "2608:2:22"
+          "src": "3030:2:22"
         },
-        "src": "2585:26:22"
+        "src": "3007:26:22"
       },
       {
         "abstract": false,
@@ -730,20 +730,20 @@
         "contractDependencies": [],
         "contractKind": "library",
         "fullyImplemented": true,
-        "id": 6971,
+        "id": 7067,
         "linearizedBaseContracts": [
-          6971
+          7067
         ],
         "name": "Errors",
-        "nameLocation": "2648:6:22",
+        "nameLocation": "3081:6:22",
         "nodeType": "ContractDefinition",
         "nodes": [],
-        "scope": 6972,
-        "src": "2640:17:22",
+        "scope": 7068,
+        "src": "3073:17:22",
         "usedErrors": []
       }
     ],
-    "src": "31:2626:22"
+    "src": "31:3059:22"
   },
   "compiler": {
     "name": "solc",
@@ -751,7 +751,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-03-29T08:53:47.014Z",
+  "updatedAt": "2023-04-01T07:55:49.830Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

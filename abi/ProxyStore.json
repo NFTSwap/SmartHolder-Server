@@ -492,18 +492,18 @@
     "absolutePath": "project:/contracts/libs/Upgrade.sol",
     "exportedSymbols": {
       "ProxyStore": [
-        7609
+        7705
       ],
       "Upgrade": [
-        7580
+        7676
       ]
     },
-    "id": 7610,
+    "id": 7706,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7576,
+        "id": 7672,
         "literals": [
           "solidity",
           "0.8",
@@ -519,15 +519,15 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 7577,
+          "id": 7673,
           "nodeType": "StructuredDocumentation",
           "src": "57:154:27",
           "text": "@dev All contracts that need to implement upgrades should inherit this `Upgrade` contract, \n and it should be the first parent class inherited"
         },
         "fullyImplemented": true,
-        "id": 7580,
+        "id": 7676,
         "linearizedBaseContracts": [
-          7580
+          7676
         ],
         "name": "Upgrade",
         "nameLocation": "221:7:27",
@@ -535,12 +535,12 @@
         "nodes": [
           {
             "constant": false,
-            "id": 7579,
+            "id": 7675,
             "mutability": "mutable",
             "name": "_impl",
             "nameLocation": "249:5:27",
             "nodeType": "VariableDeclaration",
-            "scope": 7580,
+            "scope": 7676,
             "src": "232:22:27",
             "stateVariable": true,
             "storageLocation": "default",
@@ -549,7 +549,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 7578,
+              "id": 7674,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "232:7:27",
@@ -562,7 +562,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 7610,
+        "scope": 7706,
         "src": "212:61:27",
         "usedErrors": []
       },
@@ -571,16 +571,16 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 7582,
+              "id": 7678,
               "name": "Upgrade",
               "nameLocations": [
                 "660:7:27"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 7580,
+              "referencedDeclaration": 7676,
               "src": "660:7:27"
             },
-            "id": 7583,
+            "id": 7679,
             "nodeType": "InheritanceSpecifier",
             "src": "660:7:27"
           }
@@ -589,16 +589,16 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 7581,
+          "id": 7677,
           "nodeType": "StructuredDocumentation",
           "src": "275:361:27",
           "text": " @dev The context here is that the externally exposed contract entities are only used to store data, \n and the implemented business logic should be placed in the impl\n Any method that calls this contract will be directed to `fallback()`, \n and then use `delegatecall()` to call the actual implementation and pass the current data context to impl"
         },
         "fullyImplemented": true,
-        "id": 7609,
+        "id": 7705,
         "linearizedBaseContracts": [
-          7609,
-          7580
+          7705,
+          7676
         ],
         "name": "ProxyStore",
         "nameLocation": "646:10:27",
@@ -606,23 +606,23 @@
         "nodes": [
           {
             "body": {
-              "id": 7592,
+              "id": 7688,
               "nodeType": "Block",
               "src": "858:20:27",
               "statements": [
                 {
                   "expression": {
-                    "id": 7590,
+                    "id": 7686,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 7588,
+                      "id": 7684,
                       "name": "_impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 7579,
+                      "referencedDeclaration": 7675,
                       "src": "862:5:27",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -632,11 +632,11 @@
                     "nodeType": "Assignment",
                     "operator": "=",
                     "rightHandSide": {
-                      "id": 7589,
+                      "id": 7685,
                       "name": "impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 7585,
+                      "referencedDeclaration": 7681,
                       "src": "870:4:27",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -649,13 +649,13 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 7591,
+                  "id": 7687,
                   "nodeType": "ExpressionStatement",
                   "src": "862:12:27"
                 }
               ]
             },
-            "id": 7593,
+            "id": 7689,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
@@ -663,17 +663,17 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7586,
+              "id": 7682,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7585,
+                  "id": 7681,
                   "mutability": "mutable",
                   "name": "impl",
                   "nameLocation": "845:4:27",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7593,
+                  "scope": 7689,
                   "src": "837:12:27",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -682,7 +682,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7584,
+                    "id": 7680,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "837:7:27",
@@ -698,12 +698,12 @@
               "src": "836:14:27"
             },
             "returnParameters": {
-              "id": 7587,
+              "id": 7683,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "858:0:27"
             },
-            "scope": 7609,
+            "scope": 7705,
             "src": "825:53:27",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -711,24 +711,24 @@
           },
           {
             "body": {
-              "id": 7607,
+              "id": 7703,
               "nodeType": "Block",
               "src": "909:224:27",
               "statements": [
                 {
                   "assignments": [
-                    7597,
-                    7599
+                    7693,
+                    7695
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 7597,
+                      "id": 7693,
                       "mutability": "mutable",
                       "name": "suc",
                       "nameLocation": "919:3:27",
                       "nodeType": "VariableDeclaration",
-                      "scope": 7607,
+                      "scope": 7703,
                       "src": "914:8:27",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -737,7 +737,7 @@
                         "typeString": "bool"
                       },
                       "typeName": {
-                        "id": 7596,
+                        "id": 7692,
                         "name": "bool",
                         "nodeType": "ElementaryTypeName",
                         "src": "914:4:27",
@@ -750,12 +750,12 @@
                     },
                     {
                       "constant": false,
-                      "id": 7599,
+                      "id": 7695,
                       "mutability": "mutable",
                       "name": "_data",
                       "nameLocation": "937:5:27",
                       "nodeType": "VariableDeclaration",
-                      "scope": 7607,
+                      "scope": 7703,
                       "src": "924:18:27",
                       "stateVariable": false,
                       "storageLocation": "memory",
@@ -764,7 +764,7 @@
                         "typeString": "bytes"
                       },
                       "typeName": {
-                        "id": 7598,
+                        "id": 7694,
                         "name": "bytes",
                         "nodeType": "ElementaryTypeName",
                         "src": "924:5:27",
@@ -776,12 +776,12 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 7605,
+                  "id": 7701,
                   "initialValue": {
                     "arguments": [
                       {
                         "expression": {
-                          "id": 7602,
+                          "id": 7698,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -792,7 +792,7 @@
                             "typeString": "msg"
                           }
                         },
-                        "id": 7603,
+                        "id": 7699,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -815,18 +815,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 7600,
+                        "id": 7696,
                         "name": "_impl",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 7579,
+                        "referencedDeclaration": 7675,
                         "src": "946:5:27",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         }
                       },
-                      "id": 7601,
+                      "id": 7697,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -840,7 +840,7 @@
                         "typeString": "function (bytes memory) returns (bool,bytes memory)"
                       }
                     },
-                    "id": 7604,
+                    "id": 7700,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1021,34 +1021,34 @@
                   "evmVersion": "petersburg",
                   "externalReferences": [
                     {
-                      "declaration": 7599,
+                      "declaration": 7695,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "1009:5:27",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 7599,
+                      "declaration": 7695,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "1035:5:27",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 7597,
+                      "declaration": 7693,
                       "isOffset": false,
                       "isSlot": false,
                       "src": "1058:3:27",
                       "valueSize": 1
                     }
                   ],
-                  "id": 7606,
+                  "id": 7702,
                   "nodeType": "InlineAssembly",
                   "src": "978:152:27"
                 }
               ]
             },
-            "id": 7608,
+            "id": 7704,
             "implemented": true,
             "kind": "fallback",
             "modifiers": [],
@@ -1056,25 +1056,25 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7594,
+              "id": 7690,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "889:2:27"
             },
             "returnParameters": {
-              "id": 7595,
+              "id": 7691,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "909:0:27"
             },
-            "scope": 7609,
+            "scope": 7705,
             "src": "881:252:27",
             "stateMutability": "payable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 7610,
+        "scope": 7706,
         "src": "637:498:27",
         "usedErrors": []
       }
@@ -1087,7 +1087,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-03-29T08:53:47.040Z",
+  "updatedAt": "2023-04-01T07:55:49.851Z",
   "devdoc": {
     "details": "The context here is that the externally exposed contract entities are only used to store data,  and the implemented business logic should be placed in the impl Any method that calls this contract will be directed to `fallback()`,  and then use `delegatecall()` to call the actual implementation and pass the current data context to impl",
     "kind": "dev",
