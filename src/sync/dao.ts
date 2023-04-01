@@ -93,7 +93,7 @@ export class DAO extends ModuleScaner {
 				await this.db.update(`dao_${chain}`, { image, modify }, { address });
 				break;
 			case constants.Change_Tag_DAO_Extend:
-				let extend = crypto.toBuffer(await methods.image().call());
+				let extend = crypto.toBuffer(await methods.extend().call());
 				await this.db.update(`dao_${chain}`, { extend, modify }, { address });
 				break;
 		}
