@@ -104,20 +104,25 @@ export async function getAssetFrom(
 		let DAO_IDs: Dict<AssetExt[]> = {};
 
 		for (let e of assets) {
-			let arr = DAO_IDs[e.host];
-			if (arr)
-				arr.push(e);
-			else
-				DAO_IDs[e.host] = [e]
+			if (e.host) {
+				let arr = DAO_IDs[e.host];
+				if (arr)
+					arr.push(e);
+				else
+					DAO_IDs[e.host] = [e];
+			}
 		}
 
-		let sql = `
-			select * from dao_${chain} where state=0 and 
-			address in (${Object.keys(DAO_IDs).map(e=>escape(e)).join(',')})
-		`;
-		for (let dao of await db.query<DAO>(sql)) {
-			for (let a of DAO_IDs[dao.address])
-				a.dao = dao;
+		let DAOs = Object.keys(DAO_IDs);
+		if (DAOs.length) {
+			let sql = `
+				select * from dao_${chain} where state=0 and 
+				address in (${DAOs.map(e=>escape(e)).join(',')})
+			`;
+			for (let dao of await db.query<DAO>(sql)) {
+				for (let a of DAO_IDs[dao.address])
+					a.dao = dao;
+			}
 		}
 	}
 
