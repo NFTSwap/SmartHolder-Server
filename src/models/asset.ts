@@ -4,8 +4,8 @@
  */
 
 import somes from 'somes';
-import db, {ChainType, Asset, State,Selling} from '../db';
-import {AssetOrderExt} from './define_ext';
+import db, {ChainType, Asset, State,Selling,ContractType,DAO} from '../db';
+import {AssetOrderExt,AssetExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
@@ -47,7 +47,7 @@ export async function beautifulAsset(asset: Asset[], chain: ChainType) {
 
 export async function getAssetFrom(
 	chain: ChainType,
-	host: string,
+	host?: string,
 	owner?: string,
 	author?: string,
 	owner_not?: string,
@@ -56,17 +56,25 @@ export async function getAssetFrom(
 	name?: string,
 	time?: number | [number,number],
 	selling?: Selling,
+	selling_not?: Selling,
 	orderBy?: string,
 	limit?: number | number[],
 	noBeautiful?: boolean
 ) {
-	let dao = await dao_fn.getDAONoEmpty(chain, host);
-	let sql = `select * from asset_${chain} where 
-		token in (${escape(dao.first)},${escape(dao.second)}) and state=${escape(state)} `;
+	let sql = `select * from asset_${chain} where state=${escape(state)} `;
+	let dao: DAO | null = null;
+	if (host) {
+		dao = await dao_fn.getDAONoEmpty(chain, host);
+		sql += `and token in (${escape(dao.first)},${escape(dao.second)}) `;
+	} else {
+		sql += `and type=${ContractType.AssetShell} `;
+	}
 	if (owner)
 		sql += `and owner=${escape(owner)} `;
 	if (owner_not)
 		sql += `and owner!=${escape(owner_not)} `;
+	if (!owner && !owner_not)
+		sql += `and owner!='0x0000000000000000000000000000000000000000' `;
 	if (author)
 		sql += `and author=${escape(author)} `;
 	if (author_not)
@@ -81,16 +89,42 @@ export async function getAssetFrom(
 	}
 	if (selling != undefined)
 		sql += `and selling=${escape(selling)} `;
+	if (selling_not != undefined)
+		sql += `and selling!=${escape(selling_not)} `;
 	if (orderBy)
 		sql += `order by ${orderBy} `;
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 
-	let assets = await db.query<Asset>(sql);
+	let assets = await db.query<AssetExt>(sql);
+
+	if (dao) {
+		assets.forEach(e=>(e.dao = dao!));
+	} else {
+		let DAO_IDs: Dict<AssetExt[]> = {};
+
+		for (let e of assets) {
+			let arr = DAO_IDs[e.host];
+			if (arr)
+				arr.push(e);
+			else
+				DAO_IDs[e.host] = [e]
+		}
+
+		let sql = `
+			select * from dao_${chain} where state=0 and 
+			address in (${Object.keys(DAO_IDs).map(e=>escape(e)).join(',')})
+		`;
+		for (let dao of await db.query<DAO>(sql)) {
+			for (let a of DAO_IDs[dao.address])
+				a.dao = dao;
+		}
+	}
 
 	if (!noBeautiful) {
 		await beautifulAsset(assets, chain);
 	}
+
 	return assets;
 }
 
@@ -142,8 +176,8 @@ export async function getAssetOrderFrom(
 	order_1 = order_1.filter(e=>e.asset_id);
 
 	for (let it of order_1)
-		it.asset = await getAssetCache(chain, it.asset_id);
-	await beautifulAsset(order_1.map(e=>e.asset), chain);
+		it.asset = await getAssetCache(chain, it.asset_id!);
+	await beautifulAsset(order_1.map(e=>e.asset!), chain);
 	return order_1;
 }
 
@@ -170,15 +204,17 @@ export async function getOrderTotalAmount(chain: ChainType, host: string,
 }
 
 export async function getAssetTotalFrom(
-	chain: ChainType, host: string,
+	chain: ChainType, host?: string,
 	owner?: string, author?: string,
 	owner_not?: string, author_not?: string,
-	state = State.Enable, name?: string, time?: [number, number], selling?: Selling
+	state = State.Enable, name?: string, time?: [number, number], selling?: Selling, selling_not?: Selling
 ) {
-	let key = `getAssetTotalFrom_${chain}_${owner}_${author}_${owner_not}_${author_not}_${state}_${name}_${time?.join()}_${selling}`;
+	let key = `getAssetTotalFrom_${chain}_${owner}_${author}_${owner_not}\
+_${author_not}_${state}_${name}_${time?.join()}_${selling}_${selling_not}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
-		let ls = await getAssetFrom(chain, host, owner, author, owner_not, author_not, state, name, time, selling, '', undefined, true);
+		let ls = await getAssetFrom(chain, host, owner, author, owner_not,
+				author_not, state, name, time, selling, selling_not, '', undefined, true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
@@ -194,7 +230,7 @@ export async function getAssetAmountTotal(
 	let total = await redis.get<{assetTotal: number, assetAmountTotal: string}>(key);
 	if (total === null) {
 		let ls = await getAssetFrom(chain, host, owner, author,
-			owner_not, author_not, state, name, undefined, undefined, '', undefined, true
+			owner_not, author_not, state, name, undefined, undefined, undefined, '', undefined, true
 		);
 		let assetTotal = 0;
 		let assetAmountTotal = BigInt(0);

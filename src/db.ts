@@ -80,6 +80,7 @@ async function load_main_db() {
 
 			create table if not exists asset_${chain} (
 				id           int primary key auto_increment,
+				host         varchar (64)  default ('') not null, -- dao host
 				token        varchar (64)               not null, -- address
 				tokenId      varchar (72)               not null, -- id
 				uri          varchar (512)              not null, -- tokenURI
@@ -103,7 +104,8 @@ async function load_main_db() {
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
 				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
 				sellingTime            bigint         default (0)  not null,  -- 最后上架销售时间
-				soldTime               bigint         default (0)  not null   -- 最后售出时间
+				soldTime               bigint         default (0)  not null,   -- 最后售出时间
+				type                   int            default (0)  not null    -- contracts type
 			);
 
 			create table if not exists asset_json_${chain} (
@@ -292,6 +294,8 @@ async function load_main_db() {
 			`alter table asset_${chain} add minimumPrice         varchar (72)   default ('') not null`, //  -- 最小销售价格
 			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
 			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
+			`alter table asset_${chain} add type                 int            default (0)  not null`, //  -- contracts type Asset/AssetShell
+			`alter table asset_${chain} add host                 varchar (64)   default ('') not null`, //  -- dao host
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
@@ -317,6 +321,7 @@ async function load_main_db() {
 			`create         index asset_${chain}_idx0            on asset_${chain}                  (token)`,
 			`create  unique index asset_${chain}_idx1            on asset_${chain}                  (token,tokenId)`,
 			`create         index asset_${chain}_idx2            on asset_${chain}                  (token,owner)`,
+			`create         index asset_${chain}_idx3            on asset_${chain}                  (name)`,
 			// asset ordr
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,

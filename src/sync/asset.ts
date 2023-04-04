@@ -71,7 +71,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
 			uri = uri.substring(0, 512);
 			let time = Date.now();
-			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time, blockNumber });
+			let id = await db.insert(`asset_${this.chain}`, { token, tokenId, uri, time, modify: time, blockNumber, type: this.type });
 			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
 			await sync.assetMetaDataSync.fetchFrom(asset, this.chain);
 		}

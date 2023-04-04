@@ -76,6 +76,7 @@ export enum State {
 
 export interface Asset {
 	id: number;
+	host: string; // dao address
 	token: string; // 合约地址
 	tokenId: string; // id
 	uri: string; // tokenURI
@@ -98,6 +99,7 @@ export interface Asset {
 	categorie: number;//              int            default (0)  not null,  -- 类别
 	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
 	retryTime: number;//              bigint         default (0)  not null,  -- 抓取数据最后重试时间
+	type: ContractType; // contract type 
 }
 
 export interface AssetOrder {
