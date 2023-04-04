@@ -100,7 +100,7 @@ export async function getAssetFrom(
 
 	if (dao) {
 		assets.forEach(e=>(e.dao = dao!));
-	} else {
+	} else if (assets.length) {
 		let DAO_IDs: Dict<AssetExt[]> = {};
 
 		for (let e of assets) {
