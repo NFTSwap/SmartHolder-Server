@@ -4,6 +4,7 @@ module.exports = {
 	server: { // web服务端口监听配置
 		host: process.env.SERVER_HOST || '0.0.0.0',
 		port: Number(process.env.SERVER_PORT) || 8100,
+		noCache: '\\.html$',
 	},
 	autoIndex: true,
 	var: '/data/shs/var_v2', // `${__dirname}/var`,
