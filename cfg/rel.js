@@ -26,5 +26,5 @@ module.exports = {
 		},
 		redis: 'redis://172.16.3.114:6379/10', // redis cfg
 	},
-	redis_pwd: 'Jrn8JyGTEqsbmT(*&^%EZDXbZ',
+	redis: `redis://:${encodeURIComponent('Jrn8JyGTEqsbmT(*&^%EZDXbZ')}@127.0.0.1:6379/10`, // redis cfg
 };

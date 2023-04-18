@@ -19,7 +19,6 @@ module.exports = {
 	mysql: {
 		host: '172.16.2.46', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao',
 	},
-	redis: 'redis://172.16.3.114:6379/10', // redis cfg
-	redis_pwd: 'HqNuWY8WRSG2G*&^%#NGRDfmj',
+	redis: `redis://:${encodeURIComponent('HqNuWY8WRSG2G*&^%#NGRDfmj')}@172.16.3.114:6379/10`, // redis cfg
 	atomicLock: 'http://172.16.3.114:9802', // atomic lock service
 };
