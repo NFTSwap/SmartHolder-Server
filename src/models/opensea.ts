@@ -302,7 +302,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		domain: {
 			chainId: chain,
 			name: "Seaport",
-			verifyingContract: "0x00000000000001ad428e4906aE43D8F9852d0dD6",
+			verifyingContract: CROSS_CHAIN_SEAPORT_ADDRESS, //"0x00000000000001ad428e4906aE43D8F9852d0dD6",
 			version: "1.4"
 		},
 		types: orderTypes,
