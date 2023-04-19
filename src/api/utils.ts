@@ -99,18 +99,28 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetOrderFrom() 通过dao地址与fromAddres地址获订单列表
 	 * */ 
-	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit,orderBy}: {
-		chain: ChainType, host: string, fromAddres?: string,
-		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
+	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,fromAddres_not,toAddress_not,name,time,limit,orderBy}: {
+		chain: ChainType, host: string, fromAddres?: string, toAddress?: string,
+		fromAddres_not?: string, toAddress_not?: string,
+		tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,orderBy,limit);
+		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit);
+	}
+
+	getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,fromAddres_not,toAddress_not,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,toAddress?: string,
+		fromAddres_not?: string, toAddress_not?: string,
+		tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time);
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
+		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress,
+			'0x0000000000000000000000000000000000000000', '', tokenId, name,time);
 	}
 
 	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling,selling_not,owner_not,author_not}: {
@@ -120,12 +130,6 @@ export default class extends ApiController {
 		state?: State, name?: string, time?: [number,number],selling?: Selling,selling_not?:Selling
 	}) {
 		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling,selling_not);
-	}
-
-	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
-		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
-	}) {
-		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
 	}
 
 	/**

@@ -139,7 +139,9 @@ export function setAssetState(chain: ChainType, token: string, tokenId: string, 
 
 // 作品名称,开始时间/结束时间,作品所属,购买用户
 export async function getAssetOrderFrom(
-	chain: ChainType, host: string, fromAddres?: string, toAddress?: string, tokenId?: string,
+	chain: ChainType, host: string,
+	fromAddres?: string, toAddress?: string,
+	fromAddres_not?: string, toAddress_not?: string, tokenId?: string,
 	name?: string, time?: [number,number], order?: string, limit?: number | number[]
 ) {
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
@@ -156,6 +158,10 @@ export async function getAssetOrderFrom(
 		sql += `and ao.fromAddres=${escape(fromAddres)} `;
 	if (toAddress)
 		sql += `and ao.toAddress=${escape(toAddress)} `;
+	if (fromAddres_not)
+		sql += `and ao.fromAddres!=${escape(fromAddres_not)} `;
+	if (toAddress_not)
+		sql += `and ao.toAddress!=${escape(toAddress_not)} `;
 	if (name)
 		sql += `and a.name like ${escape(name+'%')} `;
 	if (time)
@@ -187,18 +193,26 @@ export async function getAssetOrderFrom(
 }
 
 export async function getAssetOrderTotalFrom(chain: ChainType, host: string, 
-	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
+	fromAddres?: string, toAddress?: string, 
+	fromAddres_not?: string, toAddress_not?: string,
+	tokenId?: string, name?: string, time?: [number,number]
 ) {
-	let total = await getOrderTotalAmount(chain, host, fromAddres, toAddress, tokenId, name, time);
+	let total = await getOrderTotalAmount(chain, host, fromAddres, toAddress,
+		fromAddres_not,toAddress_not,tokenId, name, time);
 	return total.total;
 }
 
 export async function getOrderTotalAmount(chain: ChainType, host: string,
-	fromAddres?: string, toAddress?: string, tokenId?: string, name?: string, time?: [number,number]) {
-	let key = `getOrderTotalAmount_${chain}_${host}_${fromAddres}_${toAddress}_${tokenId}_${name}_${time}`;
+	fromAddres?: string, toAddress?: string,
+	fromAddres_not?: string, toAddress_not?: string,
+	tokenId?: string, name?: string, time?: [number,number]) {
+	let key = `getOrderTotalAmount_${chain}_${host}_${fromAddres}_${toAddress}_\
+${fromAddres_not}_${toAddress_not}_${tokenId}_${name}_${time}`;
+
 	let total = await redis.get<{total: number; amount:string}>(key);
 	if (total === null) {
-		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, tokenId, name, time);
+		let ls = await getAssetOrderFrom(chain, host, fromAddres, toAddress, 
+			fromAddres_not, toAddress_not, tokenId, name, time);
 		let amount = BigInt(0);
 		for (let it of ls) {
 			amount += BigInt(it.value);
