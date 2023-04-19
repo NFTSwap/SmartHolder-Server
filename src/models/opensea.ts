@@ -8,7 +8,8 @@ import web3s from '../web3+';
 import db, { ChainType, Selling, DAO,SaleType,ContractType } from "../db";
 import { Seaport } from "seaport-smart";
 import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from 'seaport-smart/constants';
+import { ItemType, OrderType, /*CROSS_CHAIN_SEAPORT_ADDRESS,*/ 
+	OPENSEA_CONDUIT_ADDRESS, OPENSEA_CONDUIT_KEY } from 'seaport-smart/constants';
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -27,6 +28,8 @@ import {DatabaseCRUD} from 'somes/db';
 export {OrderComponents};
 
 const isDev = cfg.env == 'dev';
+
+const CROSS_CHAIN_SEAPORT_ADDRESS = "0x00000000000001ad428e4906aE43D8F9852d0dD6";
 
 const seaports: Map<ChainType, Seaport> = new Map();
 export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
@@ -302,7 +305,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		domain: {
 			chainId: chain,
 			name: "Seaport",
-			verifyingContract: CROSS_CHAIN_SEAPORT_ADDRESS, //"0x00000000000001ad428e4906aE43D8F9852d0dD6",
+			verifyingContract: CROSS_CHAIN_SEAPORT_ADDRESS,
 			version: "1.4"
 		},
 		types: orderTypes,
@@ -336,7 +339,7 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 			zone: zone.zone,
 			zoneHash: zone.zoneHash,
 			salt: BigInt('0x' + rng(32).toString('hex')).toString(10),// "36980727087255389",
-			conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
+			conduitKey: OPENSEA_CONDUIT_KEY,
 			counter: 0,
 		},
 		isApprovedForAll,
@@ -484,7 +487,7 @@ export function get_CROSS_CHAIN_SEAPORT_ABI() {
 	return SeaportABI;
 }
 
-export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
+export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea,exchange
 	return OPENSEA_CONDUIT_ADDRESS;
 }
 
