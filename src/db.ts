@@ -141,7 +141,7 @@ async function load_main_db() {
 				time         bigint                       not null, -- 时间
 				blockNumber  int                          not null, -- 区块
 				state        int             default (0)  not null,
-				assetIncome_id int           default (0)  not null  -- ext data
+				assetIncome_id int           default (0)  not null  -- for ledger_asset_income table
 			);
 
 			create table if not exists ledger_asset_income_${chain} ( -- 财务记录-资产销售收
@@ -150,9 +150,11 @@ async function load_main_db() {
 				token        varchar (64)                 not null, -- 原始资产合约地址
 				tokenId      char    (66)                 not null, -- 原始资产id
 				source       varchar (64)                 not null, -- 进账来源
-				balance      varchar (72)                 not null, -- 金额
-				price        varchar (72)                 not null, -- 成交价格
+				balance      varchar (72)                 not null, -- 实际收到的分成金额
+				price        varchar (72)                 not null, -- 预估成交价格
+				fromAddress  varchar (64)                 not null, -- 资产转移from地址
 				toAddress    varchar (64)                 not null, -- 资产转移目标地址
+				count        varchar (72)    default ('') not null, -- 资产数量
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
 				time         bigint                       not null  -- 时间
@@ -299,6 +301,9 @@ async function load_main_db() {
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
+			//
+			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
+			`alter table ledger_asset_income_${chain} add count  varchar (72)   default ('')  not null`,
 			// transaction
 			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
 			// contract_info

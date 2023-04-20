@@ -51,7 +51,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: from,
-						balance: formatHex(balance),
+						balance: formatHex(balance,0),
 						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
@@ -77,7 +77,7 @@ export class Ledger extends ModuleScaner {
 					await db.insert(`ledger_release_log_${this.chain}`, {
 						address: this.address,
 						operator,
-						balance: formatHex(balance),
+						balance: formatHex(balance,0),
 						log,
 						time,
 						blockNumber: Number(e.blockNumber) || 0,
@@ -101,7 +101,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: from,
-						balance: formatHex(balance),
+						balance: formatHex(balance,0),
 						name: name,
 						description: description,
 						time,
@@ -114,18 +114,20 @@ export class Ledger extends ModuleScaner {
 		AssetIncome: {
 			// event AssetIncome(
 			// 	address indexed token, uint256 indexed tokenId,
-			// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
+			// 	address indexed source, address from, address to, uint256 balance, 
+			//  uint256 price, uint256 count, IAssetShell.SaleType saleType
 			// );
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
-				let {token,source,to,saleType} = e.returnValues;
+				let {token,source,from,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
-					let balance = formatHex(e.returnValues.balance);
-					let price = formatHex(e.returnValues.price);
+					let balance = formatHex(e.returnValues.balance, 0);
+					let price = formatHex(e.returnValues.price, 0);
+					let count = formatHex(e.returnValues.count, 0);
 
 					let ledger_id = await db.insert(`ledger_${this.chain}`, {
 						host: await this.host(),
@@ -134,7 +136,6 @@ export class Ledger extends ModuleScaner {
 						type: type,
 						target: source,
 						balance,
-						price,
 						name: '',
 						description: '',
 						time,
@@ -142,7 +143,8 @@ export class Ledger extends ModuleScaner {
 					});
 
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						ledger_id, token, tokenId, source, balance, price, toAddress: to, saleType, blockNumber, time
+						ledger_id, token, tokenId, source, balance, price,
+						fromAddress: from, toAddress: to, count, saleType, blockNumber, time
 					});
 
 					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
@@ -163,7 +165,7 @@ export class Ledger extends ModuleScaner {
 						address: this.address,
 						txHash: txHash,
 						type: type,
-						balance: formatHex(balance),
+						balance: formatHex(balance,0),
 						target: target,
 						description: description,
 						time,
@@ -189,7 +191,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: to,
-						balance: formatHex(balance),
+						balance: formatHex(balance,0),
 						description: log?.log || '',
 						member_id,
 						time,

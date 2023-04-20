@@ -100,14 +100,14 @@ export class DAOs extends ContractScaner {
 				try {
 					image = await dao.methods.image().call();
 				} catch(err) {
-					console.warn('#daos#Created dao.image() call error', err);
+					console.warn('#daos.Created dao.image() call error', err);
 				}
 
 				let extend = buffer.Zero;
 				try {
 					extend = await dao.methods.extend().call();
 				} catch(err) {
-					console.warn('#daos#Created dao.extend() call error', err);
+					console.warn('#daos.Created dao.extend() call error', err);
 				}
 
 				await this.db.insert(`dao_${chain}`, {

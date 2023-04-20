@@ -140,6 +140,7 @@ export interface Ledger {
 	state: State;
 	assetIncome_id: number;
 	assetIncome?: LedgerAssetIncome;
+	asset?: Asset;
 }
 
 export interface LedgerAssetIncome {
@@ -147,11 +148,13 @@ export interface LedgerAssetIncome {
 	ledger_id: number;//    int                          not null, -- ledger_id
 	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
 	tokenId: string;//      char    (66)                 not null, -- 原始资产id
-	source: string;//       varchar (64)                 not null, -- 进账来源
-	balance: string;//      varchar (72)                 not null, -- 金额
-	price: string;//        varchar (72)                 not null, -- 成交价格
+	source: string;//       varchar (64)                 not null, -- 进账来源打款源地址
+	balance: string;//      varchar (72)                 not null, -- 实际收到的分成金额
+	price: string;//        varchar (72)                 not null, -- 预估成交价格
+	fromAddress: string;//  varchar (64)                 not null, -- 资产转移from地址
 	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
-	saleType: SaleType;//     int             default (0)  not null,
+	count: number; //       int             default (0)  not null, -- 资产数量
+	saleType: SaleType;//   int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
 }

@@ -27,7 +27,7 @@ export function formatHex(hex_str: string | number | bigint, btyes: number = 32)
 	} else {
 		s = hex_str.toString(16);
 	}
-	var len = (btyes * 2) - s.length;
+	var len = btyes ? (btyes * 2) - s.length: s.length % 2;
 	if (len > 0) {
 		return '0x' + Array.from({length: len + 1}).join('0') + s;
 	} else {
