@@ -47,6 +47,7 @@ async function load_main_db() {
 				first        varchar (42)                       not null, -- opensea first
 				second       varchar (42)                       not null, -- opensea second
 				asset        varchar (42)                       not null,
+				share        varchar (42)                       not null,
 				time         bigint                             not null,
 				modify       bigint                             not null,
 				blockNumber  int                                not null,
@@ -65,10 +66,10 @@ async function load_main_db() {
 
 			create table if not exists member_${chain} (
 				id           int primary key auto_increment,
-				host         varchar (64)               not null, -- dao host
-				token        varchar (64)               not null, -- address
-				tokenId      varchar (72)               not null, -- id
-				owner        varchar (64)               not null, -- owner address
+				host         varchar (42)               not null, -- dao host
+				token        varchar (42)               not null, -- address
+				tokenId      varchar (66)               not null, -- id
+				owner        varchar (42)               not null, -- owner address
 				name         varchar (64)               not null, -- member name
 				description  varchar (512)              not null, -- member description
 				image        varchar (512)              not null, -- member head portrait
@@ -79,19 +80,19 @@ async function load_main_db() {
 			);
 
 			create table if not exists asset_${chain} (
-				id           int primary key auto_increment,
-				host         varchar (64)  default ('') not null, -- dao host
-				token        varchar (64)               not null, -- address
-				tokenId      varchar (72)               not null, -- id
-				uri          varchar (512)              not null, -- tokenURI
-				owner        varchar (64)  default ('') not null, -- 持有人
-				author       varchar (64)  default ('') not null, -- 作者地址
-				selling      int           default (0)  not null, -- 销售类型: 0未销售,1其它平台,2销售opensea
-				sellPrice    varchar (72)  default ('') not null, -- 销售价格
-				minimumPrice varchar (72)  default ('') not null, -- 最小销售价格
-				state        int           default (0)  not null, -- 状态: 0正常,1删除
-				time         bigint                     not null, -- 数据入库时间
-				modify       bigint                     not null, -- 修改时间（非链上数据修改）
+				id                     int primary key auto_incre ment,
+				token                  char (42)                   not null, -- address
+				tokenId                char (66)                   not null, -- id
+				host                   varchar (42)                not null, -- dao host
+				uri                    varchar (512)               not null, -- tokenURI
+				owner                  varchar (42)  default ('')  not null, -- owner holder
+				author                 varchar (42)  default ('')  not null, -- author address
+				selling                int           default (0)   not null, -- selling type: 0未销售,1其它平台,2销售opensea
+				sellPrice              varchar (66)  default ('')  not null, -- selling price
+				minimumPrice           varchar (66)  default ('')  not null, -- 最小销售价格
+				state                  int           default (0)   not null, -- 状态: 0正常,1删除
+				time                   bigint                      not null, -- 数据入库时间
+				modify                 bigint                      not null, -- 修改时间（非链上数据修改）
 				name                   varchar (256)  default ('') not null,  -- 名称
 				imageOrigin            varchar (512)  default ('') not null,  -- origin image uri
 				mediaOrigin            varchar (512)  default ('') not null,  -- origin media uri
@@ -104,40 +105,51 @@ async function load_main_db() {
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
 				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
 				sellingTime            bigint         default (0)  not null,  -- 最后上架销售时间
-				soldTime               bigint         default (0)  not null,   -- 最后售出时间
-				type                   int            default (0)  not null    -- contracts type
+				soldTime               bigint         default (0)  not null,  -- 最后售出时间
+				type                   int            default (0)  not null,  -- contracts type
+				totalSupply            varchar (66)                not null,  -- total supply
+				assetType              int                         not null   -- asset type, 721/1155/20
 			);
 
 			create table if not exists asset_json_${chain} (
 				id                     int    primary key auto_increment not null,
 				asset_id               int    not null,
-				json_data              json       null
+				json_data              json   null
 			);
 
-			create table if not exists asset_order_${chain} (           -- 资产订单 asset from -> to
+			create table if not exists asset_owner (              -- asset owners
+				id           int     primary key auto_increment not null,
+				token        char    (42)                not null,  -- asset contract address
+				tokenId      char    (66)                not null,  -- token id
+				owner        char    (42)                not null,  -- owner
+				count        varchar (66)                not null   -- asset count
+			);
+
+			create table if not exists asset_order_${chain} (           -- asset order from -> to
 				id           int    primary key auto_increment not null,
-				txHash       char    (72)                      not null,  -- tx hash
-				blockNumber  int                               not null,
-				token        char    (42)                      not null,  -- 协约地址
+				txHash       char    (66)                      not null,  -- tx hash
+				token        char    (42)                      not null,  -- asset contract address
 				tokenId      char    (66)                      not null,  -- hash
 				fromAddres   char    (42)                      not null,  -- from
 				toAddress    char    (42)                      not null,  -- to
+				blockNumber  int                               not null,
+				time         bigint         default (0)        not null,
 				value        varchar (66)   default ('')       not null,  -- tx value
-				description  varchar (1024) default ('')       not null,
-				time         bigint         default (0)        not null
+				count        varchar (66)                      not null,  -- asset count
+				description  varchar (1024) default ('')       not null
 			);
 
 			create table if not exists ledger_${chain} ( -- 财务记录
 				id           int primary key auto_increment,
-				host         varchar (64)                 not null, -- dao host
-				address      varchar (64)                 not null, -- 合约地址
-				txHash       varchar (72)                 not null, -- tx hash
+				host         varchar (42)                 not null, -- dao host
+				address      varchar (42)                 not null, -- 合约地址
+				txHash       varchar (66)                 not null, -- tx hash
 				type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
-				name         varchar (64)    default ('') not null, -- 转账名目
+				name         varchar (42)    default ('') not null, -- 转账名目
 				description  varchar (1024)  default ('') not null, -- 详细
-				target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
-				member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
-				balance      varchar (72)                 not null, -- 金额
+				target       varchar (42)                 not null, -- 转账目标,进账为打款人,出账为接收人
+				member_id    varchar (66)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
+				balance      varchar (66)                 not null, -- 金额
 				time         bigint                       not null, -- 时间
 				blockNumber  int                          not null, -- 区块
 				state        int             default (0)  not null,
@@ -147,14 +159,14 @@ async function load_main_db() {
 			create table if not exists ledger_asset_income_${chain} ( -- 财务记录-资产销售收
 				id           int primary key auto_increment,
 				ledger_id    int                          not null, -- ledger_id
-				token        varchar (64)                 not null, -- 原始资产合约地址
-				tokenId      char    (66)                 not null, -- 原始资产id
-				source       varchar (64)                 not null, -- 进账来源
-				balance      varchar (72)                 not null, -- 实际收到的分成金额
-				price        varchar (72)                 not null, -- 预估成交价格
-				fromAddress  varchar (64)                 not null, -- 资产转移from地址
-				toAddress    varchar (64)                 not null, -- 资产转移目标地址
-				count        varchar (72)    default ('') not null, -- 资产数量
+				token        varchar (42)                 not null, -- 原始资产合约地址
+				tokenId      varchar (66)                 not null, -- 原始资产id
+				source       varchar (42)                 not null, -- 进账来源
+				balance      varchar (66)                 not null, -- 实际收到的分成金额
+				price        varchar (66)                 not null, -- 预估成交价格
+				fromAddress  varchar (42)                 not null, -- 资产转移from地址
+				toAddress    varchar (42)                 not null, -- 资产转移目标地址
+				count        varchar (66)                 not null, -- 资产数量
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
 				time         bigint                       not null  -- 时间
@@ -162,24 +174,24 @@ async function load_main_db() {
 
 			create table if not exists ledger_release_log_${chain} ( -- 成员分成日志
 				id           int primary key auto_increment,
-				address      varchar (64)                 not null, -- 合约地址
-				operator     varchar (64)                 not null,
-				txHash       varchar (72)                 not null, -- tx hash
+				address      varchar (42)                 not null, -- contract address
+				operator     varchar (42)                 not null,
+				txHash       varchar (66)                 not null, -- tx hash
 				log          varchar (1024)               not null,
-				balance      varchar (72)                 not null, -- 金额
+				balance      varchar (66)                 not null, -- 金额
 				time         bigint                       not null,
 				blockNumber  int                          not null
 			);
 
 			create table if not exists vote_proposal_${chain} ( -- 投票提案
 				id           int primary key auto_increment,
-				host         varchar (64)                 not null, -- dao host
-				address      varchar (64)                 not null, -- 投票池合约地址
-				proposal_id  varchar (72)                 not null, -- 提案id
+				host         varchar (42)                 not null, -- dao host
+				address      varchar (42)                 not null, -- 投票池合约地址
+				proposal_id  varchar (66)                 not null, -- 提案id
 				name         varchar (64)                 not null, -- 提案名称
 				description  varchar (1024)               not null, -- 提案描述
-				origin       varchar (64)                 not null, -- 发起人
-				originId     varchar (72)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
+				origin       varchar (42)                 not null, -- 发起人address
+				originId     varchar (66)                 not null, -- 发起人成员id (member id),如果为0表示匿名成员
 				target       json                             null, -- 目标合约,决议执行合约地址列表
 				data         json                             null, -- 调用方法与实参列表
 				lifespan     bigint                       not null, -- 投票生命周期(minutes)
@@ -200,9 +212,9 @@ async function load_main_db() {
 
 			create table if not exists votes_${chain} ( -- 投票
 				id           int primary key auto_increment,
-				address      varchar (64)                 not null, -- 投票池合约地址
-				proposal_id  varchar (72)                 not null, -- 提案id
-				member_id    varchar (72)                 not null, -- 成员 id
+				address      varchar (42)                 not null, -- 投票池合约地址
+				proposal_id  varchar (66)                 not null, -- 提案id
+				member_id    varchar (66)                 not null, -- 成员 id
 				votes        int                          not null, -- 投票数量
 				time         bigint                       not null,
 				blockNumber  int                          not null
@@ -274,6 +286,7 @@ async function load_main_db() {
 			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
 			`alter table dao_${chain}  add first                 varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
+			`alter table dao_${chain}  add share                 varchar (42) default ('')  not null`,
 			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
 			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
 			`alter table dao_${chain}  add members               int          default (0)   not null`,
@@ -293,21 +306,25 @@ async function load_main_db() {
 			`alter table asset_${chain} add categorie            int            default (0)  not null`, //  -- 类别
 			`alter table asset_${chain} add retry                int            default (0)  not null`, //  -- 抓取数据重试次数, sync uri data retry count
 			`alter table asset_${chain} add retryTime            bigint         default (0)  not null`, //  -- 抓取数据最后重试时间
-			`alter table asset_${chain} add minimumPrice         varchar (72)   default ('') not null`, //  -- 最小销售价格
+			`alter table asset_${chain} add minimumPrice         varchar (66)   default ('') not null`, //  -- 最小销售价格
 			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
 			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
 			`alter table asset_${chain} add type                 int            default (0)  not null`, //  -- contracts type Asset/AssetShell
-			`alter table asset_${chain} add host                 varchar (64)   default ('') not null`, //  -- dao host
+			`alter table asset_${chain} add host                 varchar (42)   default ('') not null`, //  -- dao host
+			`alter table asset_${chain} add totalSupply          varchar (66)   default ('') not null`, //  -- asset total supply
+			`alter table asset_${chain} add assetType            int            default (0)  not null`, //  -- asset total supply
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
 			//
 			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
-			`alter table ledger_asset_income_${chain} add count  varchar (72)   default ('')  not null`,
+			`alter table ledger_asset_income_${chain} add count  varchar (66)   default ('')  not null`,
 			// transaction
 			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
 			// contract_info
 			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
+			// asset_order
+			`alter table asset_order_${chain} add count          varchar (66)   default ('') not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
@@ -327,7 +344,12 @@ async function load_main_db() {
 			`create  unique index asset_${chain}_idx1            on asset_${chain}                  (token,tokenId)`,
 			`create         index asset_${chain}_idx2            on asset_${chain}                  (token,owner)`,
 			`create         index asset_${chain}_idx3            on asset_${chain}                  (name)`,
-			// asset ordr
+			// asset owner
+			`create         index asset_owner_${chain}_idx0      on asset_owner_${chain}            (token)`,
+			`create         index asset_owner_${chain}_idx1      on asset_owner_${chain}            (token,tokenId)`,
+			`create  unique index asset_owner_${chain}_idx2      on asset_owner_${chain}            (token,tokenId,owner)`,
+			`create         index asset_owner_${chain}_idx3      on asset_owner_${chain}            (token,owner)`,
+			// asset order
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,
 			`create         index asset_order_${chain}_idx2      on asset_order_${chain}            (toAddress)`,
@@ -346,6 +368,8 @@ async function load_main_db() {
 			`create         index ledger_asset_income_${chain}_idx1   on ledger_asset_income_${chain}  (token)`,
 			`create         index ledger_asset_income_${chain}_idx2   on ledger_asset_income_${chain}  (token,tokenId)`,
 			`create         index ledger_asset_income_${chain}_idx3   on ledger_asset_income_${chain}  (source)`,
+			`create         index ledger_asset_income_${chain}_idx4   on ledger_asset_income_${chain}  (token,fromAddress)`,
+			`create         index ledger_asset_income_${chain}_idx5   on ledger_asset_income_${chain}  (token,toAddress)`,
 			// ledger_release_log
 			`create unique  index ledger_release_log_${chain}_idx0  on ledger_release_log_${chain}  (address,txHash)`,
 			// vote_proposl
@@ -389,7 +413,7 @@ async function load_main_db() {
 			host                 varchar (64)                 not null, -- dao host or self address
 			title                varchar (64)                 not null, --
 			description          varchar (4096)               not null,
-			created_member_id    varchar (72)    default ('') not null,  -- 创建人成员id
+			created_member_id    varchar (66)    default ('') not null,  -- 创建人成员id
 			chain                int                          not null,
 			state                int             default (0)  not null, -- 0正常,1删除
 			time                 bigint                       not null,

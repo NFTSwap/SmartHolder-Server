@@ -3,15 +3,14 @@
  * @date 2021-09-26
  */
 
-import { Asset, ContractType, ChainType, SaleType} from '../models/define';
+import { Asset, ContractType, ChainType, SaleType,AssetType} from '../models/define';
 import {ContractScaner, IAssetScaner, formatHex,HandleEventData} from './scaner';
 import * as utils from '../utils';
 import _hash from 'somes/hash';
+import somes from 'somes';
 import * as opensea from '../models/opensea';
 import * as constants from './constants';
 import sync from './index';
-// import db_ from '../db';
-// import somes from 'somes';
 
 export abstract class ModuleScaner extends ContractScaner {
 
@@ -43,14 +42,19 @@ export abstract class ModuleScaner extends ContractScaner {
 
 }
 
-export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetScaner {
+export abstract class AssetModuleScaner extends ModuleScaner implements IAssetScaner {
 
 	abstract uri(tokenId: string): Promise<string>;
-	abstract balanceOf(owner: string, tokenId: string): Promise<number>;
+	abstract balanceOf(owner: string, tokenId: string): Promise<bigint>;
 	abstract exists(id: string): Promise<boolean>;
 
-	asAsset(): IAssetScaner | null {
-		return this;
+	assetType(tokenId: string) {
+		return BigInt(tokenId) % BigInt(2) ? AssetType.ERC1155: AssetType.ERC721;
+	}
+
+	totalSupply(tokenId: string): Promise<bigint> {
+		// assetType == AssetType.ERC721 ? 1: 
+		return Promise.resolve(BigInt(1));
 	}
 
 	async uriNoErr(tokenId: string) {
@@ -65,15 +69,28 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 
 	async asset(tokenId: string, blockNumber?: number) {
 		let db = this.db;
-		var token = this.address;
+		let token = this.address;
 		var [asset] = await db.select<Asset>(`asset_${this.chain}`, { token, tokenId }, {limit:1});
 		if (!asset) {
 			let uri = await utils.storageTokenURI(await this.uriNoErr(tokenId), { tokenId, token });
-			uri = uri.substring(0, 512);
+			// uri = uri.substring(0, 512);
+			somes.assert(uri.length < 512);
+
 			let time = Date.now();
 			let host = await this.host();
+			let assetType = this.assetType(tokenId);
+			let totalSupply = formatHex(await this.totalSupply(tokenId), 0);
 			let id = await db.insert(`asset_${this.chain}`, {
-				token, tokenId, uri, time, modify: time, blockNumber, type: this.type, host
+				host,
+				token,
+				tokenId,
+				uri,
+				time,
+				modify: time,
+				blockNumber,
+				type: this.type,
+				assetType,
+				totalSupply,
 			});
 			var [asset] = await db.select<Asset>(`asset_${this.chain}`, {id});
 			await sync.assetMetaDataSync.fetchFrom(asset, this.chain);
@@ -81,12 +98,14 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 		return asset;
 	}
 
-	async assetTransaction(
-		txHash: string, blockNumber: number,
-		count: string, tokenId: string,
-		from: [string, number], // from address/total
-		to: [string, number], // to address/total
-		value: string,
+	async transaction(
+		txHash: string,
+		tokenId: string,
+		from: string, // from address
+		to: string, // to address/total
+		count: bigint, // transaction count
+		value: string, // transaction value
+		blockNumber: number
 	) {
 		let db = this.db;
 		var time = Date.now();
@@ -94,21 +113,21 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 		let exists = await this.exists(tokenId);
 		if (exists) {
 			var asset = await this.asset(tokenId, blockNumber);
-			var data: Dict = { owner: to[0], modify: time };
+			var row: Dict = { owner: to, modify: time };
 
-			if (!BigInt(from[0]) && BigInt(to[0])) { // update author
-				Object.assign(data, { author: to[0], modify: time });
+			if (!BigInt(from) && BigInt(to)) { // update author
+				Object.assign(row, { author: to });
 			}
-			//somes.assert(data.owner, '#ERC721ModuleScaner.assetTransaction, data.owner!=empty str');
-			//somes.assert(data.author, '#ERC721ModuleScaner.assetTransaction, data.author!=empty str');
+			//somes.assert(data.owner, '#ERC721ModuleScaner.assetTransaction, row.owner!=empty str');
+			//somes.assert(data.author, '#ERC721ModuleScaner.assetTransaction, row.author!=empty str');
 
 			if (!asset.minimumPrice && this.type == ContractType.AssetShell) {
 				let m = await this.methods();
 				let v = await m.minimumPrice(tokenId).call();
-				data.minimumPrice = BigInt(v) + '';//formatHex(v);
+				row.minimumPrice = formatHex(v, 0);
 			}
 
-			await db.update(`asset_${this.chain}`, data, { id: asset.id });
+			await db.update(`asset_${this.chain}`, row, { id: asset.id });
 		} else {
 			await db.update(`asset_${this.chain}`, {
 				owner: '0x0000000000000000000000000000000000000000', modify: time,
@@ -121,8 +140,8 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 				txHash: txHash,
 				blockNumber: blockNumber,
 				token, tokenId,
-				fromAddres: from[0],
-				toAddress: to[0],
+				fromAddres: from,
+				toAddress: to,
 				count: count,
 				value: `${value}`,
 				//description: '',
@@ -135,7 +154,7 @@ export abstract class ERC721ModuleScaner extends ModuleScaner implements IAssetS
 
 }
 
-export class AssetERC721 extends ERC721ModuleScaner {
+export class AssetERC721 extends AssetModuleScaner {
 
 	events = {
 		// event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
@@ -146,7 +165,7 @@ export class AssetERC721 extends ERC721ModuleScaner {
 				var {from, to} = e.returnValues;
 				if (e.returnValues.tokenId) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
-					await this.assetTransaction(e.transactionHash, blockNumber, '1', tokenId, [from, 0], [to, 1], tx.value);
+					await this.transaction(e.transactionHash, tokenId, from, to, BigInt(1), tx.value, blockNumber);
 				} else {
 					console.warn(`#AssetERC721#Transfer, token=${this.address}, returnValues.tokenId=`, e.returnValues.tokenId, e.returnValues);
 				}
@@ -179,10 +198,6 @@ export class AssetERC721 extends ERC721ModuleScaner {
 		}
 	}
 
-	async ownerOf(tokenId: string) {
-		return await (await this.methods()).ownerOf(tokenId).call() as string;
-	}
-
 	async uri(tokenId: string): Promise<string> {
 		var c = await this.contract();
 		var uri = await c.methods.tokenURI(tokenId).call() as string;
@@ -204,15 +219,15 @@ export class AssetERC721 extends ERC721ModuleScaner {
 		return true;
 	}
 
-	async balanceOf(owner: string, id: string): Promise<number> {
+	async balanceOf(owner: string, id: string): Promise<bigint> {
 		var c = await this.contract();
 		try {
 			var _owner = await c.methods.ownerOf(id).call() as string;
-			var balance = _owner == owner ? 1: 0;
+			var balance = BigInt(_owner == owner ? 1: 0);
 			return balance;
 		} catch (err: any) {
 			if (err.message.indexOf('exist') != -1)
-				return 0;
+				return BigInt(0);
 			throw err;
 		}
 	}

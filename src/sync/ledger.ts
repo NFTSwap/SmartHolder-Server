@@ -3,7 +3,7 @@
  * @date 2022-07-20
  */
 
-import db, {LedgerType,LedgerReleaseLog} from '../db';
+import {LedgerType,LedgerReleaseLog} from '../db';
 import {formatHex,HandleEventData} from './scaner';
 import {ModuleScaner} from './asset';
 import * as opensea from '../models/opensea';

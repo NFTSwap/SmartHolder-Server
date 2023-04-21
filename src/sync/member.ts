@@ -5,13 +5,13 @@
 
 import {formatHex,HandleEventData} from './scaner';
 import {ModuleScaner} from './asset';
-import db, {storage,MemberInfo,Member as MemberDef} from '../db';
+import {storage,MemberInfo,Member as MemberDef} from '../db';
 import * as constants from './constants';
 
 export class Member extends ModuleScaner {
 	events = {
 		// event Update(uint256 indexed id); // update info
-		// event TransferVotes(uint256 indexed from, uint256 indexed to, uint32 votes);
+		// event TransferVotes(uint256 indexed from, uint256 indexed ModuleScaner, uint32 votes);
 		// event AddPermissions(uint256[] ids, uint256[] actions);
 		// event RemovePermissions(uint256[] ids, uint256[] actions);
 		// event SetPermissions(uint256 indexed id, uint256[] addActions, uint256[] removeActions);

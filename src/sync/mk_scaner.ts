@@ -13,6 +13,7 @@ import {Member} from './member';
 import {VotePool} from './vote_pool';
 import {DAOs} from './daos';
 import {DatabaseCRUD} from 'somes/db';
+import {Share} from './share';
 
 export * from './scaner';
 
@@ -47,6 +48,9 @@ export default function make(address: string, type: ContractType, chain: ChainTy
 	}
 	else if (type == ContractType.DAOs) {
 		cs = new DAOs(address, type, chain, db);
+	}
+	else if (type == ContractType.Share) {
+		cs = new Share(address, type, chain, db);
 	}
 	else {
 		cs = new ContractUnknown(address, ContractType.Invalid, chain, db);

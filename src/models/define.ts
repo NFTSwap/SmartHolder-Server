@@ -38,6 +38,7 @@ export interface DAO {
 	image: string;
 	state: State;
 	extend: any; // data type as somes/IBuffer
+	share: string;
 }
 
 export interface Member {
@@ -63,7 +64,7 @@ export interface MemberInfo {
 	votes: number;
 }
 
-export enum Selling { // 销售类型
+export enum Selling { // 销售平台类型
 	UnsellOrUnknown  = 0,  // 0未销售or未知
 	Order   = 1 << 0,   // 2其它平台
 	Opensea = 1 << 1, // 1销售opensea
@@ -100,6 +101,8 @@ export interface Asset {
 	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
 	retryTime: number;//              bigint         default (0)  not null,  -- 抓取数据最后重试时间
 	type: ContractType; // contract type 
+	totalSupply: string;//            varchar (66)                not null    -- total supply
+	assetType: AssetType; //          int                         not null   -- asset type, 721/1155
 }
 
 export interface AssetOrder {
@@ -110,9 +113,10 @@ export interface AssetOrder {
 	tokenId: string;//      char    (66)                      not null,  -- hash
 	fromAddres: string;//   char    (42)                      not null,  -- from
 	toAddress: string;//    char    (42)                      not null,  -- to
-	value: string;//        varchar (128)        default ('') not null,  -- tx value
+	value: string;//        varchar (66)         default ('') not null,  -- tx value
 	description: string;   //  varchar (1024)       default ('') not null,
 	time: number;//         bigint               default (0)  not null
+	count: string;//        varchar (66)                      not null,  -- asset count
 }
 
 export enum LedgerType {
@@ -153,7 +157,7 @@ export interface LedgerAssetIncome {
 	price: string;//        varchar (72)                 not null, -- 预估成交价格
 	fromAddress: string;//  varchar (64)                 not null, -- 资产转移from地址
 	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
-	count: number; //       int             default (0)  not null, -- 资产数量
+	count: string; //       int             default (0)  not null, -- 资产数量
 	saleType: SaleType;//   int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
@@ -207,6 +211,13 @@ export interface Votes {
 	blockNumber: number;//  int                          not null
 }
 
+export enum AssetType {
+	Invalid,
+	ERC721,
+	ERC1155,
+	ERC20,
+}
+
 export enum ContractType {
 	Invalid,
 	ERC721,
@@ -217,6 +228,9 @@ export enum ContractType {
 	Asset,
 	AssetShell,
 	DAOs,
+	ERC20,
+	ERC1155,
+	Share,
 }
 
 export interface ContractInfo {

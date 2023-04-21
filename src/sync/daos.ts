@@ -5,7 +5,7 @@
 
 import {ContractType,ContractInfo,MemberInfo} from '../models/define';
 import {ContractScaner,HandleEventData,formatHex} from './scaner';
-import db, {storage} from '../db';
+import {storage} from '../db';
 import * as DAO from '../../abi/DAO.json';
 import * as constants from './constants';
 import {RunIndexer} from './indexer';
@@ -42,6 +42,7 @@ export class DAOs extends ContractScaner {
 				let First  = await dao.methods.module(constants.Module_ASSET_First_ID).call() as string;
 				let Second = await dao.methods.module(constants.Module_ASSET_Second_ID).call() as string;
 				let Ledger = await dao.methods.module(constants.Module_LEDGER_ID).call() as string;
+				let Share = await dao.methods.module(constants.Module_SHARE_ID).call() as string;
 
 				// id           int primary key auto_increment,
 				// host         varchar (64)                       not null, -- dao host or self address
@@ -75,10 +76,11 @@ export class DAOs extends ContractScaner {
 					{ address: host, host, type: ContractType.DAO, time },
 					Root   != addressZero ? { host, address: Root, type: ContractType.VotePool, time }: null,
 					Member != addressZero ? { host, address: Member, type: ContractType.Member, time }: null,
-					Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time }: null,
+					//Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time }: null,
 					First  != addressZero ? { host, address: First, type: ContractType.AssetShell, time }: null,
 					Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
 					Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
+					Share  != addressZero ? { host, address: Share, type: ContractType.Share, time }: null,
 				];
 				await RunIndexer.addIndexer(chain, host, blockNumber,
 					ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
@@ -123,6 +125,7 @@ export class DAOs extends ContractScaner {
 					asset: Asset,
 					first: First,
 					second: Second,
+					share: Share,
 					time,
 					modify: time,
 					blockNumber,

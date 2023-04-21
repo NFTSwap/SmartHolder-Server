@@ -65,7 +65,7 @@ export interface ResolveEvent {
 export interface IAssetScaner {
 	uri(tokenId: string): Promise<string>;
 	uriNoErr(tokenId: string): Promise<string>;
-	balanceOf(owner: string, tokenId: string): Promise<number>;
+	balanceOf(owner: string, tokenId: string): Promise<bigint>;
 }
 
 export abstract class ContractScaner {
@@ -86,10 +86,6 @@ export abstract class ContractScaner {
 	get web3() {
 		somes.assert(this._web3, `#ContractScaner#web3 Chain type not supported => ${ChainType[this.chain]}`);
 		return this._web3!;
-	}
-
-	asAsset(): IAssetScaner | null {
-		return null;
 	}
 
 	async info() {
