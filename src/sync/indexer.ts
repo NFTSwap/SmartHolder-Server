@@ -215,7 +215,7 @@ export class IndexerPool implements WatchCat {
 
 	static async addIndexer(
 		chain: ChainType, hash: string, blockNumber: number,
-		initDataSource: (Partial<ContractInfo> & {address: string})[] = []
+		initDataSource: (Partial<ContractInfo> & {address: string, exclude?: boolean/*exclude indexer*/})[] = []
 	) {
 		if (await db.selectOne(`indexer_${chain}`, {hash}))
 			return ()=>{};
@@ -227,7 +227,7 @@ export class IndexerPool implements WatchCat {
 				if (!await contract.select(ds.address, chain, true)) {
 					await db.insert(`contract_info_${chain}`, { // use transaction
 						...ds,
-						indexer_id: id,
+						indexer_id: ds.exclude ? 0: id,
 						host: ds.host || '0x0000000000000000000000000000000000000000',
 						time: Date.now(),
 						blockNumber,
