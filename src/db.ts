@@ -80,7 +80,7 @@ async function load_main_db() {
 			);
 
 			create table if not exists asset_${chain} (
-				id                     int primary key auto_incre ment,
+				id                     int primary key auto_increment not null,
 				token                  char (42)                   not null, -- address
 				tokenId                char (66)                   not null, -- id
 				host                   varchar (42)                not null, -- dao host
@@ -117,7 +117,7 @@ async function load_main_db() {
 				json_data              json   null
 			);
 
-			create table if not exists asset_owner (              -- asset owners
+			create table if not exists asset_owner_${chain} (              -- asset owners
 				id           int     primary key auto_increment not null,
 				token        char    (42)                not null,  -- asset contract address
 				tokenId      char    (66)                not null,  -- token id
