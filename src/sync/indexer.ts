@@ -16,7 +16,8 @@ import index from './index';
 import redis from 'bclib/redis';
 import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
-import {Event} from 'somes/event'
+import {Event} from 'somes/event';
+import somes from 'somes';
 
 /**
  * @class indexer for dao
@@ -34,6 +35,8 @@ export class Indexer implements WatchCat {
 
 	async initialize() {
 		let dss = await db.select<ContractInfo>(`contract_info_${this.chain}`, { indexer_id: this.data.id });
+		somes.assert(dss.length, '#Indexer.initialize dss.length is equal 0');
+
 		for (let ds of dss) {
 			if (ds.state == 0) {
 				this.ds[ds.address] = ds;
@@ -211,13 +214,11 @@ export class IndexerPool implements WatchCat {
 	}
 
 	static async addIndexer(
-		chain: ChainType,
-		hash: string,
-		blockNumber: number,
+		chain: ChainType, hash: string, blockNumber: number,
 		initDataSource: (Partial<ContractInfo> & {address: string})[] = []
 	) {
 		if (await db.selectOne(`indexer_${chain}`, {hash}))
-			return;
+			return ()=>{};
 
 		let id = await db.transaction(async (db: DatabaseCRUD)=>{
 			let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
@@ -236,7 +237,7 @@ export class IndexerPool implements WatchCat {
 			return id;
 		});
 
-		postNewIndexer(chain, id);
+		return ()=>postNewIndexer(chain, id);
 	}
 
 	private async addWatch(i: IIndexer) {

@@ -178,7 +178,7 @@ export abstract class ContractScaner {
 				}
 			}
 		}
-		console.warn('#ContractScaner.solveReceiptLog Ignore Log', log);
+		console.warn('#ContractScaner.solveReceiptLog Non handle ignore Log', log);
 	}
 
 	private async solveReceiptLogFrom(

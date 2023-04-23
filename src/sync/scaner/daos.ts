@@ -42,7 +42,7 @@ export class DAOs extends ContractScaner {
 				let First  = await dao.methods.module(constants.Module_ASSET_First_ID).call() as string;
 				let Second = await dao.methods.module(constants.Module_ASSET_Second_ID).call() as string;
 				let Ledger = await dao.methods.module(constants.Module_LEDGER_ID).call() as string;
-				let Share = await dao.methods.module(constants.Module_SHARE_ID).call() as string;
+				let Share  = await dao.methods.module(constants.Module_SHARE_ID).call() as string;
 
 				// id           int primary key auto_increment,
 				// host         varchar (64)                       not null, -- dao host or self address
@@ -72,18 +72,21 @@ export class DAOs extends ContractScaner {
 
 				const addressZero = '0x0000000000000000000000000000000000000000';
 
-				let ds: (Partial<ContractInfo> & {address: string} | null)[] = [
-					{ address: host, host, type: ContractType.DAO, time },
-					Root   != addressZero ? { host, address: Root, type: ContractType.VotePool, time }: null,
-					Member != addressZero ? { host, address: Member, type: ContractType.Member, time }: null,
-					//Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time }: null,
-					First  != addressZero ? { host, address: First, type: ContractType.AssetShell, time }: null,
-					Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
-					Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
-					Share  != addressZero ? { host, address: Share, type: ContractType.Share, time }: null,
-				];
-				await IndexerPool.addIndexer(chain, host, blockNumber,
-					ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
+				let addIndexer = ()=>{
+					let ds: (Partial<ContractInfo> & {address: string} | null)[] = [
+						{ address: host, host, type: ContractType.DAO, time },
+						Root   != addressZero ? { host, address: Root, type: ContractType.VotePool, time }: null,
+						Member != addressZero ? { host, address: Member, type: ContractType.Member, time }: null,
+						//Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time }: null,
+						First  != addressZero ? { host, address: First, type: ContractType.AssetShell, time }: null,
+						Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
+						Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
+						Share  != addressZero ? { host, address: Share, type: ContractType.Share, time }: null,
+					];
+					return IndexerPool.addIndexer(chain, host, blockNumber,
+						ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
+				};
+				let after = await addIndexer(); // add indexer data watch
 
 				if (Member != addressZero) {
 					memberBaseName = await (await web3.contract(Member)).methods.name().call();
@@ -178,6 +181,8 @@ export class DAOs extends ContractScaner {
 					await this.db.update(`dao_${chain}`, {members: total}, { address: host });
 					await storage.set(`member_${chain}_${Member}_total`, total);
 				} // if (Member != addressZero)
+
+				after.setTimeout(1e3); // delay 1s call notice message
 				// ---- handle end ----
 			},
 		},

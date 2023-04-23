@@ -41,7 +41,7 @@ export default function make(address: string, type: ContractType, chain: ChainTy
 		case ContractType.VotePool:
 			cs = new VotePool(address, type, chain, db); break;
 		case ContractType.DAOs:
-			cs = new DAOs(address, type, chain, db);
+			cs = new DAOs(address, type, chain, db); break;
 		case ContractType.Share:
 			cs = new Share(address, type, chain, db); break;
 		default:

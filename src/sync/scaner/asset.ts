@@ -143,11 +143,11 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			let ao = await db.selectOne<AssetOwner>(`asset_owner_${this.chain}`, { token, tokenId, owner });
 			if (ao) {
 				let count = BigInt(ao.count) + c;
-				somes.assert(count > 0, '#AssetModuleScaner.transaction Bad count argument.');
-				await db.update(`asset_owner_${this.chain}`, {
-					token, tokenId, owner, count: numberStr(count)
+				somes.assert(count >= 0, '#AssetModuleScaner.transaction Bad count argument.');
+				await db.update(`asset_owner_${this.chain}`, {count: numberStr(count)}, {
+					token, tokenId, owner,
 				});
-			} else {
+			} else if (owner != '0x0000000000000000000000000000000000000000') {
 				let count = await this.balanceOf(owner, tokenId);
 				await db.insert(`asset_owner_${this.chain}`, {
 					token, tokenId, owner, count: numberStr(count),
