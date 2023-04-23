@@ -14,7 +14,7 @@ import {AssetSyncQueue} from './queue';
 import * as utils from '../utils';
 import errno from '../errno';
 import make from './mk_scaner';
-import {AssetERC721} from './asset';
+import {AssetERC721} from './scaner/asset';
 import sync from '.';
 import {WatchCat} from 'bclib/watch';
 import {web3s} from '../web3+';
@@ -156,7 +156,8 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		} = data;
 
 		if (error || code || errno) {
-			throw Error.new(`AssetMetaDataSync#_SyncFromData 5 Error => token:${token},tokenId:${tokenId},error:${error},code:${code},errno:${errno}`);
+			throw Error.new(`AssetMetaDataSync#_SyncFromData 5 Error => token:${token},\
+tokenId:${tokenId},error:${error},code:${code},errno:${errno}`);
 		}
 
 		var name = (name || '').substr(0, 256); // limit length
@@ -199,13 +200,15 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		}
 	}
 
-	protected async onSync(asset: Asset, chain: ChainType) {
+	protected async onSync(asset: Asset, chain: ChainType, flags: number) {
 		let { id, token, tokenId, uri } = asset;
 
-		if (!uri) {
-			var ent = make(token, ContractType.Asset, chain) as AssetERC721;
-			uri = await utils.storageTokenURI(await ent.uriNoErr(tokenId), asset);
-			somes.assert(uri, `AssetMetaDataSync#onSync 1 uri empty, ${token}, ${tokenId}, ${chain}`);
+		if (!uri || flags == 1) {
+			let ent = make(token, ContractType.Asset, chain) as AssetERC721;
+			uri = await ent.uri(tokenId);
+			uri = await utils.storageTokenURI(uri, asset);
+			somes.assert(uri, `#AssetMetaDataSync.onSync 1 uri empty, ${token}, ${tokenId}, ${chain}`);
+			somes.assert(uri.length <= 1024, '#AssetMetaDataSync.onSync uri length limit 1024');
 			Object.assign(asset, {syncTime: Date.now(), uri}); // set
 			await db.update(`asset_${chain}`, { syncTime: Date.now(), uri }, { id });
 		}
@@ -267,16 +270,10 @@ export class AssetMetaDataSync extends AssetSyncQueue {
 		await db.update(`asset_${chain}`, { retry: asset.retry + 1, retryTime: Date.now() }, { id: asset.id });
 	}
 
-	async fetch(token: string, tokenId: string, chain: ChainType, force?: boolean) {
-		let ent = make(token, ContractType.ERC721, chain) as AssetERC721;
-		let asset = await ent.asset(tokenId);
-		await this.fetchFrom(asset, chain, force);
-	}
-
 	async fetchFrom(asset: Asset, chain: ChainType, force?: boolean) {
 		var {id, token, uri, mediaOrigin} = asset;
 		if (force || !uri || !mediaOrigin) {
-			await this.enqueue(id, token, chain);
+			await this.enqueue(id, token, chain, force ? 1: 0);
 		}
 	}
 }

@@ -3,10 +3,10 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog} from '../db';
-import {formatHex,HandleEventData} from './scaner';
+import {LedgerType,LedgerReleaseLog} from '../../db';
+import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
-import * as opensea from '../models/opensea';
+import * as opensea from '../../models/opensea';
 
 export class Ledger extends ModuleScaner {
 	events = {
@@ -51,7 +51,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: from,
-						balance: formatHex(balance,0),
+						balance: numberStr(balance),
 						time,
 						blockNumber: Number(e.blockNumber) || 0,
 					});
@@ -77,7 +77,7 @@ export class Ledger extends ModuleScaner {
 					await db.insert(`ledger_release_log_${this.chain}`, {
 						address: this.address,
 						operator,
-						balance: formatHex(balance,0),
+						balance: numberStr(balance),
 						log,
 						time,
 						blockNumber: Number(e.blockNumber) || 0,
@@ -101,7 +101,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: from,
-						balance: formatHex(balance,0),
+						balance: numberStr(balance),
 						name: name,
 						description: description,
 						time,
@@ -125,9 +125,9 @@ export class Ledger extends ModuleScaner {
 				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
-					let balance = formatHex(e.returnValues.balance, 0);
-					let price = formatHex(e.returnValues.price, 0);
-					let count = formatHex(e.returnValues.count, 0);
+					let balance = numberStr(e.returnValues.balance);
+					let price = numberStr(e.returnValues.price);
+					let count = numberStr(e.returnValues.count);
 
 					let ledger_id = await db.insert(`ledger_${this.chain}`, {
 						host: await this.host(),
@@ -165,7 +165,7 @@ export class Ledger extends ModuleScaner {
 						address: this.address,
 						txHash: txHash,
 						type: type,
-						balance: formatHex(balance,0),
+						balance: numberStr(balance),
 						target: target,
 						description: description,
 						time,
@@ -191,7 +191,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: to,
-						balance: formatHex(balance,0),
+						balance: numberStr(balance),
 						description: log?.log || '',
 						member_id,
 						time,

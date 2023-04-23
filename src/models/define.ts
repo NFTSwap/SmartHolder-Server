@@ -105,6 +105,14 @@ export interface Asset {
 	assetType: AssetType; //          int                         not null   -- asset type, 721/1155
 }
 
+export interface AssetOwner {
+	id: number;//           int     primary key auto_increment not null,
+	token: string;//        char    (42)                not null,  -- asset contract address
+	tokenId: string;//      char    (66)                not null,  -- token id
+	owner: string;//        char    (42)                not null,  -- owner
+	count: string;//        varchar (66)                not null   -- asset count
+}
+
 export interface AssetOrder {
 	id: number;//           int    primary key auto_increment not null,
 	txHash: string;//       char    (130)                     not null,  -- tx hash

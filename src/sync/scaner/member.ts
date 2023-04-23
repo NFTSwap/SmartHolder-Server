@@ -3,10 +3,10 @@
  * @date 2022-07-20
  */
 
-import {formatHex,HandleEventData} from './scaner';
+import {formatHex,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
-import {storage,MemberInfo,Member as MemberDef} from '../db';
-import * as constants from './constants';
+import {storage,MemberInfo,Member as MemberDef} from '../../db';
+import * as constants from './../constants';
 
 export class Member extends ModuleScaner {
 	events = {

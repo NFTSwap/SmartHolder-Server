@@ -3,31 +3,32 @@
  * @date 2021-09-26
  */
 
-import { ContractInfo, ContractType, ChainType } from '../models/define';
+import { ContractInfo, ContractType, ChainType } from '../../models/define';
 import {IBcWeb3} from 'bclib/web3_tx';
-import {web3s, MvpWeb3} from '../web3+';
+import {web3s, MvpWeb3} from '../../web3+';
 import {EventData} from 'web3-tx';
 import somes from 'somes';
 import {Transaction, Log} from 'web3-core';
-import {getAbiByType} from '../web3+';
+import {getAbiByType} from '../../web3+';
 import {AbiInterface} from 'bclib/abi';
 import {AbiInput} from 'web3-utils';
-import * as cfg from '../../config';
+import * as cfg from '../../../config';
 import {AbiItem} from 'web3-utils';
-import uncaught from '../uncaught';
-import * as contract from '../models/contract';
+import uncaught from '../../uncaught';
+import * as contract from '../../models/contract';
 import * as cryptoTx from 'crypto-tx';
 import {DatabaseCRUD} from 'somes/db';
-import db from '../db';
+import db from '../../db';
+import { EventNoticer } from 'somes/event';
 
-export function formatHex(hex_str: string | number | bigint, btyes: number = 32) {
-	var s = '';
-	if (typeof hex_str == 'string') {
-		s = BigInt(hex_str).toString(16);
+export function formatHex(num: string | number | bigint, btyes: number = 32) {
+	let s = '';
+	if (typeof num == 'string') {
+		s = BigInt(num).toString(16);
 	} else {
-		s = hex_str.toString(16);
+		s = num.toString(16);
 	}
-	var len = btyes ? (btyes * 2) - s.length: s.length % 2;
+	let len = btyes ? (btyes * 2) - s.length: s.length % 2;
 	if (len > 0) {
 		return '0x' + Array.from({length: len + 1}).join('0') + s;
 	} else {
@@ -35,10 +36,20 @@ export function formatHex(hex_str: string | number | bigint, btyes: number = 32)
 	}
 }
 
+export function numberStr(num: string | number | bigint) {
+	let s = '';
+	if (typeof num == 'string') {
+		s = String(BigInt(num));
+	} else {
+		s = String(num);
+	}
+	return s;
+}
+
 export async function blockTimeStamp(web3: IBcWeb3, blockNumber: number, last: number = 0) {
 	last = last || await web3.getBlockNumber();
-	// var block = await web3.impl.eth.getBlock(blockNumber);
-	// var time0 = Number(block.timestamp) * 1e3;
+	// let block = await web3.impl.eth.getBlock(blockNumber);
+	// let time0 = Number(block.timestamp) * 1e3;
 	return parseInt((Date.now() - (last - blockNumber) * 13.545 * 1e3) as any);
 }
 
@@ -64,7 +75,6 @@ export interface ResolveEvent {
 
 export interface IAssetScaner {
 	uri(tokenId: string): Promise<string>;
-	uriNoErr(tokenId: string): Promise<string>;
 	balanceOf(owner: string, tokenId: string): Promise<bigint>;
 }
 
@@ -76,22 +86,25 @@ export abstract class ContractScaner {
 	readonly type: ContractType;
 	readonly chain: ChainType;
 	readonly db: DatabaseCRUD;
+	readonly blockNumber: number;
 
 	abstract readonly events: Dict<ResolveEvent>;
+
+	readonly onAfterSolveBlockReceipts = new EventNoticer('AfterSolveBlockReceipts', this);
 
 	get isValid() { // chain is valid
 		return !!this._web3;
 	}
 
 	get web3() {
-		somes.assert(this._web3, `#ContractScaner#web3 Chain type not supported => ${ChainType[this.chain]}`);
+		somes.assert(this._web3, `#ContractScaner.web3 Chain type not supported => ${ChainType[this.chain]}`);
 		return this._web3!;
 	}
 
 	async info() {
 		if (!this._info) {
 			let info = await contract.select(this.address, this.chain)!;
-			somes.assert(info, `#ContractScaner#info No match the ${this.address} contract_info_${this.chain}`);
+			somes.assert(info, `#ContractScaner.info No match the ${this.address} contract_info_${this.chain}`);
 			this._info = info!;
 		}
 		return this._info;
@@ -107,14 +120,15 @@ export abstract class ContractScaner {
 		this.chain = chain;
 		this._web3 = web3s[chain];
 		this.db = db_ || db;
+		this.blockNumber = 0;
 	}
 
 	async scan(fromBlock: number, toBlock: number): Promise<number> {
 		if (cfg.logs.sync) {
 			console.log(`Asset Sync:`, fromBlock, '->', toBlock, ChainType[this.chain], ':', ContractType[this.type], this.address);
 		}
-		var events = 0;
-		for (var [event, watch] of Object.entries(this.events)) {
+		let events = 0;
+		for (let [event, watch] of Object.entries(this.events)) {
 			events += await this.scanEvent(fromBlock, toBlock, event, watch);
 		}
 		return events;
@@ -144,26 +158,27 @@ export abstract class ContractScaner {
 
 			if (cfg.logs.event) {
 				console.log(ChainType[this.chain], ContractType[this.type], 
-						`event=${event}`, this.address, `blockNumber=${log.blockNumber}`, `idx=${log.transactionIndex}`, `hash=${log.transactionHash}`);
+						`event=${event}`, this.address, `blockNumber=${log.blockNumber}`,
+						`idx=${log.transactionIndex}`, `hash=${log.transactionHash}`);
 			}
 		}
 		return logs.length;
 	}
 
 	async solveReceiptLog(log: Log, tx: Transaction) {
-		var abiI = (await getAbiByType(this.type))!;
+		let abiI = (await getAbiByType(this.type))!;
 
-		for (var [event, resolve] of Object.entries(this.events)) {
-			var abiItem = abiI.abi.find(e=>e.name==event);
+		for (let [event, resolve] of Object.entries(this.events)) {
+			let abiItem = abiI.abi.find(e=>e.name==event);
 			if (abiItem) {
-				var signature = this.web3.eth.abi.encodeEventSignature(abiItem).toLowerCase();
+				let signature = this.web3.eth.abi.encodeEventSignature(abiItem).toLowerCase();
 				if (signature == log.topics[0].toLowerCase()) {
 					await this.solveReceiptLogFrom(event, signature, abiItem, log, tx, resolve);
 					return;
 				}
 			}
 		}
-		console.warn('#ContractScaner#solveReceiptLog Ignore Log', log);
+		console.warn('#ContractScaner.solveReceiptLog Ignore Log', log);
 	}
 
 	private async solveReceiptLogFrom(
@@ -173,12 +188,15 @@ export abstract class ContractScaner {
 			var returnValues = 
 				this.web3.eth.abi.decodeLog(abiItem.inputs as AbiInput[], log.data, log.topics.slice(1));
 		} catch(err: any) {
-			uncaught.fault('#ContractScaner#solveReceiptLogFrom 1',
+			uncaught.fault('#ContractScaner.solveReceiptLogFrom 1',
 				...err.filter(['errno', 'message', 'description', 'stack']), //err,
 				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
 			throw err;
 		}
+
+		somes.assert(tx.blockNumber, '#ContractScaner.solveReceiptLogFrom blockNumber is null');
+		(this as any).blockNumber = Number(tx.blockNumber);
 
 		let e: EventData = {
 			returnValues,
@@ -192,16 +210,16 @@ export abstract class ContractScaner {
 			transactionIndex: log.transactionIndex,
 			transactionHash: log.transactionHash,
 			blockHash: log.blockHash,
-			blockNumber: log.blockNumber,
+			blockNumber: this.blockNumber,
 			address: log.address,
 		};
 
 		try {
 			let blockTime = Date.now();
-			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: Number(e.blockNumber)});
+			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: this.blockNumber});
 		} catch(err:any) {
 			uncaught.fault(
-				'#ContractScaner#solveReceiptLogFrom 2',
+				'#ContractScaner.solveReceiptLogFrom 2',
 				...err.filter(['errno', 'message', 'description', 'stack']), //err,
 				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);

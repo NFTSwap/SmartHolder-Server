@@ -7,7 +7,7 @@ import '../uncaught';
 import somes from 'somes';
 import {WatchCat} from 'bclib/watch';
 import db_, { storage as storage_, ChainType,
-	Transaction as ITransaction, ContractInfo,TransactionLog } from '../db';
+	Transaction as ITransaction,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
 import {Transaction, TransactionReceipt} from 'web3-core';
@@ -74,7 +74,7 @@ export class WatchBlock implements WatchCat {
 
 	private async _solveReceipt(blockNumber: number, receipt: TransactionReceipt, getTx: ()=>Promise<Transaction>) {
 		let chain = this.web3.chain;
-		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+		somes.assert(receipt, `#WatchBlock._watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
 		if ('status' in receipt)
 			if (!receipt.status) return;
@@ -88,8 +88,7 @@ export class WatchBlock implements WatchCat {
 				let address = log.address;
 				let info = await contract.select(address, chain);
 				if (info && info.type) {
-					let scaner = mk_scaner(address, info.type, chain);
-					await scaner.solveReceiptLog(log, await getTx());
+					await mk_scaner(address, info.type, chain).solveReceiptLog(log, await getTx());
 				}
 			}
 		} // else if (receipt.to) {
@@ -97,7 +96,7 @@ export class WatchBlock implements WatchCat {
 
 	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
 		let chain = this.web3.chain;
-		somes.assert(receipt, `#WatchBlock#_watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+		somes.assert(receipt, `#WatchBlock._watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 
 		let tx = await getTx();
 		let transactionHash = receipt.transactionHash;
@@ -181,7 +180,7 @@ export class WatchBlock implements WatchCat {
 			try {
 				receipts = await web3.getTransactionReceiptsByBlock(blockNumber);
 			} catch(err: any) {
-				console.warn(`#WatchBlock#_watchReceipt`, err);
+				console.warn(`#WatchBlock._watchReceipt`, err);
 			}
 
 			if (receipts) {
@@ -291,7 +290,7 @@ export class WatchBlock implements WatchCat {
 					blog.logs.push(log);
 				} else {
 					somes.assert(blog.blockNumber < blockNumber,
-						'#WatchBlock#getTransactionLogsFrom blockNumber order error');
+						'#WatchBlock.getTransactionLogsFrom blockNumber order error');
 					blogs.push({blockNumber, logs: [log]});
 				}
 			} else {
@@ -400,7 +399,7 @@ export class WatchBlock implements WatchCat {
 			if (isRpcLimitRequestAccount(web3, err)) {
 				web3.swatchRpc();
 			}
-			console.error('#WatchBlock#cat', ...err.filter(['message', 'description', 'stack']));
+			console.error('#WatchBlock.cat', ...err.filter(['message', 'description', 'stack']));
 		}
 
 		return true;

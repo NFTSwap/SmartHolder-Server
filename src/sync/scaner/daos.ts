@@ -3,12 +3,12 @@
  * @date 2023-01-05
  */
 
-import {ContractType,ContractInfo,MemberInfo} from '../models/define';
-import {ContractScaner,HandleEventData,formatHex} from './scaner';
-import {storage} from '../db';
-import * as DAO from '../../abi/DAO.json';
-import * as constants from './constants';
-import {RunIndexer} from './indexer';
+import {ContractType,ContractInfo,MemberInfo} from '../../models/define';
+import {ContractScaner,HandleEventData,formatHex} from '.';
+import {storage} from '../../db';
+import * as DAO from '../../../abi/DAO.json';
+import * as constants from './../constants';
+import {IndexerPool} from './../indexer';
 import buffer from 'somes/buffer';
 
 export class DAOs extends ContractScaner {
@@ -82,7 +82,7 @@ export class DAOs extends ContractScaner {
 					Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
 					Share  != addressZero ? { host, address: Share, type: ContractType.Share, time }: null,
 				];
-				await RunIndexer.addIndexer(chain, host, blockNumber,
+				await IndexerPool.addIndexer(chain, host, blockNumber,
 					ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);
 
 				if (Member != addressZero) {
