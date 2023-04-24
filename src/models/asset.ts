@@ -150,7 +150,7 @@ export const getAssetFrom = newQueryHandle(async ({
 	}
 
 	return assets;
-});
+}, 'getAssetFrom');
 
 export const setAssetState = async (chain: ChainType, token: string, tokenId: string, state: State)=>{
 	return db.update(`asset_${chain}`, {state}, { token, tokenId });
@@ -218,7 +218,7 @@ export const getAssetOrderFrom = newQueryHandle(async ({
 	await beautifulAsset(order_1.map(e=>e.asset!), chain);
 
 	return order_1;
-});
+}, 'getAssetOrderFrom');
 
 export const getOrderTotalAmount = newCacheHandle(getAssetOrderFrom.query, {
 	after: (ls)=>{
@@ -226,7 +226,8 @@ export const getOrderTotalAmount = newCacheHandle(getAssetOrderFrom.query, {
 		for (let it of ls)
 			amount += BigInt(it.value);
 		return { total: ls.length, amount: amount.toString() };
-	}
+	},
+	name: 'getOrderTotalAmount',
 });
 
 export const getAssetAmountTotal = newCacheHandle(getAssetFrom.query, {
@@ -241,5 +242,6 @@ export const getAssetAmountTotal = newCacheHandle(getAssetFrom.query, {
 		return {
 			assetTotal, assetAmountTotal: assetAmountTotal.toString(),
 		};
-	}
+	},
+	name: 'getAssetAmountTotal',
 });

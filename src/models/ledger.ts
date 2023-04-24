@@ -46,7 +46,7 @@ export const getLedgerFrom = newQueryHandle(async ({
 		}
 	}
 	return ls;
-});
+}, 'getLedgerFrom');
 
 export const getLedgerTotalAmount = newCacheHandle(getLedgerFrom.query, {
 	after: (e)=>{
@@ -54,7 +54,8 @@ export const getLedgerTotalAmount = newCacheHandle(getLedgerFrom.query, {
 		for (let it of e)
 			amount += BigInt(it.balance);
 		return {total: e.length, amount: amount.toString()}
-	}
+	},
+	name: 'getLedgerTotalAmount',
 });
 
 export const setLedgerState = async (chain: ChainType, id: number, state: State)=>{
