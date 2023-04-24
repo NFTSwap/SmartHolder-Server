@@ -9,7 +9,8 @@ import redis from 'bclib/redis';
 import * as dao_fn from './dao';
 import {getLimit} from './utils';
 
-export async function getLedgerItemsFromHost(chain: ChainType, host: string,
+export async function getLedgerItemsFromHost(
+	chain: ChainType, host: string,
 	type?: LedgerType, time?: [number,number], state = State.Enable, order?: string, limit?: number | number[]
 ) {
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
@@ -39,12 +40,18 @@ export async function getLedgerItemsFromHost(chain: ChainType, host: string,
 	return ls;
 }
 
-export async function getLedgerItemsTotalFromHost(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {
+export async function getLedgerItemsTotalFromHost(
+	chain: ChainType, host: string,
+	type?: LedgerType, time?: [number,number], state = State.Enable
+) {
 	let total = await getLedgerTotalAmount(chain, host, type, time, state);
 	return total.total;
 }
 
-export async function getLedgerTotalAmount(chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state = State.Enable) {
+export async function getLedgerTotalAmount(
+	chain: ChainType, host: string,
+	type?: LedgerType, time?: [number,number], state = State.Enable
+) {
 	let key = `getLedgerTotalAmount_${chain}_${host}_${type}_${time}_${state}`;
 	let total = await redis.get<{total: number; amount:string}>(key);
 	if (total === null) {

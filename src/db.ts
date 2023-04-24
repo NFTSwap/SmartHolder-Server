@@ -87,8 +87,10 @@ async function load_main_db() {
 				uri                    varchar (1024)              not null, -- tokenURI
 				owner                  varchar (42)  default ('')  not null, -- owner holder
 				author                 varchar (42)  default ('')  not null, -- author address
-				selling                int           default (0)   not null, -- selling type: 0未销售,1其它平台,2销售opensea
-				sellPrice              varchar (78)  default ('')  not null, -- selling price, only erc721
+				selling                int           default (0)   not null, -- selling type 最后上架销售类型: 0未销售,1其它平台,2销售opensea
+				sellPrice              varchar (78)  default ('')  not null, -- selling price 最后上架销售价格
+				sellingTime            bigint         default (0)  not null, -- 最后上架销售时间
+				soldTime               bigint         default (0)  not null, -- 最后售出时间
 				minimumPrice           varchar (78)  default ('')  not null, -- 最小销售价格
 				state                  int           default (0)   not null, -- 状态: 0正常,1删除
 				time                   bigint                      not null, -- 数据入库时间
@@ -104,9 +106,6 @@ async function load_main_db() {
 				categorie              int            default (0)  not null,  -- 类别
 				retry                  int            default (0)  not null,  -- 抓取数据重试次数, sync uri data retry count
 				retryTime              bigint         default (0)  not null,  -- 抓取数据最后重试时间
-				sellingTime            bigint         default (0)  not null,  -- 最后上架销售时间
-				soldTime               bigint         default (0)  not null,  -- 最后售出时间
-				type                   int            default (0)  not null,  -- contracts type
 				totalSupply            varchar (78)                not null,  -- total supply
 				assetType              int                         not null   -- asset type, 721/1155/20
 			);
@@ -119,6 +118,7 @@ async function load_main_db() {
 
 			create table if not exists asset_owner_${chain} (              -- asset owners
 				id           int     primary key auto_increment not null,
+				asset_id     int                         not null,  -- asset id
 				token        char    (42)                not null,  -- asset contract address
 				tokenId      char    (66)                not null,  -- token id
 				owner        char    (42)                not null,  -- owner
@@ -309,7 +309,6 @@ async function load_main_db() {
 			`alter table asset_${chain} add minimumPrice         varchar (78)   default ('') not null`, //  -- 最小销售价格
 			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
 			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
-			`alter table asset_${chain} add type                 int            default (0)  not null`, //  -- contracts type Asset/AssetShell
 			`alter table asset_${chain} add host                 varchar (42)   default ('') not null`, //  -- dao host
 			`alter table asset_${chain} add totalSupply          varchar (78)   default ('') not null`, //  -- asset total supply
 			`alter table asset_${chain} add assetType            int            default (0)  not null`, //  -- asset total supply
@@ -349,6 +348,7 @@ async function load_main_db() {
 			`create         index asset_owner_${chain}_idx1      on asset_owner_${chain}            (token,tokenId)`,
 			`create  unique index asset_owner_${chain}_idx2      on asset_owner_${chain}            (token,tokenId,owner)`,
 			`create         index asset_owner_${chain}_idx3      on asset_owner_${chain}            (token,owner)`,
+			`create         index asset_owner_${chain}_idx4      on asset_owner_${chain}            (asset_id)`,
 			// asset order
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,

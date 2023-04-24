@@ -83,8 +83,8 @@ export interface Asset {
 	uri: string; // tokenURI
 	owner: string; // 属主
 	author: string; // 作者地址
-	selling: Selling; // 销售类型: 0未销售,1销售opensea,2其它平台
-	sellPrice: string; // 销售价格
+	selling: Selling; // 最后上架销售类型: 0未销售,1销售opensea,2其它平台
+	sellPrice: string; // 最后上架销售价格
 	minimumPrice: string; // 最小销售价格
 	state: State; // 状态: 0正常,1删除
 	time: number; // 数据入库时间
@@ -100,13 +100,21 @@ export interface Asset {
 	categorie: number;//              int            default (0)  not null,  -- 类别
 	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
 	retryTime: number;//              bigint         default (0)  not null,  -- 抓取数据最后重试时间
-	type: ContractType; // contract type 
 	totalSupply: string;//            varchar (66)                not null    -- total supply
 	assetType: AssetType; //          int                         not null   -- asset type, 721/1155
 }
 
+export enum AssetType {
+	Invalid,
+	ERC1155_Single, // Single
+	ERC1155,
+	ERC20,
+	ERC721,
+}
+
 export interface AssetOwner {
 	id: number;//           int     primary key auto_increment not null,
+	asset_id: number;
 	token: string;//        char    (42)                not null,  -- asset contract address
 	tokenId: string;//      char    (66)                not null,  -- token id
 	owner: string;//        char    (42)                not null,  -- owner
@@ -217,13 +225,6 @@ export interface Votes {
 	votes: number;//        int                          not null, -- 投票数量
 	time: number;//         bigint                       not null,
 	blockNumber: number;//  int                          not null
-}
-
-export enum AssetType {
-	Invalid,
-	ERC721,
-	ERC1155,
-	ERC20,
 }
 
 export enum ContractType {

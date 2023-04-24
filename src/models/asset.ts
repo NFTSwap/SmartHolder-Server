@@ -4,7 +4,7 @@
  */
 
 import somes from 'somes';
-import db, {ChainType, Asset, State,Selling,ContractType,DAO} from '../db';
+import db, {ChainType, Asset, State,Selling,ContractType,DAO,AssetType} from '../db';
 import {AssetOrderExt,AssetExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
@@ -55,52 +55,65 @@ export async function getAssetFrom(
 	state = State.Enable,
 	name?: string,
 	time?: number | [number,number],
-	selling?: Selling,
-	selling_not?: Selling,
+	assetType?: AssetType,
 	orderBy?: string,
 	limit?: number | number[],
 	noBeautiful?: boolean
 ) {
-	let sql = `select * from asset_${chain} where state=${escape(state)} `;
+	let sql = `select `;
+
+	if (owner || owner_not) {
+		sql += `a.*, ao.id as ao_id, ao.owner as ao_owner, ao.count as ao_count \
+						from asset_${chain} as a right join asset_owner_${chain} as ao on a.id = ao.asset_id \
+						where a.state=${escape(state)} and a.totalSupply!=0 `;
+		if (owner)
+			sql += `and ao.owner=${escape(owner)} `;
+		if (owner_not)
+			sql += `and ao.owner!=${escape(owner_not)} `;
+	} else {
+		sql += `* from asset_${chain} as a where a.state=${escape(state)} and a.totalSupply!=0 `;
+	}
+
 	let dao: DAO | null = null;
 	if (host) {
 		dao = await dao_fn.getDAONoEmpty(chain, host);
-		sql += `and token in (${escape(dao.first)},${escape(dao.second)}) `;
-	} else {
-		sql += `and type=${ContractType.AssetShell} `;
+		sql += `and a.hose=${escape(host)} `;
 	}
-	if (owner)
-		sql += `and owner=${escape(owner)} `;
-	if (owner_not)
-		sql += `and owner!=${escape(owner_not)} `;
-	if (!owner && !owner_not)
-		sql += `and owner!='0x0000000000000000000000000000000000000000' `;
+	if (assetType)
+		sql += `and a.assetType=${assetType} `;
 	if (author)
-		sql += `and author=${escape(author)} `;
+		sql += `and a.author=${escape(author)} `;
 	if (author_not)
-		sql += `and author!=${escape(author_not)} `;
+		sql += `and a.author!=${escape(author_not)} `;
 	if (name)
-		sql += `and name like ${escape(name+'%')} `;
+		sql += `and a.name like ${escape(name+'%')} `;
 	if (time) {
 		let [s,e] = Array.isArray(time) ? time: [time];
-		sql += `and time>=${escape(s)} `;
+		sql += `and a.time>=${escape(s)} `;
 		if(e)
-			sql += `and time<=${escape(e)} `;
+			sql += `and a.time<=${escape(e)} `;
 	}
-	if (selling != undefined)
-		sql += `and selling=${escape(selling)} `;
-	if (selling_not != undefined)
-		sql += `and selling!=${escape(selling_not)} `;
 	if (orderBy)
 		sql += `order by ${orderBy} `;
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 
-	let assets = await db.query<AssetExt>(sql);
+	let assets = (await db.query<AssetExt>(sql)).map((e:any)=>({
+		...e,
+		asset_owner: {
+			id: e.ao_id,
+			asset_id: e.id,
+			token: e.token,
+			tokenId: e.tokenId,
+			owner: e.ao_owner,
+			count: e.ao_count,
+		},
+	} as AssetExt));
 
 	if (dao) {
 		assets.forEach(e=>(e.dao = dao!));
-	} else if (assets.length) {
+	}
+	else if (assets.length) {
 		let DAO_IDs: Dict<AssetExt[]> = {};
 
 		for (let e of assets) {
@@ -225,15 +238,15 @@ ${fromAddres_not}_${toAddress_not}_${tokenId}_${name}_${time}`;
 export async function getAssetTotalFrom(
 	chain: ChainType, host?: string,
 	owner?: string, author?: string,
-	owner_not?: string, author_not?: string,
-	state = State.Enable, name?: string, time?: [number, number], selling?: Selling, selling_not?: Selling
+	owner_not?: string, author_not?: string, assetType?: AssetType,
+	state = State.Enable, name?: string, time?: [number, number]
 ) {
 	let key = `getAssetTotalFrom_${chain}_${owner}_${author}_${owner_not}\
-_${author_not}_${state}_${name}_${time?.join()}_${selling}_${selling_not}`;
+_${author_not}_${state}_${name}_${time?.join()}_${assetType}`;
 	let total = await redis.get<number>(key);
 	if (total === null) {
 		let ls = await getAssetFrom(chain, host, owner, author, owner_not,
-				author_not, state, name, time, selling, selling_not, '', undefined, true);
+				author_not, state, name, time, assetType, '', undefined, true);
 		await redis.set(key, total = ls.length, 1e4);
 	}
 	return total;
@@ -242,27 +255,21 @@ _${author_not}_${state}_${name}_${time?.join()}_${selling}_${selling_not}`;
 export async function getAssetAmountTotal(
 	chain: ChainType, host: string,
 	owner?: string, author?: string,
-	owner_not?: string, author_not?: string,
+	owner_not?: string, author_not?: string, assetType?: AssetType,
 	state = State.Enable, name?: string
 ) {
-	let key = `getAssetAmountTotal_${chain}_${owner}_${author}_${owner_not}_${author_not}_${state}_${name}`;
+	let key = `getAssetAmountTotal_${chain}_${owner}_${author}_${owner_not}_${author_not}_${assetType}_${state}_${name}`;
 	let total = await redis.get<{assetTotal: number, assetAmountTotal: string}>(key);
 	if (total === null) {
 		let ls = await getAssetFrom(chain, host, owner, author,
-			owner_not, author_not, state, name, undefined, undefined, undefined, '', undefined, true
+			owner_not, author_not, state, name, undefined, assetType,'', undefined, true
 		);
 		let assetTotal = 0;
 		let assetAmountTotal = BigInt(0);
 
 		for (let it of ls) {
-			if (it.owner != '0x0000000000000000000000000000000000000000') {
-				assetTotal++;
-				if (it.selling) {
-					assetAmountTotal += BigInt(it.sellPrice || 0);
-				} else {
-					assetAmountTotal += BigInt(it.minimumPrice || 0);
-				}
-			}
+			assetTotal++;
+			assetAmountTotal += BigInt(it.minimumPrice || 0);
 		}
 
 		await redis.set(key, total = {

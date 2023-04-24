@@ -46,10 +46,11 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 	abstract uri(tokenId: string): Promise<string>;
 	abstract balanceOf(owner: string, tokenId: string): Promise<bigint>;
 
-	protected specific(tokenId: string): Promise<{assetType: AssetType, totalSupply: bigint}> {
-		return Promise.resolve({
-			assetType: AssetType.ERC721, totalSupply: BigInt(1)
-		});
+	protected assetType(tokenId: string): Promise<AssetType> {
+		return Promise.resolve(AssetType.ERC721);
+	}
+	protected totalSupply(tokenId: string): Promise<bigint> {
+		return Promise.resolve(BigInt(1));
 	}
 
 	private async uriNoErr(tokenId: string) {
@@ -73,8 +74,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 
 		let time = Date.now();
 		let host = await this.host();
-		let specific = await this.specific(tokenId);
-		let totalSupply = numberStr(specific.totalSupply);
+		let assetType = await this.assetType(tokenId);
+		let totalSupply = await this.totalSupply(tokenId);
 		let id = await db.insert(`asset_${this.chain}`, {
 			host,
 			token,
@@ -83,9 +84,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			time,
 			modify: time,
 			blockNumber: this.blockNumber,
-			type: this.type,
-			assetType: specific.assetType,
-			totalSupply,
+			assetType,
+			totalSupply: numberStr(totalSupply),
 		});
 		let asset = await db.selectOne<Asset>(`asset_${this.chain}`, {id});
 		this.onAfterSolveBlockReceipts.on(()=>sync.assetMetaDataSync.fetchFrom(asset!, this.chain));
@@ -101,6 +101,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		value: string, // transaction value
 	) {
 		tokenId = formatHex(tokenId, 32);
+
+		const addressZero = '0x0000000000000000000000000000000000000000';
 
 		let db = this.db;
 		let time = Date.now();
@@ -118,6 +120,15 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 
 		if (!BigInt(from) && BigInt(to)) { // update author
 			Object.assign(row, { author: to });
+		}
+
+		if (asset_) { // update totalSupply
+			let totalSupply = BigInt(asset.totalSupply);
+			if (from == addressZero) // mint
+				totalSupply += count;
+			if (to == addressZero) // burn
+				totalSupply -= count;
+			row.totalSupply = numberStr(totalSupply);
 		}
 
 		await db.update(`asset_${this.chain}`, row, { id: asset.id });
@@ -145,10 +156,10 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 				await db.update(`asset_owner_${this.chain}`, {count: numberStr(count)}, {
 					token, tokenId, owner,
 				});
-			} else if (owner != '0x0000000000000000000000000000000000000000') {
+			} else if (owner != addressZero) {
 				let count = await this.balanceOf(owner, tokenId);
 				await db.insert(`asset_owner_${this.chain}`, {
-					token, tokenId, owner, count: numberStr(count),
+					asset_id: asset.id, token, tokenId, owner, count: numberStr(count),
 				});
 			}
 		}
@@ -249,39 +260,35 @@ export class AssetERC1155 extends AssetModuleScaner {
 		},
 	};
 
-	private async specificForAsset(token: string, tokenId: string): Promise<{assetType: AssetType, totalSupply: bigint}> {
-		if (BigInt(tokenId) % BigInt(2)) { // 1155
-			let c = await this.web3.contract(token);
-			let totalSupply = await c.methods.totalSupply(tokenId).call(this.blockNumber);
-			return { assetType: AssetType.ERC1155, totalSupply };
-		} else {
-			return { assetType: AssetType.ERC721, totalSupply: BigInt(1) };
-		}
-	}
-
-	async specific(tokenId: string): Promise<{assetType: AssetType, totalSupply: bigint}> {
+	protected async assetType(id: string): Promise<AssetType> {
 		if (ContractType.Asset == this.type) {
-			return await this.specificForAsset(this.address, tokenId);
+			return BigInt(id) % BigInt(2) ? AssetType.ERC1155: AssetType.ERC1155_Single;
 		}
 		else if (ContractType.AssetShell == this.type) {
 			let m = await this.methods();
-			let meta = await m.assetMeta(tokenId).call(this.blockNumber);
+			let meta = await m.assetMeta(id).call(this.blockNumber);
 			let ci = await contract.select(meta.token, this.chain);
 
 			if (ci && ci.type == ContractType.Asset) {
-				return await this.specificForAsset(meta.token, meta.tokenId);
-			} else {
-				let totalSupply = await m.totalSupply(tokenId).call(this.blockNumber);
-				return { assetType: AssetType.ERC1155, totalSupply };
+				return BigInt(id) % BigInt(2) ? AssetType.ERC1155: AssetType.ERC1155_Single;
 			}
+		}
+		return AssetType.ERC1155;
+	}
+
+	protected async totalSupply(id: string): Promise<bigint> {
+		if (ContractType.Asset == this.type || ContractType.AssetShell == this.type) {
+			let m = await this.methods();
+			let totalSupply = await m.totalSupply(id).call(this.blockNumber);
+			return BigInt(totalSupply);
 		} else {
-			return await super.specific(tokenId);
+			return BigInt(1);
 		}
 	}
 
-	async uri(tokenId: string): Promise<string> {
+	async uri(id: string): Promise<string> {
 		let m = await this.methods();
-		let uri = await m.uri(tokenId).call(this.blockNumber) as string;
+		let uri = await m.uri(id).call(this.blockNumber) as string;
 		return uri;
 	}
 

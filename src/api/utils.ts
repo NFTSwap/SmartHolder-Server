@@ -4,7 +4,7 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling,LedgerType,TokenURIInfo } from '../db';
+import { ChainType, State,Selling,LedgerType,TokenURIInfo,AssetType} from '../db';
 import * as utils from '../models/utils';
 import * as dao from '../models/dao';
 import * as asset from '../models/asset';
@@ -80,13 +80,13 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,author,state,name,time,selling,selling_not,orderBy,limit,owner_not,author_not}: {
+	getAssetFrom({chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType}: {
 		chain: ChainType, host?: string, owner?: string, author?: string, 
-		owner_not?: string, author_not?: string, state?: State,
-		name?: string, time?: [number,number], selling?: Selling, selling_not?: Selling, orderBy?: string, limit?: number | number[]
+		owner_not?: string, author_not?: string, state?: State, assetType?: AssetType,
+		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
 		return asset.getAssetFrom(chain,host,owner,author,
-			owner_not,author_not,state,name,time,selling,selling_not,orderBy,limit);
+			owner_not,author_not,state,name,time,assetType,orderBy,limit);
 	}
 
 	/**
@@ -123,13 +123,13 @@ export default class extends ApiController {
 			'0x0000000000000000000000000000000000000000', '', tokenId, name,time);
 	}
 
-	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling,selling_not,owner_not,author_not}: {
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not}: {
 		chain: ChainType, host?: string, 
 		owner?: string, author?: string, 
-		owner_not?: string, author_not?: string,
-		state?: State, name?: string, time?: [number,number],selling?: Selling,selling_not?:Selling
+		owner_not?: string, author_not?: string, assetType?: AssetType,
+		state?: State, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling,selling_not);
+		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,assetType,state,name,time);
 	}
 
 	/**

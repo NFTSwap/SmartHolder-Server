@@ -5,15 +5,15 @@
 
 import ApiController from '../api';
 import * as asset from '../models/asset';
-import { ChainType,State } from '../db';
+import { ChainType,State,AssetType} from '../db';
 
 export default class extends ApiController {
 
-	getAssetAmountTotal({chain,host,owner,author,state,name,owner_not,author_not}: {
+	getAssetAmountTotal({chain,host,owner,author,state,name,owner_not,author_not,assetType}: {
 		chain: ChainType, host: string, owner?: string, author?: string,
-		owner_not?: string, author_not?: string, state?: State, name?: string
+		owner_not?: string, author_not?: string, state?: State, name?: string, assetType?: AssetType,
 	}) {
-		return asset.getAssetAmountTotal(chain, host, owner, author, owner_not, author_not, state, name);
+		return asset.getAssetAmountTotal(chain, host, owner, author, owner_not, author_not, assetType,state, name);
 	}
 
 }
