@@ -85,8 +85,8 @@ export default class extends ApiController {
 		owner_not?: string, author_not?: string, state?: State, assetType?: AssetType,
 		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom(chain,host,owner,author,
-			owner_not,author_not,state,name,time,assetType,orderBy,limit);
+		return asset.getAssetFrom.query({chain,host,owner,author,
+			owner_not,author_not,state,name,time,assetType,orderBy,limit});
 	}
 
 	/**
@@ -104,7 +104,7 @@ export default class extends ApiController {
 		fromAddres_not?: string, toAddress_not?: string,
 		tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit);
+		return asset.getAssetOrderFrom.query({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit});
 	}
 
 	getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,fromAddres_not,toAddress_not,name,time}: {
@@ -112,15 +112,15 @@ export default class extends ApiController {
 		fromAddres_not?: string, toAddress_not?: string,
 		tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time);
+		return asset.getAssetOrderFrom.queryTotal({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time});
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress,
-			'0x0000000000000000000000000000000000000000', '', tokenId, name,time);
+		return asset.getOrderTotalAmount({chain,host,fromAddres, toAddress,
+			fromAddres_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 
 	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not}: {
@@ -129,24 +129,27 @@ export default class extends ApiController {
 		owner_not?: string, author_not?: string, assetType?: AssetType,
 		state?: State, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,assetType,state,name,time);
+		return asset.getAssetFrom.queryTotal({chain,host,owner,author,owner_not,author_not,assetType,state,name,time});
 	}
 
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
 	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy}: {
-		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[], orderBy?: string
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number],
+		state?: State, limit?: number | number[], orderBy?: string
 	}) {
-		return ledger.getLedgerItemsFromHost(chain,host,type,time,state,orderBy,limit);
+		return ledger.getLedgerFrom.query({chain,host,type,time,state,orderBy,limit});
 	}
 
-	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return ledger.getLedgerItemsTotalFromHost(chain,host,type,time,state);
+	getLedgerItemsTotalFromHost({chain,host,type,time,state}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
+		return ledger.getLedgerFrom.queryTotal({chain,host,type,time,state});
 	}
 
-	getLedgerTotalAmount({chain,host,type,time,state}: {chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return ledger.getLedgerTotalAmount(chain,host,type,time,state);
+	getLedgerTotalAmount({chain,host,type,time,state}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
+		return ledger.getLedgerTotalAmount({chain,host,type,time,state});
 	}
 
 	/**

@@ -13,7 +13,7 @@ export default class extends ApiController {
 		chain: ChainType, host: string, owner?: string, author?: string,
 		owner_not?: string, author_not?: string, state?: State, name?: string, assetType?: AssetType,
 	}) {
-		return asset.getAssetAmountTotal(chain, host, owner, author, owner_not, author_not, assetType,state, name);
+		return asset.getAssetAmountTotal({chain, host, owner, author, owner_not, author_not, assetType,state, name});
 	}
 
 }

@@ -5,29 +5,38 @@
 
 import db, {ChainType, State,Ledger, LedgerType, LedgerAssetIncome} from '../db';
 import {escape} from 'somes/db';
-import redis from 'bclib/redis';
 import * as dao_fn from './dao';
-import {getLimit} from './utils';
+import {getLimit,newCacheHandle, newQueryHandle} from './utils';
 
-export async function getLedgerItemsFromHost(
-	chain: ChainType, host: string,
-	type?: LedgerType, time?: [number,number], state = State.Enable, order?: string, limit?: number | number[]
-) {
+export const getLedgerFrom = newQueryHandle(async ({
+	chain, host,type,time,state=State.Enable,asset
+}: {
+	chain: ChainType,
+	host: string,
+	type?: LedgerType,
+	time?: [number,number],
+	state?: State,
+	asset?: boolean,
+}, {orderBy,limit,total,out})=>{
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
-	let sql = `select * from ledger_${chain} where address=${escape(dao.ledger)} and state=${escape(state)} `
+	let sql = `select ${out} from ledger_${chain} \
+		where address=${escape(dao.ledger)} and state=${escape(state)} `;
 	if (type !== undefined)
 		sql += `and type=${escape(type)} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
-	if (order)
-		sql += `order by ${order} `;
+	if (orderBy)
+		sql += `order by ${orderBy} `;
 	if (limit)
 		sql += `limit ${getLimit(limit)} `;
 
 	let ls = await db.query<Ledger>(sql);
+	if (total)
+		return ls;
+
 	let IDs = ls.filter(e=>e.assetIncome_id).map(e=>e.assetIncome_id);
 
-	if (IDs.length) {
+	if (asset && IDs.length) {
 		let assetIncomes: Dict<LedgerAssetIncome> = {};
 		let sql = `select * from ledger_asset_income_${chain} where id in (${IDs.join(',')})`;
 		for (let it of await db.query<LedgerAssetIncome>(sql))
@@ -36,34 +45,18 @@ export async function getLedgerItemsFromHost(
 			it.assetIncome = assetIncomes[it.assetIncome_id];
 		}
 	}
-
 	return ls;
-}
+});
 
-export async function getLedgerItemsTotalFromHost(
-	chain: ChainType, host: string,
-	type?: LedgerType, time?: [number,number], state = State.Enable
-) {
-	let total = await getLedgerTotalAmount(chain, host, type, time, state);
-	return total.total;
-}
-
-export async function getLedgerTotalAmount(
-	chain: ChainType, host: string,
-	type?: LedgerType, time?: [number,number], state = State.Enable
-) {
-	let key = `getLedgerTotalAmount_${chain}_${host}_${type}_${time}_${state}`;
-	let total = await redis.get<{total: number; amount:string}>(key);
-	if (total === null) {
-		let ls = await getLedgerItemsFromHost(chain, host, type, time, state);
+export const getLedgerTotalAmount = newCacheHandle(getLedgerFrom.query, {
+	after: (e)=>{
 		let amount = BigInt(0);
-		for (let it of ls)
+		for (let it of e)
 			amount += BigInt(it.balance);
-		await redis.set(key, total = { total: ls.length, amount: amount.toString()}, 1e4);
+		return {total: e.length, amount: amount.toString()}
 	}
-	return total;
-}
+});
 
-export async function setLedgerState(chain: ChainType, id: number, state: State) {
-	return await db.update(`ledger_${chain}`, {state}, {id});
-}
+export const setLedgerState = async (chain: ChainType, id: number, state: State)=>{
+	await db.update(`ledger_${chain}`, {state}, {id});
+};

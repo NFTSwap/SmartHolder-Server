@@ -6,6 +6,7 @@
 import somes from 'somes';
 import { TokenURIInfo } from './define';
 import {storage} from '../utils';
+import redis from 'bclib/redis';
 
 export const LIMIT_MAX = -235681;
 
@@ -60,4 +61,96 @@ export async function saveTokenURIInfo(info: TokenURIInfo) {
 	// }
 */
 	return await storage(JSON.stringify(info), '.json');
+}
+
+export function newCacheHandle<Args extends any[], R, R2>(
+	handle: (...args: Args)=>Promise<R>|R,
+	opts: {
+		pre?: (args: Args)=>void,
+		after?: (r: R)=>Promise<R2>|R2,
+		cacheTime?: number,
+		name?: string,
+	} | number = {}
+): ((...args: [...Args,number?])=>Promise<
+	R2 extends object | number | bigint | string | boolean | void | null | undefined ? R2 : R
+>) {
+	opts = opts || {};
+	if (typeof opts == 'number') {
+		opts = {cacheTime: opts};
+	}
+	let hash = String(opts.name || somes.random()) + somes.random();
+	let {pre,after,cacheTime} = opts;
+
+	if (typeof cacheTime != 'number')
+		cacheTime = 1e4; // default cache time
+
+	return async function(...args: [...Args,number?]) {
+		let time = typeof args.indexReverse(0) == 'number' ? args.pop() : cacheTime;
+		let args1 = args as any as Args;
+		let key = `key_${hash}_${Object.hashCode(args1)}`;
+		let val: any;
+
+		if (!time || !(val = await redis.get(key))) {
+			if (pre)
+				pre(args1);
+			let r = await handle(...args1) as any;
+			if (after) {
+				r = await after(r);
+			}
+			if (time)
+				await redis.set(key, [r], time);
+			else if (cacheTime)
+				await redis.set(key, [r], cacheTime);
+			return r;
+		} else {
+			return val[0];
+		}
+	};
+}
+
+export enum QueryType {
+	kQuery, // query rows
+	kQueryTotal, // query total
+}
+
+export function newQueryHandle<Args extends {}, More extends {}, R>(
+	handle: (args: Args, opts: {
+		readonly type: QueryType;
+		readonly out: string;
+		readonly total: boolean;
+		readonly orderBy?: string;
+		readonly limit?: number | number[]
+	}, more?: More)=>Promise<R>|R, name?: string, defaultCacheTime = 0
+) {
+	name = String(name || somes.random());
+
+	return {
+		query: newCacheHandle(
+			(args: Args & { orderBy?: string, limit?: number | number[]}, more?: More)=>handle(args, {
+				orderBy: args.orderBy, limit: args.limit, type: QueryType.kQuery, out: '*', total: false
+			}, more),
+			{ name, cacheTime: defaultCacheTime },
+		),
+		queryTotal: newCacheHandle(
+			(args: Args, more?: More)=>handle(args, {
+				type: QueryType.kQueryTotal, out: 'count(*) as __count', total: true
+			}, more), {
+			after: (r)=>{
+				if (Array.isArray(r)) {
+					if (r.length) {
+						if ('__count' in  r[0]) {
+							return r[0].__count as number;
+						} else {
+							return r.length;
+						}
+					} else {
+						return 0;
+					}
+				}
+				return 0;
+			},
+			name: name + '_total',
+			cacheTime: Math.max(defaultCacheTime, 1e4),
+		}),
+	};
 }

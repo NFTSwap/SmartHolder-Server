@@ -166,9 +166,9 @@ export async function getDAOSummarys(chain: ChainType, host: string) {
 			}
 		}
 
-		let {assetTotal,assetAmountTotal} = await getAssetAmountTotal(chain, host);
-		let {total,amount} = await getOrderTotalAmount(chain, host);
-		let assetLedgerIncomeTotal = await getLedgerTotalAmount(chain, host,LedgerType.AssetIncome);
+		let {assetTotal,assetAmountTotal} = await getAssetAmountTotal({chain, host});
+		let {total,amount} = await getOrderTotalAmount({chain, host});
+		let assetLedgerIncomeTotal = await getLedgerTotalAmount({chain, host,type:LedgerType.AssetIncome});
 
 		summarys = {
 			membersTotal: dao.members,
