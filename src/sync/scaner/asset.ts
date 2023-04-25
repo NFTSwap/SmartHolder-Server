@@ -148,6 +148,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			time: time,
 		});
 
+		console.log(`insert asset_order_${this.chain}`, txHash,token,tokenId);
+
 		// update asset owner
 		for (let [owner,c] of [[from,-count],[to,count]] as [string,bigint][]) {
 			let ao = await db.selectOne<AssetOwner>(`asset_owner_${this.chain}`, { token, tokenId, owner });
