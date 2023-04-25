@@ -127,6 +127,7 @@ async function load_main_db() {
 
 			create table if not exists asset_order_${chain} (           -- asset order from -> to
 				id           int    primary key auto_increment not null,
+				asset_id     int                               not null,  -- asset id
 				txHash       char    (66)                      not null,  -- tx hash
 				token        char    (42)                      not null,  -- asset contract address
 				tokenId      char    (66)                      not null,  -- hash
@@ -158,7 +159,9 @@ async function load_main_db() {
 
 			create table if not exists ledger_asset_income_${chain} ( -- 财务记录-资产销售收
 				id           int primary key auto_increment,
+				host         varchar (42)                 not null, -- dao host
 				ledger_id    int                          not null, -- ledger_id
+				asset_id     int                          not null, -- asset id
 				token        varchar (42)                 not null, -- 原始资产合约地址
 				tokenId      varchar (66)                 not null, -- 原始资产id
 				source       varchar (42)                 not null, -- 进账来源
@@ -357,6 +360,7 @@ async function load_main_db() {
 			`create unique  index asset_order_${chain}_idx4      on asset_order_${chain}            (txHash,token,tokenId)`,
 			`create         index asset_order_${chain}_idx6      on asset_order_${chain}            (token)`,
 			`create         index asset_order_${chain}_idx7      on asset_order_${chain}            (token,fromAddres)`,
+			`create         index asset_order_${chain}_idx8      on asset_order_${chain}            (asset_id)`,
 			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (address)`,
 			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (address,target)`,
@@ -370,6 +374,7 @@ async function load_main_db() {
 			`create         index ledger_asset_income_${chain}_idx3   on ledger_asset_income_${chain}  (source)`,
 			`create         index ledger_asset_income_${chain}_idx4   on ledger_asset_income_${chain}  (token,fromAddress)`,
 			`create         index ledger_asset_income_${chain}_idx5   on ledger_asset_income_${chain}  (token,toAddress)`,
+			`create         index ledger_asset_income_${chain}_idx6   on ledger_asset_income_${chain}  (asset_id)`,
 			// ledger_release_log
 			`create unique  index ledger_release_log_${chain}_idx0  on ledger_release_log_${chain}  (address,txHash)`,
 			// vote_proposl

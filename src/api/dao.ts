@@ -12,24 +12,24 @@ export default class extends ApiController {
 	async getAllDAOs({chain,name,limit, owner,orderBy,memberObjs}: {
 		chain: ChainType, name?: string, limit?: number | number[], owner?: string, orderBy?: string,memberObjs?: number}) {
 		let user = await this.userNotErr();
-		return await dao.getAllDAOs(chain,name,user?.id, owner,orderBy,memberObjs,limit);
+		return await dao.getAllDAOs.query({chain,name, user_id: user?.id, owner,orderBy,memberObjs,limit});
 	}
 
 	getAllDAOsTotal({chain,name}: { chain: ChainType, name?: string}) {
-		return dao.getAllDAOsTotal(chain,name);
+		return dao.getAllDAOs.queryTotal({chain,name});
 	}
 
 	getDAOSummarys({chain,host}: { chain: ChainType, host: string}) {
-		return dao.getDAOSummarys(chain,host);
+		return dao.getDAOSummarys({chain,host});
 	}
 
-	getDAOsFromCreatedBy({chain, owner,memberObjs}: {
-		chain: ChainType, owner/*address string*/: string,memberObjs?: number}) {
-		return dao.getDAOsFromCreatedBy(chain,owner, memberObjs);
+	getDAOsFromCreatedBy({chain, owner,createdBy,memberObjs}: {
+		chain: ChainType, owner/*address string*/: string, createdBy?: string, memberObjs?: number}) {
+		return dao.getDAOsFromCreatedBy.query({chain,createdBy: createdBy || owner, memberObjs});
 	}
 
-	getDAOsTotalFromCreatedBy({chain, owner}: { chain: ChainType, owner: string}) {
-		return dao.getDAOsTotalFromCreatedBy(chain,owner);
+	getDAOsTotalFromCreatedBy({chain, owner,createdBy}: { chain: ChainType, owner: string,createdBy?: string}) {
+		return dao.getDAOsFromCreatedBy.queryTotal({chain,createdBy: createdBy||owner});
 	}
 
 	getDAOsAddress({chain}: { chain: ChainType}) {

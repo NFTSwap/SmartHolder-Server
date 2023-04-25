@@ -2,7 +2,6 @@
 import { DAO,AssetOrder,Asset, Member,AssetOwner } from './define';
 
 export interface AssetOrderExt extends AssetOrder {
-	asset_id?: number,
 	asset?: Asset;
 }
 

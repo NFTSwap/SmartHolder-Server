@@ -4,17 +4,15 @@
  */
 
 import db, {ChainType, Member} from '../db';
-import redis from 'bclib/redis';
 import * as dao_fn from './dao';
-import {getLimit} from './utils';
+import {getLimit,newQuery} from './utils';
 import {escape} from 'somes/db';
 
-export async function getMembersFrom(
-	chain: ChainType, host: string,
-	owner?: string, time?: number | number[], order?: string, limit?: number | number[]
-) {
+export const getMembersFrom = newQuery(async ({chain,host,owner,time}:{
+	chain: ChainType, host: string, owner?: string, time?: number | number[]
+},{orderBy,limit,total,out})=>{
 	let dao = await dao_fn.getDAONoEmpty(chain, host);
-	let sql = `select * from member_${chain} where token=${escape(dao.member)} `;
+	let sql = `select ${out} from member_${chain} where token=${escape(dao.member)} `;
 
 	if (owner)
 		sql += `and owner=${escape(owner)} `;
@@ -24,21 +22,10 @@ export async function getMembersFrom(
 		if(e)
 			sql += `and time<=${escape(e)} `;
 	}
-	if (order)
-		sql += `order by ${order} `;
-	// order by time desc
+	if (!total && orderBy)
+		sql += `order by ${orderBy} `; // order by time desc
 	if (limit)
 		sql += `limit ${getLimit(limit).join(',')} `;
 
 	return await db.query<Member>(sql);
-}
-
-export async function getMembersTotalFrom(chain: ChainType, host: string, owner?: string, time?: number | number[]) {
-	let key = `getMembersTotalFrom_${chain}_${owner}_${time}`;
-	let total = await redis.get<number>(key);
-	if (total === null) {
-		let ls = await getMembersFrom(chain, host, owner, time);
-		await redis.set(key, total = ls.length, 1e4);
-	}
-	return total;
-}
+}, 'getMembersFrom');

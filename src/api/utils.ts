@@ -63,7 +63,7 @@ export default class extends ApiController {
 	 * @method getDAOsFromOwner() 通过owner钱包地址获取dao列表
 	 * */ 
 	getDAOsFromOwner({chain,owner,memberObjs}: { chain: ChainType, owner: string, memberObjs?: number}) {
-		return dao.getDAOsFromOwner(chain,owner,memberObjs);
+		return dao.getDAOsFromOwner.query({chain,owner,memberObjs});
 	}
 
 	/**
@@ -73,7 +73,7 @@ export default class extends ApiController {
 	async getMembersFrom({chain,host,owner,time,orderBy,limit}: { 
 		chain: ChainType, host: string, owner?: string, time?: number |number[], orderBy?: string, limit?: number | number[]
 	}) {
-		let ms = await member.getMembersFrom(chain,host,owner,time,orderBy,limit);
+		let ms = await member.getMembersFrom.query({chain,host,owner,time,orderBy,limit});
 		return ms.map(e=>((e as any).avatar=e.image,e)); // Compatible with older versions
 	}
 
@@ -219,11 +219,11 @@ export default class extends ApiController {
 	}
 
 	getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return dao.getDAOsTotalFromOwner(chain,owner);
+		return dao.getDAOsFromOwner.queryTotal({chain,owner});
 	}
 
 	getMembersTotalFrom({chain,host,owner,time}: { chain: ChainType, host: string, owner?: string, time?:number| number[]}) {
-		return member.getMembersTotalFrom(chain,host,owner,time);
+		return member.getMembersFrom.queryTotal({chain,host,owner,time});
 	}
 
 	getVoteProposalTotalFrom({chain,address,proposal_id,name, isAgree, isClose, isExecuted, target}: {

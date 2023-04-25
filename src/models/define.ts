@@ -123,6 +123,7 @@ export interface AssetOwner {
 
 export interface AssetOrder {
 	id: number;//           int    primary key auto_increment not null,
+	asset_id: number;
 	txHash: string;//       char    (130)                     not null,  -- tx hash
 	blockNumber: number;//  int                               not null,
 	token: string;//        char    (42)                      not null,  -- 协约地址
@@ -159,13 +160,13 @@ export interface Ledger {
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
 	assetIncome_id: number;
-	assetIncome?: LedgerAssetIncome;
-	asset?: Asset;
 }
 
 export interface LedgerAssetIncome {
 	id: number;//           int primary key auto_increment,
+	host: string; //
 	ledger_id: number;//    int                          not null, -- ledger_id
+	asset_id: number;
 	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
 	tokenId: string;//      char    (66)                 not null, -- 原始资产id
 	source: string;//       varchar (64)                 not null, -- 进账来源打款源地址
@@ -177,6 +178,8 @@ export interface LedgerAssetIncome {
 	saleType: SaleType;//   int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
+	ledger?: Ledger;
+	asset?: Ledger;
 }
 
 export interface LedgerReleaseLog {

@@ -3,26 +3,58 @@
  * @date 2022-07-21
  */
 
-import db, {ChainType, State,Ledger, LedgerType, LedgerAssetIncome} from '../db';
+import db, {ChainType, State,Ledger, LedgerType, LedgerAssetIncome,SaleType} from '../db';
 import {escape} from 'somes/db';
-import * as dao_fn from './dao';
-import {getLimit,newCacheHandle, newQueryHandle} from './utils';
+import {getLimit,useCache,newQuery,joinTable} from './utils';
+import {getAssetFrom} from './asset';
 
-export const getLedgerFrom = newQueryHandle(async ({
-	chain, host,type,time,state=State.Enable,asset
+export const getLedgerFrom = newQuery(async ({
+	chain, host,type,time,state=State.Enable,ids
 }: {
 	chain: ChainType,
-	host: string,
+	host?: string,
 	type?: LedgerType,
 	time?: [number,number],
+	ids?: number[],
 	state?: State,
-	asset?: boolean,
-}, {orderBy,limit,total,out})=>{
-	let dao = await dao_fn.getDAONoEmpty(chain, host);
-	let sql = `select ${out} from ledger_${chain} \
-		where address=${escape(dao.ledger)} and state=${escape(state)} `;
+}, {orderBy,limit,out})=>{
+	let sql = `select ${out} from ledger_${chain} where state=${escape(state)} `;
+	if (host)
+		sql += `and host=${escape(host)} `;
 	if (type !== undefined)
 		sql += `and type=${escape(type)} `;
+	if (time)
+		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	if (ids && ids.length)
+		sql += `and id in (${ids.map(e=>escape(e)).join()}) `;
+	if (orderBy)
+		sql += `order by ${orderBy} `;
+	if (limit)
+		sql += `limit ${getLimit(limit)} `;
+
+	return await db.query<Ledger>(sql);
+
+}, 'getLedgerFrom');
+
+export const getLedgerAssetIncomeFrom = newQuery(async ({
+	chain,host,fromAddress,fromAddress_not,toAddress,toAddress_not,type,time
+}:{
+	chain: ChainType, host: string,
+	fromAddress?: string, toAddress?: string,
+	fromAddress_not?: string, toAddress_not?: string,
+	type?: SaleType,time?: [number,number],
+}, {orderBy,limit,out,total})=>{
+	let sql = `select ${out} from ledger_asset_income_${chain} where host=${escape(host)} `;
+	if (fromAddress)
+		sql += `and fromAddress=${escape(fromAddress)} `;
+	if (toAddress)
+		sql += `and toAddress=${escape(toAddress)} `;
+	if (fromAddress_not)
+		sql += `and fromAddress!=${escape(fromAddress_not)} `;
+	if (toAddress_not)
+		sql += `and toAddress!=${escape(fromAddress_not)} `;
+	if (type!=undefined)
+		sql += `and type!=${escape(type)} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (orderBy)
@@ -30,25 +62,22 @@ export const getLedgerFrom = newQueryHandle(async ({
 	if (limit)
 		sql += `limit ${getLimit(limit)} `;
 
-	let ls = await db.query<Ledger>(sql);
+	let ls = await db.query<LedgerAssetIncome>(sql);
 	if (total)
 		return ls;
 
-	let IDs = ls.filter(e=>e.assetIncome_id).map(e=>e.assetIncome_id);
-
-	if (asset && IDs.length) {
-		let assetIncomes: Dict<LedgerAssetIncome> = {};
-		let sql = `select * from ledger_asset_income_${chain} where id in (${IDs.join(',')})`;
-		for (let it of await db.query<LedgerAssetIncome>(sql))
-			assetIncomes[it.id] = it;
-		for (let it of ls) {
-			it.assetIncome = assetIncomes[it.assetIncome_id];
-		}
+	if (ls.length) {
+		joinTable(ls, 'ledger', 'ledger_id', 'id',
+			await getLedgerFrom.query({chain,ids:ls.map(e=>e.ledger_id)},{},3e4)
+		);
+		joinTable(ls, 'asset', 'asset_id', 'id',
+			await getAssetFrom.query({chain,ids:ls.map(e=>e.asset_id)},{noDAO:true,noBeautiful:true},3e4)
+		);
 	}
 	return ls;
-}, 'getLedgerFrom');
+});
 
-export const getLedgerTotalAmount = newCacheHandle(getLedgerFrom.query, {
+export const getLedgerTotalAmount = useCache(getLedgerFrom.query, {
 	after: (e)=>{
 		let amount = BigInt(0);
 		for (let it of e)

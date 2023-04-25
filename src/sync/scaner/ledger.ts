@@ -122,15 +122,16 @@ export class Ledger extends ModuleScaner {
 				let {token,source,from,to,saleType} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
+				if ( !await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
 					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
 					let balance = numberStr(e.returnValues.balance);
 					let price = numberStr(e.returnValues.price);
 					let count = numberStr(e.returnValues.count);
+					let host = await this.host();
 
 					let ledger_id = await db.insert(`ledger_${this.chain}`, {
-						host: await this.host(),
+						host,
 						address: this.address,
 						txHash: txHash,
 						type: type,
@@ -142,8 +143,13 @@ export class Ledger extends ModuleScaner {
 						blockNumber,
 					});
 
+					let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						ledger_id, token, tokenId, source, balance, price,
+						host,
+						ledger_id,
+						asset_id: asset ? asset.id: 0,
+						token, tokenId,
+						source, balance, price,
 						fromAddress: from, toAddress: to, count, saleType, blockNumber, time
 					});
 
