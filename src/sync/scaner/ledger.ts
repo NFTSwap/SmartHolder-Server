@@ -3,10 +3,11 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog} from '../../db';
+import {LedgerType,LedgerReleaseLog,ContractType,DAO} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
 import * as opensea from '../../models/opensea';
+import mk_scaner from '../mk_scaner';
 
 export class Ledger extends ModuleScaner {
 	events = {
@@ -23,7 +24,6 @@ export class Ledger extends ModuleScaner {
 		Change: {
 			handle: (data: HandleEventData)=>this.onChange(data),
 		},
-
 		Receive: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
@@ -123,7 +123,6 @@ export class Ledger extends ModuleScaner {
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
 				if ( !await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
-					let tokenId = formatHex(e.returnValues.tokenId, 32);
 					let blockNumber = Number(e.blockNumber) || 0;
 					let balance = numberStr(e.returnValues.balance);
 					let price = numberStr(e.returnValues.price);
@@ -143,6 +142,7 @@ export class Ledger extends ModuleScaner {
 						blockNumber,
 					});
 
+					let tokenId = formatHex(e.returnValues.tokenId);
 					let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
 					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
 						host,
