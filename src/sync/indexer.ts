@@ -18,6 +18,7 @@ import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 import {Event} from 'somes/event';
 import somes from 'somes';
+import {scopeLock} from 'bclib/atomic_lock';
 
 /**
  * @class indexer for dao
@@ -151,7 +152,6 @@ export class Indexer implements WatchCat {
 	}
 
 	async cat() {
-		let test_id = somes.random();
 		let chain = this.chain;
 		let blockNumber = this.data.watchHeight;
 		let watchBlock = index.watchBlocks[chain];
@@ -172,13 +172,8 @@ export class Indexer implements WatchCat {
 				let allScaner: (ContractScaner)[] = [];
 
 				await db.transaction(async (db)=>{
-					console.log('await db.transaction', this.data, test_id);
-
 					for (let logs of block.logs) {
 						let log = logs.logs.find(e=>e.transactionHash=='0x986fc434d6312a2f8fc7bdfd7bfcbe910b8e767e34f0f26071e85bd3e6950e89');
-						if (log) {
-							debugger
-						}
 						await this.solveLogs(logs.logs, this._dsList[logs.idx], db, allScaner);
 					}
 					if (block.logs.length)
@@ -251,14 +246,15 @@ export class IndexerPool implements WatchCat {
 		let j = BigInt(i.hash) % BigInt(this.workers);
 		if (Number(j) == this.worker) {
 			if (!this.indexers[i.id]) {
-				if (i.hash == '0x301882B298f144bECff89c11BC90eb7f4Ea67a8d') {
-					debugger
-					console.log('addWatch(i: IIndexer)', i);
-				}
 				let indexer = new Indexer(this.chain, i);
 				this.indexers[i.id] = indexer;
-				await indexer.initialize(); // init
-				watch.impl.addWatch(indexer); // add to watch
+				try {
+					await indexer.initialize(); // init
+					watch.impl.addWatch(indexer); // add to watch
+				} catch(err) {
+					delete this.indexers[i.id];
+					throw err;
+				}
 			}
 		}
 	}
