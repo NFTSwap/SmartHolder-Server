@@ -256,8 +256,8 @@ export class IndexerPool implements WatchCat {
 					console.log('addWatch(i: IIndexer)', i);
 				}
 				let indexer = new Indexer(this.chain, i);
-				await indexer.initialize(); // init
 				this.indexers[i.id] = indexer;
+				await indexer.initialize(); // init
 				watch.impl.addWatch(indexer); // add to watch
 			}
 		}
