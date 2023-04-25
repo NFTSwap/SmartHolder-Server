@@ -147,7 +147,6 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			//description: '',
 			time: time,
 		});
-
 		console.log(`insert asset_order_${this.chain}`, txHash,token,tokenId);
 
 		// update asset owner
