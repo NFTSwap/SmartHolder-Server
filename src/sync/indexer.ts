@@ -251,6 +251,10 @@ export class IndexerPool implements WatchCat {
 		let j = BigInt(i.hash) % BigInt(this.workers);
 		if (Number(j) == this.worker) {
 			if (!this.indexers[i.id]) {
+				if (i.hash == '0x301882B298f144bECff89c11BC90eb7f4Ea67a8d') {
+					debugger
+					console.log('addWatch(i: IIndexer)', i);
+				}
 				let indexer = new Indexer(this.chain, i);
 				await indexer.initialize(); // init
 				this.indexers[i.id] = indexer;
