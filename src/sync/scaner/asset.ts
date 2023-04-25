@@ -137,7 +137,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		//let order = await db.selectOne(`asset_order_${this.chain}`, { txHash,token,tokenId });
 		await db.insert(`asset_order_${this.chain}`, {
 			asset_id: asset.id,
-			host: this.host,
+			host: await this.host(),
 			txHash: txHash,
 			blockNumber: this.blockNumber,
 			token, tokenId,
