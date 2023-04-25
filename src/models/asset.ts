@@ -147,12 +147,12 @@ export const getAssetOrderFrom = newQuery(async ({
 	name?: string, time?: [number,number]
 }, {out,total,orderBy,limit})=>{
 	let sql = total ? `select ${out} `: `select ao.* `;
-	sql = `
+	sql += `
 		from asset_order_${chain} as ao 
 		left join 
-			asset_${chain} as a on ao.asset_id=a.id
-		where
-			ao.host=${escape(host)}
+			asset_${chain} as a on ao.asset_id=a.id 
+		where 
+			ao.host=${escape(host)} 
 	`;
 	if (tokenId)
 		sql += `and ao.tokenId=${escape(tokenId)} `;
