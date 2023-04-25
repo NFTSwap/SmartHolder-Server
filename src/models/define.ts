@@ -123,6 +123,7 @@ export interface AssetOwner {
 
 export interface AssetOrder {
 	id: number;//           int    primary key auto_increment not null,
+	host: string; //
 	asset_id: number;
 	txHash: string;//       char    (130)                     not null,  -- tx hash
 	blockNumber: number;//  int                               not null,

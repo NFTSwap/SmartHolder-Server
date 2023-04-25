@@ -127,6 +127,7 @@ async function load_main_db() {
 
 			create table if not exists asset_order_${chain} (           -- asset order from -> to
 				id           int    primary key auto_increment not null,
+				host         varchar (42)                      not null, -- dao host
 				asset_id     int                               not null,  -- asset id
 				txHash       char    (66)                      not null,  -- tx hash
 				token        char    (42)                      not null,  -- asset contract address
@@ -312,7 +313,6 @@ async function load_main_db() {
 			`alter table asset_${chain} add minimumPrice         varchar (78)   default ('') not null`, //  -- 最小销售价格
 			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
 			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
-			`alter table asset_${chain} add host                 varchar (42)   default ('') not null`, //  -- dao host
 			`alter table asset_${chain} add totalSupply          varchar (78)   default ('') not null`, //  -- asset total supply
 			`alter table asset_${chain} add assetType            int            default (0)  not null`, //  -- asset total supply
 			// ledger
