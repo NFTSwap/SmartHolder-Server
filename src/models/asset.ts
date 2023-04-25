@@ -76,7 +76,7 @@ export const getAssetFrom = newQuery(async ({
 	}
 
 	if (host) {
-		sql += `and a.hose=${escape(host)} `;
+		sql += `and a.host=${escape(host)} `;
 	}
 	if (assetType)
 		sql += `and a.assetType=${assetType} `;
