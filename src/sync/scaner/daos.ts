@@ -182,7 +182,7 @@ export class DAOs extends ContractScaner {
 					await storage.set(`member_${chain}_${Member}_total`, total);
 				} // if (Member != addressZero)
 
-				after.setTimeout(1e3); // delay 1s call notice message
+				after.setTimeout(2e3); // delay 2s call notice message
 				// ---- handle end ----
 			},
 		},

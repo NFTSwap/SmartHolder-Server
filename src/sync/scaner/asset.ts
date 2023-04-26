@@ -288,7 +288,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 			let ci = await contract.select(meta.token, this.chain);
 
 			if (ci && ci.type == ContractType.Asset) {
-				return BigInt(id) % BigInt(2) ? AssetType.ERC1155: AssetType.ERC1155_Single;
+				return BigInt(meta.tokenId) % BigInt(2) ? AssetType.ERC1155: AssetType.ERC1155_Single;
 			}
 		}
 		return AssetType.ERC1155;
