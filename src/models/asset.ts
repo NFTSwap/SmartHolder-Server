@@ -110,14 +110,14 @@ export const getAssetFrom = newQuery(async ({
 	assets = assets.map((e:any)=>({
 		...e,
 		properties: e.properties || [],
-		asset_owner: owner || owner_not ? {
+		asset_owner: {
 			id: e.ao_id,
 			asset_id: e.id,
 			token: e.token,
 			tokenId: e.tokenId,
-			owner: e.ao_owner,
-			count: e.ao_count,
-		}: undefined,
+			owner: e.ao_owner||'',
+			count: e.ao_count||'',
+		},
 	}));
 
 	if (!noDAO && assets.length) {
