@@ -27,7 +27,7 @@ export async function getDAONoEmpty(chain: ChainType, address: string) {
 	return dao!;
 }
 
-export const fillMemberObjs = useCache(async (chain: ChainType, daos: DAOExtend[], memberObjs?:number)=>{
+export const fillMemberObjs = useCache(async (chain: ChainType, memberObjs: number = 0, daos: DAOExtend[])=>{
 	for (let dao of daos) {
 		if (memberObjs) {
 			dao.memberObjs = await member.getMembersFrom.query({
@@ -55,7 +55,7 @@ export const getDAOsFromOwner = newQuery(async ({
 	if (total)
 		return DAOs;
 
-	await fillMemberObjs(chain, DAOs, memberObjs);
+	await fillMemberObjs(chain, memberObjs, DAOs);
 
 	return DAOs;
 }, 'getDAOsFromOwner');
@@ -120,7 +120,7 @@ export const getAllDAOs = newQuery(async ({
 		}
 	}
 
-	await fillMemberObjs(chain, daos, memberObjs);
+	await fillMemberObjs(chain, memberObjs, daos);
 
 	return daos;
 }, 'getAllDAOs');
@@ -176,7 +176,7 @@ export const getDAOsFromCreatedBy = newQuery(async ({
 	if (total)
 		return await db.selectCount(`dao_${chain}`, {createdBy}) as any as DAOExtend[];
 	let DAOs = await db.select<DAOExtend>(`dao_${chain}`, {createdBy});
-	await fillMemberObjs(chain, DAOs, memberObjs);
+	await fillMemberObjs(chain, memberObjs, DAOs);
 	return DAOs;
 }, 'getDAOsFromCreatedBy');
 

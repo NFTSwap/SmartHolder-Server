@@ -80,7 +80,7 @@ export async function getUserLikeDAOs(id: number, chain?: ChainType, memberObjs?
 	for (let [chain,IDs] of Object.entries(DAOsIDs)) {
 		let ls = await db.query<DAO>(
 			`select * from dao_${chain} where id in (${IDs.join(',')})`);
-		await fillMemberObjs(Number(chain), DAOs, memberObjs);
+		await fillMemberObjs(Number(chain), memberObjs, DAOs);
 		DAOs.push(...ls);
 	}
 
