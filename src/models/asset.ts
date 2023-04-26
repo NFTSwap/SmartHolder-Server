@@ -115,8 +115,8 @@ export const getAssetFrom = newQuery(async ({
 			asset_id: e.id,
 			token: e.token,
 			tokenId: e.tokenId,
-			owner: e.ao_owner||'',
-			count: e.ao_count||'',
+			owner: e.ao_owner,
+			count: e.ao_count,
 		},
 	}));
 
