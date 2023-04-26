@@ -65,7 +65,7 @@ export const getAssetFrom = newQuery(async ({
 		sql += total ? out:
 			`a.*, ao.id as ao_id, ao.owner as ao_owner, ao.count as ao_count `;
 		sql += `\
-						from asset_${chain} as a right join asset_owner_${chain} as ao on a.id = ao.asset_id \
+						from asset_${chain} as a left join asset_owner_${chain} as ao on a.id = ao.asset_id \
 						where a.state=${escape(state)} and a.totalSupply!=0 `;
 		if (owner)
 			sql += `and ao.owner=${escape(owner)} `;
@@ -110,14 +110,14 @@ export const getAssetFrom = newQuery(async ({
 	assets = assets.map((e:any)=>({
 		...e,
 		properties: e.properties || [],
-		asset_owner: {
+		asset_owner: owner || owner_not ? {
 			id: e.ao_id,
 			asset_id: e.id,
 			token: e.token,
 			tokenId: e.tokenId,
 			owner: e.ao_owner,
 			count: e.ao_count,
-		},
+		}: undefined,
 	}));
 
 	if (!noDAO && assets.length) {
