@@ -156,7 +156,7 @@ export class Indexer implements WatchCat {
 		let blockNumber = this.data.watchHeight;
 		let watchBlock = index.watchBlocks[chain];
 		let curBlockNumber = await watchBlock.getValidBlockSyncHeight();
-		let test_id = somes.random();
+		// let test_id = somes.random();
 
 		let setBlockNumber = async (blockNumber: number)=>{
 			await db.update(`indexer_${chain}`, {watchHeight: blockNumber}, {id: this.data.id});
@@ -174,11 +174,9 @@ export class Indexer implements WatchCat {
 
 				await db.transaction(async (db)=>{
 					for (let logs of block.logs) {
-						let log = logs.logs.find(e=>e.transactionHash=='0x84eff6fc01a493fe7dcaaaaf1996eff397592ca44457cdb5303413e61b86b237');
-						if (log) {
-							console.log(test_id);
-							// debugger
-						}
+						// let log = logs.logs.find(e=>e.transactionHash=='0x84eff6fc01a493fe7dcaaaaf1996eff397592ca44457cdb5303413e61b86b237');
+						// if (log)
+							// console.log(test_id);
 						await this.solveLogs(logs.logs, this._dsList[logs.idx], db, allScaner);
 					}
 					if (block.logs.length)

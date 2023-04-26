@@ -102,7 +102,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		let time = Date.now();
 		let host = await this.host();
 		let assetType = await this.assetType(tokenId);
-		let totalSupply = await this.totalSupply(tokenId, this.blockNumber - 1);
+		let totalSupply = await this.tryTotalSupply(tokenId, this.blockNumber - 1);
 		let id = await db.insert(`asset_${this.chain}`, {
 			host,
 			token,
@@ -158,7 +158,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			totalSupply -= count;
 		row.totalSupply = numberStr(totalSupply);
 
-		await db.update(`asset_${this.chain}`, row, { id: asset.id });
+		let rows = await db.update(`asset_${this.chain}`, row, { id: asset.id });
+		somes.assert(rows, '#AssetModuleScaner.transaction rows != 0');
 
 		// update asset order
 		//let order = await db.selectOne(`asset_order_${this.chain}`, { txHash,token,tokenId });
