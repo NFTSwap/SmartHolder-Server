@@ -132,6 +132,7 @@ async function load_main_db() {
 				txHash       char    (66)                      not null,  -- tx hash
 				token        char    (42)                      not null,  -- asset contract address
 				tokenId      char    (66)                      not null,  -- hash
+				logIndex     int                               not null,
 				fromAddres   char    (42)                      not null,  -- from
 				toAddress    char    (42)                      not null,  -- to
 				blockNumber  int                               not null,
@@ -327,6 +328,7 @@ async function load_main_db() {
 			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
 			// asset_order
 			`alter table asset_order_${chain} add count          varchar (78)   default ('') not null`,
+			`alter table asset_order_${chain} add logIndex       int                         not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,
@@ -357,7 +359,7 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,
 			`create         index asset_order_${chain}_idx2      on asset_order_${chain}            (toAddress)`,
 			`create         index asset_order_${chain}_idx3      on asset_order_${chain}            (txHash)`,
-			`create unique  index asset_order_${chain}_idx4      on asset_order_${chain}            (txHash,token,tokenId)`,
+			`create unique  index asset_order_${chain}_idx4      on asset_order_${chain}            (txHash,token,tokenId,logIndex)`,
 			`create         index asset_order_${chain}_idx6      on asset_order_${chain}            (token)`,
 			`create         index asset_order_${chain}_idx7      on asset_order_${chain}            (token,fromAddres)`,
 			`create         index asset_order_${chain}_idx8      on asset_order_${chain}            (asset_id)`,

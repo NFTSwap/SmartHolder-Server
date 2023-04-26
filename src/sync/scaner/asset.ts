@@ -99,6 +99,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		to: string, // to address
 		count: bigint, // asset count
 		value: string, // transaction value
+		logIndex: number,
 	) {
 		tokenId = formatHex(tokenId, 32);
 
@@ -141,6 +142,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			txHash: txHash,
 			blockNumber: this.blockNumber,
 			token, tokenId,
+			logIndex,
 			fromAddres: from,
 			toAddress: to,
 			count: count,
@@ -208,7 +210,7 @@ export class AssetERC721 extends AssetModuleScaner {
 			handle: async ({event:e,tx}: HandleEventData)=>{
 				var {from,to,tokenId} = e.returnValues;
 				somes.assert(tokenId, '#AssetERC721.events.Transfer.handle token id is empty');
-				await this.transaction(e.transactionHash, tokenId, from, to, BigInt(1), tx.value);
+				await this.transaction(e.transactionHash, tokenId, from, to, BigInt(1), tx.value, e.logIndex);
 			},
 		},
 	};
@@ -240,14 +242,14 @@ export class AssetERC1155 extends AssetModuleScaner {
 		TransferSingle: {
 			handle: async ({event:e,tx}: HandleEventData)=>{
 				let {from,to,id,value} = e.returnValues;
-				await this.transaction(e.transactionHash, id, from, to, BigInt(value), tx.value);
+				await this.transaction(e.transactionHash, id, from, to, BigInt(value), tx.value,e.logIndex);
 			},
 		},
 		TransferBatch: {
 			handle: async ({event:e,tx}: HandleEventData)=>{
 				let {from,to,ids,values} = e.returnValues;
 				for (let [id,value] of (ids as string[]).map((e,j)=>[e,values[j]])) {
-					await this.transaction(e.transactionHash, id, from, to, BigInt(value), tx.value);
+					await this.transaction(e.transactionHash, id, from, to, BigInt(value), tx.value,e.logIndex);
 				}
 			},
 		},

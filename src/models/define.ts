@@ -129,6 +129,7 @@ export interface AssetOrder {
 	blockNumber: number;//  int                               not null,
 	token: string;//        char    (42)                      not null,  -- 协约地址
 	tokenId: string;//      char    (66)                      not null,  -- hash
+	logIndex: number; //
 	fromAddres: string;//   char    (42)                      not null,  -- from
 	toAddress: string;//    char    (42)                      not null,  -- to
 	value: string;//        varchar (66)         default ('') not null,  -- tx value
