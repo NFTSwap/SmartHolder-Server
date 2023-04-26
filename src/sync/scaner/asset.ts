@@ -12,6 +12,7 @@ import * as constants from './../constants';
 import sync from './../index';
 import somes from 'somes';
 import * as contract from '../../models/contract';
+import errno from 'web3-tx/errno';
 
 export abstract class ModuleScaner extends ContractScaner {
 	protected async onDescription(data: HandleEventData, desc: string) {}
@@ -44,7 +45,7 @@ export abstract class ModuleScaner extends ContractScaner {
 export abstract class AssetModuleScaner extends ModuleScaner implements IAssetScaner {
 
 	abstract uri(tokenId: string): Promise<string>;
-	abstract balanceOf(owner: string, tokenId: string): Promise<bigint>;
+	abstract balanceOf(owner: string, tokenId: string, blockNumber?: number): Promise<bigint>;
 
 	protected assetType(tokenId: string): Promise<AssetType> {
 		return Promise.resolve(AssetType.ERC721);
@@ -53,7 +54,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		return Promise.resolve(BigInt(1));
 	}
 
-	private async uriNoErr(tokenId: string) {
+	private async tryUri(tokenId: string) {
 		var uri: string = '';
 		try {
 			uri = await this.uri(tokenId);
@@ -65,10 +66,21 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		return uri;
 	}
 
+	private async tryBalanceOf(owner: string, tokenId: string, blockNumber?: number) {
+		try {
+			return await this.balanceOf(owner, tokenId, blockNumber);
+		} catch(err: any) {
+			if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
+					err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0])
+				return BigInt(0);
+			throw err;
+		}
+	}
+
 	private async asset(tokenId: string) {
 		let db = this.db;
 		let token = this.address;
-		let uri = await this.uriNoErr(tokenId);
+		let uri = await this.tryUri(tokenId);
 		uri = await utils.storageTokenURI(uri, { tokenId, token });
 		if (uri.length > 1024) uri = ''; // Temporarily ignored
 
@@ -162,7 +174,8 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 					token, tokenId, owner,
 				});
 			} else if (owner != addressZero) {
-				let count = await this.balanceOf(owner, tokenId);
+				let count = await this.tryBalanceOf(owner, tokenId, this.blockNumber - 1) + c; // prev block count + change value
+				somes.assert(count >= 0, '#AssetModuleScaner.transaction Bad count argument. 1');
 				await db.insert(`asset_owner_${this.chain}`, {
 					asset_id: asset.id, token, tokenId, owner, count: numberStr(count),
 				});
@@ -221,9 +234,9 @@ export class AssetERC721 extends AssetModuleScaner {
 		return uri;
 	}
 
-	async balanceOf(owner: string, id: string): Promise<bigint> {
+	async balanceOf(owner: string, id: string, blockNumber?: number): Promise<bigint> {
 		var m = await this.methods();
-		var addr = await m.ownerOf(id).call(this.blockNumber) as string;
+		var addr = await m.ownerOf(id).call(blockNumber || this.blockNumber) as string;
 		var balance = BigInt(addr == owner ? 1: 0);
 		return balance;
 	}
@@ -297,9 +310,9 @@ export class AssetERC1155 extends AssetModuleScaner {
 		return uri;
 	}
 
-	async balanceOf(owner: string, id: string): Promise<bigint> {
+	async balanceOf(owner: string, id: string, blockNumber?: number): Promise<bigint> {
 		let m = await this.methods();
-		let balance = await m.balanceOf(owner, id).call(this.blockNumber) as string;
+		let balance = await m.balanceOf(owner, id).call(blockNumber || this.blockNumber) as string;
 		return BigInt(balance);
 	}
 }
