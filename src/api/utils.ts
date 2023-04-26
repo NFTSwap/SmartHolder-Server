@@ -80,13 +80,16 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType}: {
-		chain: ChainType, host?: string, owner?: string, author?: string, 
-		owner_not?: string, author_not?: string, state?: State, assetType?: AssetType,
+	getAssetFrom({
+		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not
+	}: {
+		chain: ChainType, host?: string, owner?: string, author?: string,
+		owner_not?: string, author_not?: string, state?: State,
+		selling?: Selling, selling_not?: Selling, assetType?: AssetType,
 		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
 		return asset.getAssetFrom.query({chain,host,owner,author,
-			owner_not,author_not,state,name,time,assetType,orderBy,limit});
+			owner_not,author_not,state,name,time,assetType,orderBy,limit,selling,selling_not});
 	}
 
 	/**
@@ -123,13 +126,14 @@ export default class extends ApiController {
 			fromAddres_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 
-	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not}: {
-		chain: ChainType, host?: string, 
-		owner?: string, author?: string, 
-		owner_not?: string, author_not?: string, assetType?: AssetType,
-		state?: State, name?: string, time?: [number,number]
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not,selling,selling_not}: {
+		chain: ChainType, host?: string, owner?: string, author?: string, 
+		owner_not?: string, author_not?: string, selling?: Selling, selling_not?: Selling, 
+		assetType?: AssetType, state?: State, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetFrom.queryTotal({chain,host,owner,author,owner_not,author_not,assetType,state,name,time});
+		return asset.getAssetFrom.queryTotal({
+			chain,host,owner,author,owner_not,author_not,assetType,state,name,time,selling,selling_not
+		});
 	}
 
 	/**
