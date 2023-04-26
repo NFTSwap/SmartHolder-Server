@@ -68,9 +68,9 @@ export const getAssetFrom = newQuery(async ({
 						from asset_${chain} as a right join asset_owner_${chain} as ao on a.id = ao.asset_id \
 						where a.state=${escape(state)} and a.totalSupply!=0 `;
 		if (owner)
-			sql += `and ao.owner=${escape(owner)} `;
+			sql += `and ao.owner=${escape(owner)} and ao.count!=0 `;
 		if (owner_not)
-			sql += `and ao.owner!=${escape(owner_not)} `;
+			sql += `and ao.owner!=${escape(owner_not)} and ao.count!=0 `;
 	} else {
 		sql += `${out} from asset_${chain} as a where a.state=${escape(state)} and a.totalSupply!=0 `;
 	}

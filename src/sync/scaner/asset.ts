@@ -50,7 +50,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 	protected assetType(tokenId: string): Promise<AssetType> {
 		return Promise.resolve(AssetType.ERC721);
 	}
-	protected totalSupply(tokenId: string): Promise<bigint> {
+	protected totalSupply(tokenId: string, blockNumber?: number): Promise<bigint> {
 		return Promise.resolve(BigInt(1));
 	}
 
@@ -66,12 +66,27 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		return uri;
 	}
 
+	private is_EXECUTION_REVERTED(err: any) {
+		if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
+			err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0]) return true;
+		return false;
+	}
+
 	private async tryBalanceOf(owner: string, tokenId: string, blockNumber?: number) {
 		try {
 			return await this.balanceOf(owner, tokenId, blockNumber);
 		} catch(err: any) {
-			if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
-					err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0])
+			if (this.is_EXECUTION_REVERTED(err))
+				return BigInt(0);
+			throw err;
+		}
+	}
+
+	private async tryTotalSupply(tokenId: string, blockNumber?: number) {
+		try {
+			return await this.totalSupply(tokenId, blockNumber);
+		} catch(err: any) {
+			if (this.is_EXECUTION_REVERTED(err))
 				return BigInt(0);
 			throw err;
 		}
@@ -87,7 +102,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		let time = Date.now();
 		let host = await this.host();
 		let assetType = await this.assetType(tokenId);
-		let totalSupply = await this.totalSupply(tokenId);
+		let totalSupply = await this.totalSupply(tokenId, this.blockNumber - 1);
 		let id = await db.insert(`asset_${this.chain}`, {
 			host,
 			token,
@@ -135,14 +150,13 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			Object.assign(row, { author: to });
 		}
 
-		if (asset_) { // update totalSupply
-			let totalSupply = BigInt(asset.totalSupply);
-			if (from == addressZero) // mint
-				totalSupply += count;
-			if (to == addressZero) // burn
-				totalSupply -= count;
-			row.totalSupply = numberStr(totalSupply);
-		}
+		let totalSupply = BigInt(asset.totalSupply); // prev block or prev log status
+		// update totalSupply
+		if (from == addressZero) // mint
+			totalSupply += count;
+		if (to == addressZero) // burn
+			totalSupply -= count;
+		row.totalSupply = numberStr(totalSupply);
 
 		await db.update(`asset_${this.chain}`, row, { id: asset.id });
 
@@ -294,10 +308,10 @@ export class AssetERC1155 extends AssetModuleScaner {
 		return AssetType.ERC1155;
 	}
 
-	protected async totalSupply(id: string): Promise<bigint> {
+	protected async totalSupply(id: string, blockNumber?: number): Promise<bigint> {
 		if (ContractType.Asset == this.type || ContractType.AssetShell == this.type) {
 			let m = await this.methods();
-			let totalSupply = await m.totalSupply(id).call(this.blockNumber);
+			let totalSupply = await m.totalSupply(id).call(blockNumber || this.blockNumber);
 			return BigInt(totalSupply);
 		} else {
 			return BigInt(1);

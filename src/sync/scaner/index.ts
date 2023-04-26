@@ -188,7 +188,7 @@ export abstract class ContractScaner {
 			var returnValues = 
 				this.web3.eth.abi.decodeLog(abiItem.inputs as AbiInput[], log.data, log.topics.slice(1));
 		} catch(err: any) {
-			uncaught.fault('#ContractScaner.solveReceiptLogFrom 1',
+			uncaught.fault('#ContractScaner.solveReceiptLogFrom decodeLog',
 				...err.filter(['errno', 'message', 'description', 'stack']), //err,
 				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
@@ -219,7 +219,7 @@ export abstract class ContractScaner {
 			await resolve.handle.call(this, {event: e, tx,blockTime, blockNumber: this.blockNumber});
 		} catch(err:any) {
 			uncaught.fault(
-				'#ContractScaner.solveReceiptLogFrom 2',
+				'#ContractScaner.solveReceiptLogFrom resolve.handle.call',
 				...err.filter(['errno', 'message', 'description', 'stack']), //err,
 				this.address, ContractType[this.type], ChainType[this.chain], tx, log
 			);
