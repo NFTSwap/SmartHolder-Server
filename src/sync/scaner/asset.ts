@@ -161,12 +161,11 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		let rows = await db.update(`asset_${this.chain}`, row, { id: asset.id });
 		somes.assert(rows, '#AssetModuleScaner.transaction rows != 0');
 
-		if (asset.assetType == AssetType.ERC1155_Single) {
-			if (to == addressZero) {
-				let it = await db.selectOne<Asset>(`asset_${this.chain}`, { id: asset.id });
-				let totalSupply = BigInt(it!.totalSupply);
-				somes.assert(totalSupply == BigInt(0), '#AssetModuleScaner.transaction totalSupply == 0');
-			}
+		// check
+		if (asset.assetType == AssetType.ERC1155_Single && to == addressZero) {
+			let it = await db.selectOne<Asset>(`asset_${this.chain}`, { id: asset.id });
+			let totalSupply = BigInt(it!.totalSupply);
+			somes.assert(totalSupply == BigInt(0), '#AssetModuleScaner.transaction totalSupply == 0');
 		}
 
 		// update asset order

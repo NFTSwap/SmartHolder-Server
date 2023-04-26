@@ -186,12 +186,13 @@ tokenId:${tokenId},error:${error},code:${code},errno:${errno}`);
 				imageOrigin = mediaOrigin; // use image data
 			}
 
-			Object.assign(asset, { ...props,
+			let row = { ...props,
 				mediaOrigin: mediaOrigin || imageOrigin,
 				imageOrigin: imageOrigin,
-			});
+			};
+			Object.assign(asset, row);
 
-			await db.update(`asset_${chain}`, asset, { id });
+			await db.update(`asset_${chain}`, row, { id });
 		}
 		else {
 			console.warn('AssetMetaDataSync#onSync 6 Cannot parse uri data', uri, _uri, data);
