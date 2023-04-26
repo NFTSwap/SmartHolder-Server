@@ -4,7 +4,7 @@
  */
 
 import somes from 'somes';
-import db, {ChainType, Asset, State,AssetType} from '../db';
+import db, {ChainType, Asset, State,AssetType,Selling} from '../db';
 import {AssetOrderExt,AssetExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
@@ -44,7 +44,7 @@ export const tryFetchAssetMetadatas = async (asset: Asset[], chain: ChainType)=>
 };
 
 export const getAssetFrom = newQuery(async ({
-	chain,host, owner,author, owner_not,author_not, state,name,time,assetType,tokens,ids
+	chain,host, owner,author, owner_not,author_not, state,name,time,selling,selling_not,assetType,tokens,ids
 }: {
 	chain: ChainType,
 	host?: string,
@@ -55,6 +55,7 @@ export const getAssetFrom = newQuery(async ({
 	state?: State,
 	name?: string,
 	time?: number | [number,number],
+	selling?: Selling, selling_not?: Selling,
 	assetType?: AssetType,
 	tokens?: string[],
 	ids?: number[],
@@ -96,6 +97,10 @@ export const getAssetFrom = newQuery(async ({
 		sql += `and a.tokenId in (${tokens.map(e=>escape(e)).join()}) `;
 	if (ids && ids.length)
 		sql += `and a.id in (${ids.map(e=>escape(e)).join()}) `;
+	if (selling != undefined)
+		sql += `and a.selling=${escape(selling)} `;
+	if (selling_not != undefined)
+		sql += `and a.selling!=${escape(selling_not)} `;
 
 	if (orderBy)
 		sql += `order by ${orderBy} `;
