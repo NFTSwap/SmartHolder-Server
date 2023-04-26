@@ -109,6 +109,7 @@ export const getAssetFrom = newQuery(async ({
 
 	assets = assets.map((e:any)=>({
 		...e,
+		properties: e.properties || [],
 		asset_owner: {
 			id: e.ao_id,
 			asset_id: e.id,

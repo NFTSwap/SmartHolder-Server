@@ -5,11 +5,12 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import db, { ChainType, Selling, DAO,SaleType,ContractType } from "../db";
-import { Seaport } from "seaport-smart";
-import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType, /*CROSS_CHAIN_SEAPORT_ADDRESS,*/ 
-	OPENSEA_CONDUIT_ADDRESS, OPENSEA_CONDUIT_KEY } from 'seaport-smart/constants';
+import db, { ChainType, Selling, DAO,SaleType,AssetType } from "../db";
+import {
+	Seaport,ItemType, OrderType,
+	OPENSEA_CONDUIT_ADDRESS, OPENSEA_CONDUIT_KEY,OrderComponents,
+	CROSS_CHAIN_SEAPORT_ADDRESS, orderTypes,
+ } from './opensea_type';
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -25,129 +26,8 @@ import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
 import {DatabaseCRUD} from 'somes/db';
 
-export {OrderComponents};
-
 const isDev = cfg.env == 'dev';
-
-const CROSS_CHAIN_SEAPORT_ADDRESS = "0x00000000000001ad428e4906aE43D8F9852d0dD6";
-
 const seaports: Map<ChainType, Seaport> = new Map();
-export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
-
-const orderTypes = {
-	"EIP712Domain": [
-		{
-			"name": "name",
-			"type": "string"
-		},
-		{
-			"name": "version",
-			"type": "string"
-		},
-		{
-			"name": "chainId",
-			"type": "uint256"
-		},
-		{
-			"name": "verifyingContract",
-			"type": "address"
-		}
-	],
-	"OrderComponents": [
-		{
-			"name": "offerer",
-			"type": "address"
-		},
-		{
-			"name": "zone",
-			"type": "address"
-		},
-		{
-			"name": "offer",
-			"type": "OfferItem[]"
-		},
-		{
-			"name": "consideration",
-			"type": "ConsiderationItem[]"
-		},
-		{
-			"name": "orderType",
-			"type": "uint8"
-		},
-		{
-			"name": "startTime",
-			"type": "uint256"
-		},
-		{
-			"name": "endTime",
-			"type": "uint256"
-		},
-		{
-			"name": "zoneHash",
-			"type": "bytes32"
-		},
-		{
-			"name": "salt",
-			"type": "uint256"
-		},
-		{
-			"name": "conduitKey",
-			"type": "bytes32"
-		},
-		{
-			"name": "counter",
-			"type": "uint256"
-		}
-	],
-	"OfferItem": [
-			{
-					"name": "itemType",
-					"type": "uint8"
-			},
-			{
-					"name": "token",
-					"type": "address"
-			},
-			{
-					"name": "identifierOrCriteria",
-					"type": "uint256"
-			},
-			{
-					"name": "startAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "endAmount",
-					"type": "uint256"
-			}
-	],
-	"ConsiderationItem": [
-			{
-					"name": "itemType",
-					"type": "uint8"
-			},
-			{
-					"name": "token",
-					"type": "address"
-			},
-			{
-					"name": "identifierOrCriteria",
-					"type": "uint256"
-			},
-			{
-					"name": "startAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "endAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "recipient",
-					"type": "address"
-			}
-	]
-};
 
 export type TypedDataDomain = {
 	name?: string;
@@ -260,13 +140,18 @@ export function getSeaport(chain: ChainType) {
 	return sea;
 }
 
-export async function getOrderParameters(chain: ChainType, token: string, tokenId: string, amount: string, time?: number): Promise<OrderParametersAll> {
+export async function getOrderParameters(
+	chain: ChainType,
+	token: string, tokenId: string,
+	unitPrice: string, owner: string, count: number, type: AssetType, time?: number
+): Promise<OrderParametersAll> {
+	somes.assert(count, 'Bad argument for count');
+	somes.assert(type, 'Bad argument for asset type');
+
 	let web3 = web3s(chain);
 	let now = Math.floor(Date.now() / 1e3);
 	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600); /* 30 days default time*/
 	let methods = web3.createContract(token, abi.abi as any).methods;
-	let owner = await methods.ownerOf(tokenId).call() as string;
-	// let owner = '0x4ab17f69d1225eD66DE25A6C3c69f3F83766CBea';
 	let id = BigInt(tokenId).toString(10);
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
 	// let sea = getSeaport(chain);
@@ -281,13 +166,13 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
 
-	let amount_ = BigInt(amount);
-	let amountMy = amount_;
+	let amount = BigInt(unitPrice);
+	let amountMy = amount;
 	let recipients: {amount: bigint; recipient: string; }[] = [
 		...taxs.map(([recipient,tax])=>{
-			let amount = amount_ * BigInt(tax) / BigInt(10000);
-			amountMy -= amount;
-			return { recipient, amount };
+			let amount_ = amount * BigInt(tax) / BigInt(10000);
+			amountMy -= amount_;
+			return { recipient, amount:amount_ };
 		}),
 		{ recipient: owner, amount: amountMy },
 	];
@@ -299,6 +184,17 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 		zone: '0x0000000000000000000000000000000000000000',
 		zoneHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
 	};
+
+	let itemType: ItemType;
+	switch (type) {
+		case AssetType.ERC1155_Single:
+		case AssetType.ERC1155:
+			itemType = ItemType.ERC1155; break;
+		case AssetType.ERC721:
+			itemType = ItemType.ERC721; break;
+		default:
+			itemType = ItemType.ERC20; break;
+	}
 
 	let data = {
 		primaryType: 'OrderComponents',
@@ -313,11 +209,11 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 			offerer: owner,
 			offer: [
 				{
-					itemType: ItemType.ERC721,
+					itemType: itemType,
 					token: token,
 					identifierOrCriteria: id,
-					startAmount: "1",
-					endAmount: "1"
+					startAmount: String(count),
+					endAmount: String(count),
 				}
 			],
 			consideration: [
@@ -350,7 +246,6 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 }
 
 export async function createOrder(chain: ChainType, order: OrderComponents, signature: string): Promise<void> {
-
 	/*
 		curl 'https://element-api.eossql.com/bridge/opensea/v2/orders/ethereum/seaport/listings' \
 		-H 'authority: element-api.eossql.com' \
@@ -374,9 +269,9 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 
 	let token = order.offer[0].token;
 	let tokenId = order.offer[0].identifierOrCriteria;
-	let order0 = await getOrder(chain, token, tokenId);
+	let order1 = await getOrder(chain, token, tokenId);
 
-	somes.assert(!order0, errno.ERR_OPENSEA_ORDER_EXIST);
+	somes.assert(!order1, errno.ERR_OPENSEA_ORDER_EXIST);
 
 	await post(chain, 'orders/{0}/seaport/listings', {
 		parameters: order,

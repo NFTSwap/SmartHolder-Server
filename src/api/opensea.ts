@@ -4,14 +4,19 @@
  */
 
 import ApiController from '../api';
-import {ChainType} from '../models/define';
+import {ChainType,AssetType} from '../models/define';
 import * as opensea from '../models/opensea';
-import { OrderComponents } from "seaport-smart/types";
+import {OrderComponents} from '../models/opensea_type';
 
 export default class extends ApiController {
 	
-	getOrderParameters({chain,token,tokenId,amount,time}: {chain: ChainType, token: string, tokenId: string, amount: string, time?: number}) {
-		return opensea.getOrderParameters(chain,token,tokenId,amount,time);
+	getOrderParameters({
+		chain,token,tokenId,unitPrice,owner,count,type,time
+	}: {
+		chain: ChainType, token: string, tokenId: string, unitPrice: string,
+		owner: string, count: number, type: AssetType, time?: number
+	}) {
+		return opensea.getOrderParameters(chain,token,tokenId,unitPrice,owner,count,type,time);
 	}
 
 	createOrder({chain,order,signature}: {chain: ChainType, order: OrderComponents, signature: string}) {
