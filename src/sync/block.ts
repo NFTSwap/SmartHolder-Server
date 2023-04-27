@@ -23,6 +23,7 @@ import {escape} from 'somes/db';
 import {Storage} from 'bclib/storage';
 import * as env from '../env';
 import api from '../request';
+import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 
 export async function testDB() {
 	await somes.sleep(1e3);
@@ -384,9 +385,13 @@ export class WatchBlock implements WatchCat {
 			}
 		}
 
+		if (!blockNumber) { // blockNumber == 0
+			let info = deployInfo[ChainType[chain].toLowerCase() as 'goerli'];
+			blockNumber = info.DAOsProxy.blockNumber;
+		}
+
 		try {
-			// let delay = chain == ChainType.BSN || chain == ChainType.MATIC ? 2: 0;
-			let blockNumberCur = await web3.getBlockNumber();// - delay; // 延迟查询块
+			let blockNumberCur = await web3.getBlockNumber();
 
 			while (++blockNumber <= blockNumberCur) {
 				if (blockNumber % this.workers === this.worker) {

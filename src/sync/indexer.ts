@@ -18,7 +18,6 @@ import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 import {Event} from 'somes/event';
 import somes from 'somes';
-import {scopeLock} from 'bclib/atomic_lock';
 
 /**
  * @class indexer for dao

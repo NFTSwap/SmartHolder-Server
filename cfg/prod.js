@@ -6,7 +6,8 @@ module.exports = {
 	...base,
 	web3s: {
 		GOERLI: rpc.GOERLI.slice(1), // skip local
-		ETHEREUM: rpc.ETHEREUM.slice(1,2), // only use local
+		ETHEREUM: rpc.ETHEREUM.slice(0,2), // only use local
+		MATIC: rpc.MATIC.slice(0,1), // only use local
 	},
 	autoIndex: false,
 	root: '/data/apps/smart-dao/smart-dao',
