@@ -387,7 +387,8 @@ export class WatchBlock implements WatchCat {
 
 		if (!blockNumber) { // blockNumber == 0
 			let info = deployInfo[ChainType[chain].toLowerCase() as 'goerli'];
-			blockNumber = info.DAOsProxy.blockNumber;
+			if (info)
+				blockNumber = info.DAOsProxy.blockNumber;
 		}
 
 		try {
