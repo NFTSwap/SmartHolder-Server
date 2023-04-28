@@ -358,8 +358,8 @@ async function load_main_db() {
 			`create  unique index asset_owner_${chain}_idx2      on asset_owner_${chain}            (token,tokenId,owner)`,
 			`create         index asset_owner_${chain}_idx3      on asset_owner_${chain}            (token,owner)`,
 			`create         index asset_owner_${chain}_idx4      on asset_owner_${chain}            (asset_id)`,
-			`create         index asset_owner_${chain}_idx5      on asset_owner_${chain}            (host)`,
-			`create         index asset_owner_${chain}_idx6      on asset_owner_${chain}            (host,owner)`,
+			// `create         index asset_owner_${chain}_idx5      on asset_owner_${chain}            (host)`,
+			// `create         index asset_owner_${chain}_idx6      on asset_owner_${chain}            (host,owner)`,
 			// asset order
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,
