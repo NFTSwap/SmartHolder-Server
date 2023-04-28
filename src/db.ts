@@ -150,7 +150,8 @@ async function load_main_db() {
 				type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
 				name         varchar (42)    default ('') not null, -- 转账名目
 				description  varchar (1024)  default ('') not null, -- 详细
-				target       varchar (42)                 not null, -- 转账目标,进账为打款人,出账为接收人
+				target       varchar (42)                 not null, -- 转账目标:进账为打款人,出账为接收人
+				ref          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人
 				member_id    varchar (66)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				balance      varchar (78)                 not null, -- 金额
 				time         bigint                       not null, -- 时间
@@ -166,7 +167,7 @@ async function load_main_db() {
 				asset_id     int                          not null, -- asset id
 				token        varchar (42)                 not null, -- 原始资产合约地址
 				tokenId      varchar (66)                 not null, -- 原始资产id
-				source       varchar (42)                 not null, -- 进账来源
+				source       varchar (42)                 not null, -- 进账来源 opensea store
 				balance      varchar (78)                 not null, -- 实际收到的分成金额
 				price        varchar (78)                 not null, -- 预估成交价格
 				fromAddress  varchar (42)                 not null, -- 资产转移from地址
@@ -319,6 +320,7 @@ async function load_main_db() {
 			// ledger
 			`alter table ledger_${chain} add state               int            default (0)  not null`,
 			`alter table ledger_${chain} add assetIncome_id      int            default (0)  not null`,
+			`alter table ledger_${chain} add ref                 varchar (42)   default ('') not null`,
 			//
 			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add count  varchar (78)   default ('')  not null`,

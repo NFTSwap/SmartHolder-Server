@@ -9,7 +9,7 @@ import {getLimit,useCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
 export const getLedgerFrom = newQuery(async ({
-	chain, host,type,time,state=State.Enable,ids,target,target_not
+	chain, host,type,time,state=State.Enable,ids,target,target_not,ref
 }: {
 	chain: ChainType,
 	host?: string,
@@ -18,7 +18,8 @@ export const getLedgerFrom = newQuery(async ({
 	ids?: number[],
 	state?: State,
 	target?: string, target_not?: string,
-}, {orderBy,limit,out})=>{
+	ref?: string,
+}, {orderBy,limit,out,total}, {noJoin}: {noJoin?: boolean}={})=>{
 	let sql = `select ${out} from ledger_${chain} where state=${escape(state)} `;
 	if (host)
 		sql += `and host=${escape(host)} `;
@@ -32,24 +33,39 @@ export const getLedgerFrom = newQuery(async ({
 		sql += `and target=${escape(target)} `;
 	if (target_not)
 		sql += `and target!=${escape(target_not)} `;
+	if (ref)
+		sql += `and ref=${escape(ref)} `;
 	if (orderBy)
 		sql += `order by ${orderBy} `;
 	if (limit)
 		sql += `limit ${getLimit(limit)} `;
 
-	return await db.query<Ledger>(sql);
+		let ls = await db.query<Ledger>(sql);
 
+	if (total)
+		return ls;
+
+	if (!noJoin && ls.length) {
+		joinTable(ls, 'assetIncome', 'assetIncome_id', 'id',
+			await getLedgerAssetIncomeFrom.query({chain,ids:ls.map(e=>e.assetIncome_id)},{noJoin:true},3e4)
+		);
+	}
+	return ls;
 }, 'getLedgerFrom');
 
 export const getLedgerAssetIncomeFrom = newQuery(async ({
-	chain,host,fromAddress,fromAddress_not,toAddress,toAddress_not,type,time
-}:{
-	chain: ChainType, host: string,
+	chain,host,fromAddress,fromAddress_not,toAddress,toAddress_not,type,time,ids
+}: {
+	chain: ChainType, host?: string,
 	fromAddress?: string, toAddress?: string,
 	fromAddress_not?: string, toAddress_not?: string,
 	type?: SaleType,time?: [number,number],
-}, {orderBy,limit,out,total})=>{
-	let sql = `select ${out} from ledger_asset_income_${chain} where host=${escape(host)} `;
+	ids?: number[],
+}, { orderBy,limit,out,total }, {noJoin}: {noJoin?: boolean}={})=>{
+	let sql = `select ${out} from ledger_asset_income_${chain} `;
+
+	sql += host? `where host=${escape(host)} `: `where 1 `;
+
 	if (fromAddress)
 		sql += `and fromAddress=${escape(fromAddress)} `;
 	if (toAddress)
@@ -62,6 +78,8 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 		sql += `and type!=${escape(type)} `;
 	if (time)
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
+	if (ids && ids.length)
+		sql += `and id in (${ids.map(e=>escape(e)).join()}) `;
 	if (orderBy)
 		sql += `order by ${orderBy} `;
 	if (limit)
@@ -72,9 +90,10 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 		return ls;
 
 	if (ls.length) {
-		joinTable(ls, 'ledger', 'ledger_id', 'id',
-			await getLedgerFrom.query({chain,ids:ls.map(e=>e.ledger_id)},{},3e4)
-		);
+		if (!noJoin)
+			joinTable(ls, 'ledger', 'ledger_id', 'id',
+				await getLedgerFrom.query({chain,ids:ls.map(e=>e.ledger_id)},{noJoin:true},3e4)
+			);
 		joinTable(ls, 'asset', 'asset_id', 'id',
 			await getAssetFrom.query({chain,ids:ls.map(e=>e.asset_id)},{noDAO:true,noBeautiful:true},3e4)
 		);

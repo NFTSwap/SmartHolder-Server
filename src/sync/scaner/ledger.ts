@@ -35,10 +35,12 @@ export class Ledger extends ModuleScaner {
 				// host         varchar (64)                 not null, -- dao host
 				// address      varchar (64)                 not null, -- 合约地址
 				// txHash       varchar (72)                 not null, -- tx hash
-				// type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成
+				// target       varchar (42)                 not null, -- 转账目标:进账为打款人,出账为接收人
+				// ref          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人
 				// name         varchar (64)    default ('') not null, -- 转账名目
 				// description     varchar (1024)  default ('') not null, -- 详细
-				// target       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
+				// source       varchar (64)                 not null, -- 入账来源
+				// target       varchar (64)                 not null, -- 出账目标,进账为打款人,出账为接收人
 				// member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 				// balance      varchar (72)                 not null, -- 金额
 				// time         bigint                       not null, -- 时间
@@ -50,6 +52,7 @@ export class Ledger extends ModuleScaner {
 						address: this.address,
 						txHash: txHash,
 						type: type,
+						ref: from,
 						target: from,
 						balance: numberStr(balance),
 						time,
@@ -134,6 +137,7 @@ export class Ledger extends ModuleScaner {
 						address: this.address,
 						txHash: txHash,
 						type: type,
+						ref: from,
 						target: source,
 						balance,
 						name: '',
@@ -172,6 +176,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						balance: numberStr(balance),
+						ref: target,
 						target: target,
 						description: description,
 						time,
@@ -196,6 +201,7 @@ export class Ledger extends ModuleScaner {
 						address: this.address,
 						txHash: txHash,
 						type: type,
+						ref: to,
 						target: to,
 						balance: numberStr(balance),
 						description: log?.log || '',

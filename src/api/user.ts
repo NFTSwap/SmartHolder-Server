@@ -38,7 +38,11 @@ export default class extends ApiController {
 	
 	async getUser() {
 		let auth = await this.userNotErr();
-		return await user.getUser(auth?.id);
+		return await user.getUser({id:auth?.id});
+	}
+
+	getUserFrom(opts: {id?: number, address?: string}) {
+		return user.getUser(opts);
 	}
 
 	async setUser(opts: Partial<User>) {

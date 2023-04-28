@@ -6,18 +6,32 @@
 import db, {ChainType, User,DAO,UserLikeDAO} from '../db';
 import {fillMemberObjs} from './dao';
 import { DAOExtend } from './define_ext';
+import auth from '../auth';
 
-export async function getUser(id?: number) {
+export async function getUser({id,address}:{address?: string, id?: number}) {
 	let defaultValue: User = {
 		id: id || 0,
 		nickname: '', description: '',
 		image: '',  likes: 0,
 		address: '', time: 0, modify: 0,
 	}
-	if (!id)
+	if (!id && !address)
 		return defaultValue;
-	let user = await db.selectOne<User>(`user`, {id});
-	return user || defaultValue;
+	
+	let user = await db.selectOne<User>(`user`, {id,address});
+	if (user)
+		return user;
+
+	if (address) {
+		let au = await auth.getFromRef(address);
+		if (au) {
+			user = await db.selectOne<User>(`user`, {id:au.id});
+			if (user)
+				return user;
+		}
+	}
+
+	return defaultValue;
 }
 
 async function setUser1(id: number, user: Partial<User>) {
@@ -38,7 +52,7 @@ export async function addLikeDAO(id: number, dao_id: number, chain: ChainType) {
 	let user_like_dao = await db.selectOne<UserLikeDAO>(`user_like_dao`, {user_id: id, dao_id, chain});
 
 	if ( ! user_like_dao || user_like_dao.state != 0 ) { // add
-		let user = await getUser(id);
+		let user = await getUser({id});
 		let dao = (await db.selectOne<DAO>(`dao_${chain}`, {id: dao_id}))!;
 
 		await db.transaction(async db=>{
@@ -57,7 +71,7 @@ export async function deleteLikeDAO(id: number, dao_id: number, chain: ChainType
 	let user_like_dao = await db.selectOne<UserLikeDAO>(`user_like_dao`, {user_id: id, dao_id, chain});
 
 	if (user_like_dao && user_like_dao.state == 0) { // delete
-		let user = await getUser(id);
+		let user = await getUser({id});
 		let dao = (await db.selectOne<DAO>(`dao_${chain}`, {id: dao_id}))!;
 
 		await db.transaction(async db=>{

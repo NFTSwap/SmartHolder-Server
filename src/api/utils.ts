@@ -139,22 +139,25 @@ export default class extends ApiController {
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy,target,target_not}: {
+	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy,target,target_not,ref}: {
 		chain: ChainType, host: string, type?: LedgerType, time?: [number,number],
-		state?: State, limit?: number | number[], orderBy?: string,target?: string,target_not?: string
+		state?: State, limit?: number | number[], orderBy?: string,target?: string,target_not?: string,ref?:string
 	}) {
-		return ledger.getLedgerFrom.query({chain,host,type,time,state,orderBy,limit,target,target_not});
+		return ledger.getLedgerFrom.query({chain,host,type,time,state,orderBy,limit,target,target_not,ref});
 	}
 
-	getLedgerItemsTotalFromHost({chain,host,type,time,state,target,target_not}: {
+	getLedgerItemsTotalFromHost({chain,host,type,time,state,target,target_not,ref}: {
 		chain: ChainType, host: string, type?: LedgerType,
-		time?: [number,number], state?: State,target?: string, target_not?: string}) {
-		return ledger.getLedgerFrom.queryTotal({chain,host,type,time,state,target,target_not});
+		time?: [number,number], state?: State,target?: string, target_not?: string,ref?:string
+	}) {
+		return ledger.getLedgerFrom.queryTotal({chain,host,type,time,state,target,target_not,ref});
 	}
 
-	getLedgerTotalAmount({chain,host,type,time,state,target,target_not}: {
-		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State,target?: string,target_not?: string}) {
-		return ledger.getLedgerSummarys({chain,host,type,time,state,target,target_not});
+	getLedgerTotalAmount({chain,host,type,time,state,target,target_not,ref}: {
+		chain: ChainType, host: string, type?: LedgerType,
+		time?: [number,number], state?: State,target?: string,target_not?: string,ref?:string
+	}) {
+		return ledger.getLedgerSummarys({chain,host,type,time,state,target,target_not,ref});
 	}
 
 	/**

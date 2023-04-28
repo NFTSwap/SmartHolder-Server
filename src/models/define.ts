@@ -157,11 +157,13 @@ export interface Ledger {
 	description: string;//     varchar (1024)  default ('') not null, -- 详细
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
+	ref: string;//          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人
 	balance: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
 	assetIncome_id: number;
+	assetIncome?: LedgerAssetIncome;
 }
 
 export interface LedgerAssetIncome {
@@ -181,7 +183,7 @@ export interface LedgerAssetIncome {
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
 	ledger?: Ledger;
-	asset?: Ledger;
+	asset?: Asset;
 }
 
 export interface LedgerReleaseLog {
