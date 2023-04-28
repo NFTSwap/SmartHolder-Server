@@ -10,8 +10,8 @@ import {escape} from 'somes/db';
 import {getLimit,newQuery,useCache} from './utils';
 import { DAOExtend, DAOSummarys } from './define_ext';
 import {getVoteProposalFrom} from './vote_pool';
-import {getAssetAmountTotal,getOrderTotalAmount} from './asset';
-import {getLedgerTotalAmount} from './ledger';
+import * as asset from './asset';
+import {getLedgerSummarys} from './ledger';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import * as member from './member';
 
@@ -147,9 +147,9 @@ export const getDAOSummarys = useCache(async ({chain,host}: {chain: ChainType, h
 		}
 	}
 
-	let {assetTotal,assetAmountTotal} = await getAssetAmountTotal({chain, host});
-	let {total,amount} = await getOrderTotalAmount({chain, host});
-	let assetLedgerIncomeTotal = await getLedgerTotalAmount({chain, host,type:LedgerType.AssetIncome});
+	let {assetTotal,assetMinimumPriceTotal} = await asset.getAssetSummarys({chain, host});
+	let {totalItems,amount} = await asset.getOrderSummarys({chain, host});
+	let ledgerSummarys = await getLedgerSummarys({chain, host,type:LedgerType.AssetIncome});
 
 	let summarys: DAOSummarys =  {
 		membersTotal: dao.members,
@@ -159,11 +159,13 @@ export const getDAOSummarys = useCache(async ({chain,host}: {chain: ChainType, h
 		voteProposalResolveTotal,
 		voteProposalRejectTotal,
 		assetTotal,
-		assetAmountTotal,
-		assetOrderTotal: total,
+		assetMinimumPriceTotal,
+		assetOrderTotal: totalItems,
 		assetOrderAmountTotal: amount,
-		assetLedgerIncomeTotal: assetLedgerIncomeTotal.amount,
+		assetLedgerIncomeTotal: ledgerSummarys.income,
 	};
+
+	(summarys as any).assetAmountTotal = assetMinimumPriceTotal; // @Deprecated
 
 	return summarys;
 }, {name: 'getDAOSummarys'});

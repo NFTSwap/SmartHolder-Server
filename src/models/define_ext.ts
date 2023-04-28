@@ -24,7 +24,7 @@ export interface DAOSummarys {
 	voteProposalResolveTotal: number; // resolve total
 	voteProposalRejectTotal: number; // reject total
 	assetTotal: number;            // asset total
-	assetAmountTotal: string;      // asset total amount value
+	assetMinimumPriceTotal: string; // asset total amount value
 	assetOrderTotal: number;       // Asset order total
 	assetOrderAmountTotal: string; // Asset order total amount value
 	assetLedgerIncomeTotal: string; // Asset Ledger total Income value

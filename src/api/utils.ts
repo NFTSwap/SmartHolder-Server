@@ -122,7 +122,7 @@ export default class extends ApiController {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getOrderTotalAmount({chain,host,fromAddres, toAddress,
+		return asset.getOrderSummarys({chain,host,fromAddres, toAddress,
 			fromAddres_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 
@@ -153,7 +153,7 @@ export default class extends ApiController {
 
 	getLedgerTotalAmount({chain,host,type,time,state}: {
 		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return ledger.getLedgerTotalAmount({chain,host,type,time,state});
+		return ledger.getLedgerSummarys({chain,host,type,time,state});
 	}
 
 	/**

@@ -77,14 +77,31 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 	return ls;
 });
 
-export const getLedgerTotalAmount = useCache(getLedgerFrom.query, {
+export const getLedgerSummarys = useCache(getLedgerFrom.query, {
 	after: (e)=>{
-		let amount = BigInt(0);
-		for (let it of e)
-			amount += BigInt(it.balance);
-		return {total: e.length, amount: amount.toString()}
+		let income = BigInt(0);
+		let expenditure = BigInt(0);
+		for (let it of e) {
+			switch(it.type) {
+				case LedgerType.Receive: // income
+				case LedgerType.Deposit:// income
+				case LedgerType.AssetIncome:// income
+					income += BigInt(it.balance); break;
+				case LedgerType.Withdraw: // expenditure
+				case LedgerType.Release: // expenditure
+					expenditure += BigInt(it.balance); break;
+				default: break; // Reserved
+			}
+		}
+		return {
+			total: e.length,
+			totalItems: e.length,
+			income: income.toString(),
+			expenditure: expenditure.toString(),
+			amount: (income + expenditure).toString(),
+		};
 	},
-	name: 'getLedgerTotalAmount',
+	name: 'getLedgerSummarys',
 });
 
 export const setLedgerState = async (chain: ChainType, id: number, state: State)=>{

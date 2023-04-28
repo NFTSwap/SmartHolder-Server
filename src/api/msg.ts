@@ -5,5 +5,4 @@
 
 import {WSAPI} from '../api';
 
-export default class extends WSAPI {
-}
+export default class extends WSAPI {}

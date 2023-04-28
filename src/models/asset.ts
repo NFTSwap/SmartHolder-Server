@@ -43,6 +43,10 @@ export const tryFetchAssetMetadatas = async (asset: Asset[], chain: ChainType)=>
 	timeout = true;
 };
 
+export const setAssetState = async (chain: ChainType, token: string, tokenId: string, state: State)=>{
+	return db.update(`asset_${chain}`, {state}, { token, tokenId });
+};
+
 export const getAssetFrom = newQuery(async ({
 	chain,host, owner,author, owner_not,author_not, state,name,time,selling,selling_not,assetType,tokens,ids
 }: {
@@ -137,10 +141,6 @@ export const getAssetFrom = newQuery(async ({
 	return assets;
 }, 'getAssetFrom');
 
-export const setAssetState = async (chain: ChainType, token: string, tokenId: string, state: State)=>{
-	return db.update(`asset_${chain}`, {state}, { token, tokenId });
-};
-
 // 作品名称,开始时间/结束时间,作品所属,购买用户
 export const getAssetOrderFrom = newQuery(async ({
 	chain, host,
@@ -194,28 +194,34 @@ export const getAssetOrderFrom = newQuery(async ({
 	return order;
 }, 'getAssetOrderFrom');
 
-export const getOrderTotalAmount = useCache(getAssetOrderFrom.query, {
+export const getOrderSummarys = useCache(getAssetOrderFrom.query, {
 	after: (ls)=>{
 		let amount = BigInt(0);
 		for (let it of ls)
 			amount += BigInt(it.value);
-		return { total: ls.length, amount: amount.toString() };
+		return {
+			total: ls.length, // @Deprecated
+			totalItems: ls.length,
+			amount: amount.toString(),
+		};
 	},
-	name: 'getOrderTotalAmount',
+	name: 'getOrderSummarys',
 });
 
-export const getAssetAmountTotal = useCache(getAssetFrom.query, {
+export const getAssetSummarys = useCache(getAssetFrom.query, {
 	after: async (ls)=>{
 		let assetTotal = 0;
-		let assetAmountTotal = BigInt(0);
+		let minimumPriceTotal = BigInt(0);
 
 		for (let it of ls) {
 			assetTotal++;
-			assetAmountTotal += BigInt(it.minimumPrice || 0);
+			minimumPriceTotal += BigInt(it.minimumPrice || 0);
 		}
 		return {
-			assetTotal, assetAmountTotal: assetAmountTotal.toString(),
+			assetTotal,
+			assetAmountTotal: minimumPriceTotal.toString(), // @Deprecated
+			assetMinimumPriceTotal: minimumPriceTotal.toString(),
 		};
 	},
-	name: 'getAssetAmountTotal',
+	name: 'getAssetSummarys',
 });
