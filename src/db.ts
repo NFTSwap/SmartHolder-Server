@@ -345,17 +345,21 @@ async function load_main_db() {
 			`create         index member_${chain}_idx3           on member_${chain}                 (token,owner)`,
 			`create         index member_${chain}_idx4           on member_${chain}                 (owner)`,
 			`create         index member_${chain}_idx5           on member_${chain}                 (name)`,
+			`create         index member_${chain}_idx6           on member_${chain}                 (host)`,
 			// asset
 			`create         index asset_${chain}_idx0            on asset_${chain}                  (token)`,
 			`create  unique index asset_${chain}_idx1            on asset_${chain}                  (token,tokenId)`,
 			`create         index asset_${chain}_idx2            on asset_${chain}                  (token,owner)`,
 			`create         index asset_${chain}_idx3            on asset_${chain}                  (name)`,
+			`create         index asset_${chain}_idx4            on asset_${chain}                  (host)`,
 			// asset owner
 			`create         index asset_owner_${chain}_idx0      on asset_owner_${chain}            (token)`,
 			`create         index asset_owner_${chain}_idx1      on asset_owner_${chain}            (token,tokenId)`,
 			`create  unique index asset_owner_${chain}_idx2      on asset_owner_${chain}            (token,tokenId,owner)`,
 			`create         index asset_owner_${chain}_idx3      on asset_owner_${chain}            (token,owner)`,
 			`create         index asset_owner_${chain}_idx4      on asset_owner_${chain}            (asset_id)`,
+			`create         index asset_owner_${chain}_idx5      on asset_owner_${chain}            (host)`,
+			`create         index asset_owner_${chain}_idx6      on asset_owner_${chain}            (host,owner)`,
 			// asset order
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,
@@ -365,6 +369,9 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx6      on asset_order_${chain}            (token)`,
 			`create         index asset_order_${chain}_idx7      on asset_order_${chain}            (token,fromAddres)`,
 			`create         index asset_order_${chain}_idx8      on asset_order_${chain}            (asset_id)`,
+			`create         index asset_order_${chain}_idx9      on asset_order_${chain}            (host)`,
+			`create         index asset_order_${chain}_idx10     on asset_order_${chain}            (host,tokenId)`,
+			`create         index asset_order_${chain}_idx11     on asset_order_${chain}            (host,fromAddres)`,
 			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (host)`,
 			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (host,target)`,
@@ -380,6 +387,7 @@ async function load_main_db() {
 			`create         index ledger_asset_income_${chain}_idx4   on ledger_asset_income_${chain}  (token,fromAddress)`,
 			`create         index ledger_asset_income_${chain}_idx5   on ledger_asset_income_${chain}  (token,toAddress)`,
 			`create         index ledger_asset_income_${chain}_idx6   on ledger_asset_income_${chain}  (asset_id)`,
+			`create         index ledger_asset_income_${chain}_idx7   on ledger_asset_income_${chain}  (host)`,
 			// ledger_release_log
 			`create unique  index ledger_release_log_${chain}_idx0  on ledger_release_log_${chain}  (address,txHash)`,
 			// vote_proposl
