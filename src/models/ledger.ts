@@ -9,7 +9,7 @@ import {getLimit,useCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
 export const getLedgerFrom = newQuery(async ({
-	chain, host,type,time,state=State.Enable,ids
+	chain, host,type,time,state=State.Enable,ids,target,target_not
 }: {
 	chain: ChainType,
 	host?: string,
@@ -17,6 +17,7 @@ export const getLedgerFrom = newQuery(async ({
 	time?: [number,number],
 	ids?: number[],
 	state?: State,
+	target?: string, target_not?: string,
 }, {orderBy,limit,out})=>{
 	let sql = `select ${out} from ledger_${chain} where state=${escape(state)} `;
 	if (host)
@@ -27,6 +28,10 @@ export const getLedgerFrom = newQuery(async ({
 		sql += `and time>=${escape(time[0])} and time<=${escape(time[1])} `;
 	if (ids && ids.length)
 		sql += `and id in (${ids.map(e=>escape(e)).join()}) `;
+	if (target)
+		sql += `and target=${escape(target)} `;
+	if (target_not)
+		sql += `and target!=${escape(target_not)} `;
 	if (orderBy)
 		sql += `order by ${orderBy} `;
 	if (limit)
