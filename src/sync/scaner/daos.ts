@@ -10,6 +10,7 @@ import * as DAO from '../../../abi/DAO.json';
 import * as constants from './../constants';
 import {IndexerPool} from './../indexer';
 import buffer from 'somes/buffer';
+import * as crypto from 'crypto-tx';
 
 export class DAOs extends ContractScaner {
 
@@ -110,7 +111,7 @@ export class DAOs extends ContractScaner {
 
 				let extend = buffer.Zero;
 				try {
-					extend = await dao.methods.extend().call();
+					extend = crypto.toBuffer(await dao.methods.extend().call());
 				} catch(err) {
 					console.warn('#daos.Created dao.extend() call error', err);
 				}
