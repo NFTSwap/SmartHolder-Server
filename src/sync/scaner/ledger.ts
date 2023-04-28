@@ -3,11 +3,10 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog,ContractType,DAO} from '../../db';
+import {LedgerType,LedgerReleaseLog} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
 import * as opensea from '../../models/opensea';
-import mk_scaner from '../mk_scaner';
 
 export class Ledger extends ModuleScaner {
 	events = {
@@ -104,6 +103,7 @@ export class Ledger extends ModuleScaner {
 						txHash: txHash,
 						type: type,
 						target: from,
+						ref: from,
 						balance: numberStr(balance),
 						name: name,
 						description: description,
