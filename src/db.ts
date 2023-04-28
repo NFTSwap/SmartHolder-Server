@@ -366,11 +366,12 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx7      on asset_order_${chain}            (token,fromAddres)`,
 			`create         index asset_order_${chain}_idx8      on asset_order_${chain}            (asset_id)`,
 			// ledger
-			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (address)`,
-			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (address,target)`,
-			`create         index ledger_${chain}_idx2           on ledger_${chain}                 (address,type)`,
-			`create         index ledger_${chain}_idx3           on ledger_${chain}                 (address,target,type)`,
-			`create         index ledger_${chain}_idx4           on ledger_${chain}                 (address,txHash,type,member_id)`,
+			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (host)`,
+			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (host,target)`,
+			`create         index ledger_${chain}_idx2           on ledger_${chain}                 (host,type)`,
+			`create         index ledger_${chain}_idx3           on ledger_${chain}                 (host,target,type)`,
+			`create         index ledger_${chain}_idx4           on ledger_${chain}                 (host,txHash,type,member_id)`,
+			`create         index ledger_${chain}_idx5           on ledger_${chain}                 (host,ref)`,
 			// ledger_asset_income
 			`create unique  index ledger_asset_income_${chain}_idx0   on ledger_asset_income_${chain}  (ledger_id)`,
 			`create         index ledger_asset_income_${chain}_idx1   on ledger_asset_income_${chain}  (token)`,
