@@ -90,7 +90,7 @@ export interface Asset {
 	time: number; // 数据入库时间
 	modify: number; // 修改时间（非链上数据修改）
 	name: string;//                   varchar (256)  default ('') not null,  -- 名称
-	imageOriign: string;//            varchar (512)  default ('') not null,  -- origin image uri
+	imageOrigin: string;//            varchar (512)  default ('') not null,  -- origin image uri
 	mediaOrigin: string;//            varchar (512)  default ('') not null,  -- origin media uri
 	description: string;//            varchar (2048) default ('') not null,  -- 详细信息
 	externalLink: string;//           varchar (512)  default ('') not null,  -- 外部链接
