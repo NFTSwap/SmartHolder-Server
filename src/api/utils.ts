@@ -81,14 +81,14 @@ export default class extends ApiController {
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
 	getAssetFrom({
-		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not
+		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not,tokens
 	}: {
 		chain: ChainType, host?: string, owner?: string, author?: string,
-		owner_not?: string, author_not?: string, state?: State,
+		owner_not?: string, author_not?: string, state?: State,tokens?: string[],
 		selling?: Selling, selling_not?: Selling, assetType?: AssetType,
 		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom.query({chain,host,owner,author,
+		return asset.getAssetFrom.query({chain,host,owner,author,tokens,
 			owner_not,author_not,state,name,time,assetType,orderBy,limit,selling,selling_not});
 	}
 

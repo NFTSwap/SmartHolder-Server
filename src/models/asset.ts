@@ -48,7 +48,7 @@ export const setAssetState = async (chain: ChainType, token: string, tokenId: st
 };
 
 export const getAssetFrom = newQuery(async ({
-	chain,host, owner,author, owner_not,author_not, state,name,time,selling,selling_not,assetType,tokens,ids
+	chain,host, owner,author, owner_not,author_not, state = State.Enable,name,time,selling,selling_not,assetType,tokens,ids
 }: {
 	chain: ChainType,
 	host?: string,
