@@ -5,7 +5,7 @@
 
 import db, {ChainType, State,Ledger, LedgerType, LedgerAssetIncome,SaleType} from '../db';
 import {escape} from 'somes/db';
-import {getLimit,useCache,newQuery,joinTable} from './utils';
+import {getLimit,newCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
 export const getLedgerFrom = newQuery(async ({
@@ -101,7 +101,7 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 	return ls;
 });
 
-export const getLedgerSummarys = useCache(getLedgerFrom.query, {
+export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 	after: (e)=>{
 		let income = BigInt(0);
 		let expenditure = BigInt(0);

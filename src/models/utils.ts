@@ -80,13 +80,13 @@ export function newQuery<Args extends {}, More extends {}, R>(
 	name = String(name || somes.random());
 
 	return {
-		query: useCache(
+		query: newCache(
 			(args: Args & { orderBy?: string, limit?: number | number[]}, more?: More)=>handle(args, {
 				orderBy: args.orderBy, limit: args.limit, type: QueryType.kQuery, out: '*', total: false
 			}, more),
 			{ name, cacheTime: defaultCacheTime },
 		),
-		queryTotal: useCache(
+		queryTotal: newCache(
 			(args: Args, more?: More)=>handle(args, {
 				type: QueryType.kQueryTotal, out: 'count(*) as __count', total: true
 			}, more), {
@@ -110,7 +110,7 @@ export function newQuery<Args extends {}, More extends {}, R>(
 	};
 }
 
-export function useCache<Args extends any[], R, R2>(
+export function newCache<Args extends any[], R, R2>(
 	handle: (...args: Args)=>Promise<R>|R,
 	opts: {
 		before?: (args: Args)=>void,

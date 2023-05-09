@@ -7,7 +7,7 @@ import somes from 'somes';
 import db, { DAO, ChainType, Member, UserLikeDAO,LedgerType} from '../db';
 import errno from '../errno';
 import {escape} from 'somes/db';
-import {getLimit,newQuery,useCache} from './utils';
+import {getLimit,newQuery,newCache} from './utils';
 import { DAOExtend, DAOSummarys } from './define_ext';
 import {getVoteProposalFrom} from './vote_pool';
 import * as asset from './asset';
@@ -27,7 +27,7 @@ export async function getDAONoEmpty(chain: ChainType, address: string) {
 	return dao!;
 }
 
-export const fillMemberObjs = useCache(async (chain: ChainType, memberObjs: number = 0, daos: DAOExtend[])=>{
+export const fillMemberObjs = newCache(async (chain: ChainType, memberObjs: number = 0, daos: DAOExtend[])=>{
 	for (let dao of daos) {
 		if (memberObjs) {
 			dao.memberObjs = await member.getMembersFrom.query({
@@ -125,7 +125,7 @@ export const getAllDAOs = newQuery(async ({
 	return daos;
 }, 'getAllDAOs');
 
-export const getDAOSummarys = useCache(async ({chain,host}: {chain: ChainType, host: string})=>{
+export const getDAOSummarys = newCache(async ({chain,host}: {chain: ChainType, host: string})=>{
 	let dao = await getDAONoEmpty(chain, host);
 	let voteProposalTotal = 0;
 	let voteProposalPendingTotal = 0;

@@ -9,7 +9,7 @@ import {AssetOrderExt,AssetExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
-import {getLimit,newQuery,useCache,joinTable} from './utils';
+import {getLimit,newQuery,newCache,joinTable} from './utils';
 
 export const tryFetchAssetMetadata = async (asset: Asset, chain: ChainType)=>{
 	if (!asset.name || !asset.uri || !asset.mediaOrigin) {
@@ -194,7 +194,7 @@ export const getAssetOrderFrom = newQuery(async ({
 	return order;
 }, 'getAssetOrderFrom');
 
-export const getOrderSummarys = useCache(getAssetOrderFrom.query, {
+export const getOrderSummarys = newCache(getAssetOrderFrom.query, {
 	after: (ls)=>{
 		let amount = BigInt(0);
 		for (let it of ls)
@@ -208,7 +208,7 @@ export const getOrderSummarys = useCache(getAssetOrderFrom.query, {
 	name: 'getOrderSummarys',
 });
 
-export const getAssetSummarys = useCache(getAssetFrom.query, {
+export const getAssetSummarys = newCache(getAssetFrom.query, {
 	after: async (ls)=>{
 		let assetTotal = 0;
 		let minimumPriceTotal = BigInt(0);
