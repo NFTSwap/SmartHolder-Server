@@ -288,8 +288,8 @@ export class IndexerPool implements WatchCat {
 				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
 					address, type: ContractType.WETH, blockNumber
 				}]);
+				watch.impl.addWatch(this.asset_unlock); // add to watch
 			}
-			watch.impl.addWatch(this.asset_unlock); // add to watch
 		}
 
 		await this.cat();
