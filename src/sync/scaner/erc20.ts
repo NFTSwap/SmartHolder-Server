@@ -30,9 +30,9 @@ export class WETH extends ContractScaner {
 
 				// unlock asset shell
 				let to = event.returnValues.to;
-				let DAOs = await this.db.select<DAO>(`dao_${this.chain}`, `first=${escape(to)} or second=${escape(to)}`);
+				let DAOs = await this.db.selectCount(`dao_${this.chain}`, `first=${escape(to)} or second=${escape(to)}`);
 
-				if (DAOs.length == 0) return;
+				if (DAOs == 0) return;
 
 				let {blocks:[block]} = await sync.watchBlocks[this.chain]
 					.getTransactionLogsFrom(blockNumber, blockNumber, [{address: to, state: 0}]);
