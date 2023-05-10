@@ -30,7 +30,6 @@ export const tryFetchAssetMetadatas = async (asset: Asset[], chain: ChainType, t
 		return await somes.timeout(Promise.all(asset.map(e=>fetchAssetMetadata(e,chain))), timeout || 1e4);
 	} catch(err) {
 		console.warn(err);
-		return false;
 	}
 };
 
