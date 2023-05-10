@@ -11,7 +11,7 @@ import sync from '../sync';
 import * as dao_fn from './dao';
 import {getLimit,newQuery,newCache,joinTable} from './utils';
 
-export const tryFetchAssetMetadata = async (asset: Asset, chain: ChainType)=>{
+export const fetchAssetMetadata = async (asset: Asset, chain: ChainType)=>{
 	if (!asset.name || !asset.uri || !asset.mediaOrigin) {
 		await somes.scopeLock(`asset_${asset.id}`, async ()=>{
 			var [it] = await db.select<Asset>(`asset_${chain}`, {id:asset.id});
@@ -25,22 +25,13 @@ export const tryFetchAssetMetadata = async (asset: Asset, chain: ChainType)=>{
 	return asset;
 };
 
-export const tryFetchAssetMetadatas = async (asset: Asset[], chain: ChainType)=>{
-	var timeout = false;
+export const tryFetchAssetMetadatas = async (asset: Asset[], chain: ChainType, timeout?: number)=>{
 	try {
-		await somes.timeout((async () =>{
-			for (var a of asset) {
-				if (timeout) {
-					break;
-				} else {
-					await tryFetchAssetMetadata(a, chain);
-				}
-			}
-		})(), 1e4);
+		return await somes.timeout(Promise.all(asset.map(e=>fetchAssetMetadata(e,chain))), timeout || 1e4);
 	} catch(err) {
 		console.warn(err);
+		return false;
 	}
-	timeout = true;
 };
 
 export const setAssetState = async (chain: ChainType, token: string, tokenId: string, state: State)=>{
