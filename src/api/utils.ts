@@ -88,7 +88,7 @@ export default class extends ApiController {
 		selling?: Selling, selling_not?: Selling, assetType?: AssetType,
 		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom.query({chain,host,owner,author,tokens,
+		return asset.getAssetFrom.query({chain,host,owner,author,tokenIds:tokens,
 			owner_not,author_not,state,name,time,assetType,orderBy,limit,selling,selling_not});
 	}
 

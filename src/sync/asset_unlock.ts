@@ -52,6 +52,7 @@ export class AssetUnlockWatch implements WatchCat {
 			}[];
 		}
 		let dict: Dict<Data> = {};
+		let length = 0;
 
 		for (let {
 			id,host,token,tokenId,owner,previous,payType,payValue,payBank,payer,blockNumber} of ls)
@@ -74,6 +75,8 @@ export class AssetUnlockWatch implements WatchCat {
 				continue;
 			}
 
+			length++;
+
 			it.valueInt = it.valueInt + BigInt(payValue);
 			it.data.push({
 				id,lock: {tokenId,owner,previous}, payType,payValue,payBank,payer
@@ -82,7 +85,9 @@ export class AssetUnlockWatch implements WatchCat {
 			dict[token] = it;
 		}
 
-		return dict;
+		let data = Object.values(dict).map(e=>(e.value = e.valueInt + '', e));
+
+		return {data, length};
 	}
 
 	async cat() {
@@ -93,30 +98,36 @@ export class AssetUnlockWatch implements WatchCat {
 		let [from] = this.ownerForDAOs;
 		let [key] = this._secretKey;
 
-		let dict = await this.getAssetUnlockData(DAOsAddress);
-		let data = Object.values(dict).map(e=>(e.value = e.valueInt + '', e));
-		if (data.length) {
-			// send data to block chain
-			let DAOs = await this.web3.contract(DAOsAddress);
-			let method = DAOs.methods.unlockAssetForOperator(data);
+		let {data,length} = await this.getAssetUnlockData(DAOsAddress);
 
-			await method.call({from}); // try call
-
-			let tx = await this.web3.signTx({ to: DAOsAddress, data: method.encodeABI() }, {
-				sign: async (message)=>cryptoTx.sign(message, key),
-			});
-			let receipt = await this.web3.sendSignedTransaction(tx.data);
-
-			if (receipt.status) {
-				await db.transaction(async db=>{
-					for (let i of data) {
-						for (let j of i.data) {
-							db.update(`asset_unlock_${this.chain}`, {state: 1}, {id:j.id});
-						}
-					}
-				});
+		if (length < 100) {
+			if (length == 0 || Date.now() - this._prevExec < 1e3*3600*24) { // 1 days
+				return true; // skip
 			}
 		}
+
+		// send data to block chain
+		let DAOs = await this.web3.contract(DAOsAddress);
+		let method = DAOs.methods.unlockAssetForOperator(data);
+
+		await method.call({from}); // try call
+
+		let tx = await this.web3.signTx({ to: DAOsAddress, data: method.encodeABI() }, {
+			sign: async (message)=>cryptoTx.sign(message, key),
+		});
+		let receipt = await this.web3.sendSignedTransaction(tx.data);
+
+		if (receipt.status) {
+			await db.transaction(async db=>{
+				for (let i of data) {
+					for (let j of i.data) {
+						db.update(`asset_unlock_${this.chain}`, {state: 1}, {id:j.id});
+					}
+				}
+			});
+		}
+
+		this._prevExec = Date.now();
 
 		return true;
 	}

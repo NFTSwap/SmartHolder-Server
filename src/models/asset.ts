@@ -48,7 +48,7 @@ export const setAssetState = async (chain: ChainType, token: string, tokenId: st
 };
 
 export const getAssetFrom = newQuery(async ({
-	chain,host, owner,author, owner_not,author_not, state = State.Enable,name,time,selling,selling_not,assetType,tokens,ids
+	chain,host, owner,author, owner_not,author_not, state = State.Enable,name,time,selling,selling_not,assetType,tokenIds,ids
 }: {
 	chain: ChainType,
 	host?: string,
@@ -61,7 +61,7 @@ export const getAssetFrom = newQuery(async ({
 	time?: number | [number,number],
 	selling?: Selling, selling_not?: Selling,
 	assetType?: AssetType,
-	tokens?: string[],
+	tokenIds?: string[],
 	ids?: number[],
 }, {out,total,limit,orderBy}, {noBeautiful,noDAO}: {noBeautiful?: boolean,noDAO?:boolean}={})=>{
 	let sql = `select `;
@@ -97,8 +97,8 @@ export const getAssetFrom = newQuery(async ({
 		if(e)
 			sql += `and a.time<=${escape(e)} `;
 	}
-	if (tokens && tokens.length)
-		sql += `and a.tokenId in (${tokens.map(e=>escape(e)).join()}) `;
+	if (tokenIds && tokenIds.length)
+		sql += `and a.tokenId in (${tokenIds.map(e=>escape(e)).join()}) `;
 	if (ids && ids.length)
 		sql += `and a.id in (${ids.map(e=>escape(e)).join()}) `;
 	if (selling != undefined)
