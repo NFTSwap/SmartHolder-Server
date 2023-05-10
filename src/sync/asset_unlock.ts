@@ -13,6 +13,7 @@ import buffer, {IBuffer} from 'somes/buffer';
 import * as cryptoTx from 'crypto-tx';
 import * as aes from 'crypto-tx/aes';
 import * as cfg from '../../config';
+import errno from 'web3-tx/errno';
 
 export class AssetUnlockWatch implements WatchCat {
 	readonly cattime = 10; // 60 seconds cat()
@@ -33,10 +34,29 @@ export class AssetUnlockWatch implements WatchCat {
 		});
 	}
 
+	private is_EXECUTION_REVERTED(err: any) {
+		if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
+			err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0]) return true;
+		return false;
+	}
+
+	private async tryCall(addr: string, method: string, ...args: any[]) {
+		let c = await this.web3.contract(addr);
+		try {
+			return await c.methods.lockedOf(...args).call(); // get locked item
+		} catch(err) {
+			if (this.is_EXECUTION_REVERTED(err)) {
+				return false;
+			}
+			throw err;
+		}
+	}
+
 	private async getAssetUnlockData(DAOsAddress: string) {
 		let disable = async (id: number)=>{
 			let affectedRows = await db.update(`asset_unlock_${this.chain}`, {state: State.Disable}, {id});
 			somes.assert(affectedRows == 1, '#AssetUnlockWatch.cat disable fail');
+			console.log('#AssetUnlockWatch.getAssetUnlockData.disable()', DAOsAddress, id);
 		};
 
 		let ls = await db.select<AssetUnlock>(`asset_unlock_${this.chain}`, {state: 0}, {
@@ -62,17 +82,13 @@ export class AssetUnlockWatch implements WatchCat {
 				it = { token, valueInt: BigInt(0), value: '0', data: [] };
 			}
 
-			let c = await this.web3.contract(token);
-			let item = await c.methods.lockedOf(tokenId,owner,previous).call(); // get locked item
-			if (item.blockNumber != blockNumber) {
-				await disable(id);
-				continue;
+			let item = await this.tryCall(token, 'lockedOf', tokenId,owner,previous); // get locked item
+			if (!item && item.blockNumber != blockNumber) {
+				await disable(id); continue;
 			}
-			let dao = await this.web3.contract(host);
-			let unlockOperator = await dao.methods.unlockOperator().call();
-			if (DAOsAddress != unlockOperator) {
-				await disable(id);
-				continue;
+			let unlockOperator = await this.tryCall(host, 'unlockOperator');
+			if (!unlockOperator || DAOsAddress != unlockOperator) {
+				await disable(id); continue;
 			}
 
 			length++;
@@ -125,9 +141,8 @@ export class AssetUnlockWatch implements WatchCat {
 					}
 				}
 			});
+			this._prevExec = Date.now();
 		}
-
-		this._prevExec = Date.now();
 
 		return true;
 	}
