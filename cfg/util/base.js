@@ -63,4 +63,6 @@ module.exports = {
 		redis: '', // redis cfg
 	},
 	useRpc: false,
+	secretKey: [], // private key For DAOs owner 
+	salt: '',
 };

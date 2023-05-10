@@ -127,7 +127,7 @@ async function load_main_db() {
 
 			create table if not exists asset_order_${chain} (           -- asset order from -> to
 				id           int    primary key auto_increment not null,
-				host         varchar (42)                      not null, -- dao host
+				host         varchar (42)                      not null,  -- dao host
 				asset_id     int                               not null,  -- asset id
 				txHash       char    (66)                      not null,  -- tx hash
 				token        char    (42)                      not null,  -- asset contract address
@@ -140,6 +140,22 @@ async function load_main_db() {
 				value        varchar (78)   default ('')       not null,  -- tx value
 				count        varchar (78)                      not null,  -- asset count
 				description  varchar (1024) default ('')       not null
+			);
+
+			create table if not exists asset_unlock_${chain} (
+				id           int    primary key auto_increment not null,
+				host         varchar (42)                      not null,  -- dao host
+				token        char    (42)                      not null,  -- asset contract address
+				tokenId      char    (66)                      not null,  -- hash
+				owner        char    (42)                      not null,  -- owner
+				previous     char    (42)                      not null,  -- previous
+				payType      int                               not null,
+				payValue     varchar (78)                      not null,
+				payBank      char    (42)                      not null,
+				payer        char    (42)                      not null,
+				blockNumber  int                               not null,
+				state        int            default (0)        not null,
+				time         bigint         default (0)        not null
 			);
 
 			create table if not exists ledger_${chain} ( -- 财务记录
@@ -372,6 +388,9 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx9      on asset_order_${chain}            (host)`,
 			`create         index asset_order_${chain}_idx10     on asset_order_${chain}            (host,tokenId)`,
 			`create         index asset_order_${chain}_idx11     on asset_order_${chain}            (host,fromAddres)`,
+			// asset unlock
+			`create unique  index asset_unlock_${chain}_idx0     on asset_unlock_${chain}           (token,tokenId,owner,previous,blockNumber)`,
+			`create         index asset_unlock_${chain}_idx1     on asset_unlock_${chain}           (state)`,
 			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (host)`,
 			`create         index ledger_${chain}_idx1           on ledger_${chain}                 (host,target)`,

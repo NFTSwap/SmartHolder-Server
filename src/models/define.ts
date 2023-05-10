@@ -138,6 +138,22 @@ export interface AssetOrder {
 	count: string;//        varchar (66)                      not null,  -- asset count
 }
 
+export interface AssetUnlock {
+	id: number;//           int    primary key auto_increment not null,
+	host: string;
+	token: string;//        char    (42)                      not null,  -- asset contract address
+	tokenId: string;//      char    (66)                      not null,  -- hash
+	owner: string;//        char    (42)                      not null,  -- owner
+	previous: string;//     char    (42)                      not null,  -- previous
+	payType: string;//      int                               not null,
+	payValue: string;//     varchar (78)                      not null,
+	payBank: string;//      char    (42)                      not null,
+	payer: string;//        char    (42)                      not null,
+	blockNumber: number;//  int                               not null,
+	state: State;//         int            default (0)        not null,
+	time: number;//         bigint         default (0)        not null
+}
+
 export enum LedgerType {
 	Reserved, // 0保留
 	Receive, // 1进账-无名接收存入
@@ -244,9 +260,10 @@ export enum ContractType {
 	Asset,
 	AssetShell,
 	DAOs,
-	ERC20,
+	ERC20, // base erc20
 	ERC1155,
-	Share,
+	Share, // erc20 share
+	WETH,  // erc20 weth
 }
 
 export interface ContractInfo {

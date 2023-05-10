@@ -18,6 +18,8 @@ import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 import {Event} from 'somes/event';
 import somes from 'somes';
+import * as weth from '../../cfg/util/weth';
+import {AssetUnlockWatch} from './asset_unlock';
 
 /**
  * @class indexer for dao
@@ -208,6 +210,7 @@ export class IndexerPool implements WatchCat {
 	readonly worker: number;// = 0;
 	readonly indexers: Dict<Indexer> = {}; // id => Indexer
 	readonly cattime = 40; // 20 * 6 = 240 second
+	readonly asset_unlock: AssetUnlockWatch;
 
 	constructor(chain: ChainType, worker = 0, workers = 1) {
 		this.chain = chain;
@@ -215,6 +218,7 @@ export class IndexerPool implements WatchCat {
 		this.workers = workers;
 		pool.MAX_CONNECT_COUNT = 10; // max 50
 		// pool.CONNECT_TIMEOUT = 2e4; // 20 second
+		this.asset_unlock = new AssetUnlockWatch(chain);
 	}
 
 	static async addIndexer(
@@ -271,7 +275,8 @@ export class IndexerPool implements WatchCat {
 		});
 
 		if (isMainWorker) { // init DAOs contract, add indexer
-			let info = deployInfo[ChainType[this.chain].toLowerCase() as 'goerli'];
+			let network = ChainType[this.chain].toLowerCase() as 'goerli';
+			let info = deployInfo[network];
 			if (info) {
 				let {address,blockNumber} = info.DAOsProxy;
 				// init root indexer
@@ -279,6 +284,12 @@ export class IndexerPool implements WatchCat {
 					address, type: ContractType.DAOs, blockNumber
 				}]);
 			}
+			for (let {address,blockNumber} of weth[network] || []) {
+				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
+					address, type: ContractType.WETH, blockNumber
+				}]);
+			}
+			watch.impl.addWatch(this.asset_unlock); // add to watch
 		}
 
 		await this.cat();

@@ -260,7 +260,11 @@ export class WatchBlock implements WatchCat {
 			info,
 			blocks: [] as {
 				blockNumber: number,
-				logs: { idx: number, logs: TransactionLog[] }[],
+				logs: {
+					idx: number, // index for info
+					// address: string, // info address
+					logs: TransactionLog[],
+				}[],
 			}[],
 		};
 
