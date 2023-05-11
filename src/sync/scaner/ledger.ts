@@ -6,7 +6,7 @@
 import {LedgerType,LedgerReleaseLog} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
-import * as opensea from '../../models/opensea';
+// import * as order from '../../models/order';
 
 export class Ledger extends ModuleScaner {
 	events = {
@@ -158,7 +158,7 @@ export class Ledger extends ModuleScaner {
 					});
 
 					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
-					await opensea.maskOrderSold(this.chain, token, tokenId, this.db);
+					// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
 				}
 			},
 		},

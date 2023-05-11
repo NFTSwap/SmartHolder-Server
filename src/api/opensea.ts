@@ -6,6 +6,7 @@
 import ApiController from '../api';
 import {ChainType,AssetType} from '../models/define';
 import * as opensea from '../models/opensea';
+import * as order from '../models/order';
 import {OrderComponents} from '../models/opensea_type';
 
 export default class extends ApiController {
@@ -48,7 +49,7 @@ export default class extends ApiController {
 	}
 
 	maskOrderClose({chain, token, tokenId}: {chain: ChainType, token: string, tokenId: string}) {
-		return opensea.maskOrderClose(chain, token, tokenId);
+		return order.maskSellOrderClose(chain, token, tokenId, BigInt(0), '');
 	}
 
 }

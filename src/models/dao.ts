@@ -11,6 +11,7 @@ import {getLimit,newQuery,newCache} from './utils';
 import { DAOExtend, DAOSummarys } from './define_ext';
 import {getVoteProposalFrom} from './vote_pool';
 import * as asset from './asset';
+import * as order from './order';
 import {getLedgerSummarys} from './ledger';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import * as member from './member';
@@ -148,7 +149,7 @@ export const getDAOSummarys = newCache(async ({chain,host}: {chain: ChainType, h
 	}
 
 	let {assetTotal,assetMinimumPriceTotal} = await asset.getAssetSummarys({chain, host});
-	let {totalItems,amount} = await asset.getOrderSummarys({chain, host});
+	let {totalItems,amount} = await order.getOrderSummarys({chain, host});
 	let ledgerSummarys = await getLedgerSummarys({chain, host,type:LedgerType.AssetIncome});
 
 	let summarys: DAOSummarys =  {
