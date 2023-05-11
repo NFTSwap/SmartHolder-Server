@@ -5,7 +5,7 @@
 
 import somes from 'somes';
 import db, {ChainType, Asset, State,AssetType,Selling} from '../db';
-import {AssetOrderExt,AssetExt} from './define_ext';
+import {AssetExt} from './define_ext';
 import {escape} from 'somes/db';
 import sync from '../sync';
 import * as dao_fn from './dao';
