@@ -64,6 +64,7 @@ export class Indexer implements WatchCat {
 		} else if (!ds_) { // insert
 			await contract.insert({
 				...ds,
+				address,
 				indexer_id: this.data.id,
 				host: ds.host || '0x0000000000000000000000000000000000000000',
 				time: Date.now(),

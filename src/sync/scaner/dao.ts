@@ -16,7 +16,7 @@ export class DAO extends ModuleScaner {
 	async setDataSource(indexer: Indexer, del: string, add: string, type: ContractType) {
 		if (del != add) {
 			await indexer.deleteDataSource(del);
-			await indexer.addDataSource({ address: add, host: this.address, type, time: Date.now() });
+			await indexer.addDataSource({ address: add, host: this.address, type, blockNumber: this.blockNumber });
 		}
 	}
 
