@@ -104,7 +104,7 @@ export class Indexer implements WatchCat {
 			if (log.data.slice(0,2) != '0x') {
 				if (log.data == 'rpc:fetch' || log.data.slice(0,4) == 'http'/*Compatible with old*/) {
 					let logs = await scaner.web3.eth.getPastLogs({
-						fromBlock: tx.blockNumber, toBlock: tx.blockNumber, address: address,
+						fromBlock: log.blockNumber, toBlock: log.blockNumber, address: address,
 					});
 					log.data = logs.find(e=>
 						e.transactionIndex==log.transactionIndex && e.logIndex==log.logIndex

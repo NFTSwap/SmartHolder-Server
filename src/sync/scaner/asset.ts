@@ -7,12 +7,12 @@ import { Asset, ContractType, ChainType, SaleType,AssetType,AssetOwner} from '..
 import {ContractScaner, IAssetScaner, numberStr,formatHex,HandleEventData} from '.';
 import * as utils from '../../utils';
 import _hash from 'somes/hash';
-import * as opensea from '../../models/opensea';
+import * as order from '../../models/order';
 import * as constants from './../constants';
 import sync from './../index';
 import somes from 'somes';
 import * as contract from '../../models/contract';
-import errno from 'web3-tx/errno';
+import {isExecutionRevreted} from '../../web3+';
 
 export abstract class ModuleScaner extends ContractScaner {
 	protected async onDescription(data: HandleEventData, desc: string) {}
@@ -66,17 +66,11 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		return uri;
 	}
 
-	private is_EXECUTION_REVERTED(err: any) {
-		if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
-			err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0]) return true;
-		return false;
-	}
-
 	private async tryBalanceOf(owner: string, tokenId: string, blockNumber?: number) {
 		try {
 			return await this.balanceOf(owner, tokenId, blockNumber);
 		} catch(err: any) {
-			if (this.is_EXECUTION_REVERTED(err))
+			if (isExecutionRevreted(err))
 				return BigInt(0);
 			throw err;
 		}
@@ -86,7 +80,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 		try {
 			return await this.totalSupply(tokenId, blockNumber);
 		} catch(err: any) {
-			if (this.is_EXECUTION_REVERTED(err))
+			if (isExecutionRevreted(err))
 				return BigInt(0);
 			throw err;
 		}
@@ -204,8 +198,7 @@ export abstract class AssetModuleScaner extends ModuleScaner implements IAssetSc
 			}
 		}
 
-		// TODO ... maskOrderClose
-		await opensea.maskOrderClose(this.chain, token, tokenId, db);
+		await order.maskSellOrderClose(this.chain, token, tokenId, count, from, db);
 	}
 
 	protected async onChangePlus({event,blockTime: modify}: HandleEventData, tag: number) {

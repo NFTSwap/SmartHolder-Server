@@ -9,6 +9,7 @@ import {AbiInterface} from 'bclib/abi';
 import * as contract from './models/contract';
 import {WatchCat} from 'bclib/watch';
 import { env } from './env';
+import errno from 'web3-tx/errno';
 
 export { Web3, BcWeb3, Contract, AbiInterface };
 
@@ -101,6 +102,12 @@ export function isRpcLimitDataSize(web3: Web3, err: Error) {
 	return false;
 }
 
+export function isExecutionRevreted(err: any) {
+	if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
+		err.errno == errno.ERR_EXECUTION_REVERTED_Values_Invalid[0]) return true;
+	return false;
+}
+
 class MvpMultipleProvider extends MultipleProvider {
 	onResult(res: JsonRpcResponse, rpc: string) {
 		if (res.error) {
@@ -163,6 +170,10 @@ export class MvpWeb3 extends BcWeb3 {
 			method: 'eth_getTransactionReceiptsByBlock',
 			params:  [`0x${block.toString(16)}`]
 		}), 3e4); // 30s
+	}
+
+	isExecutionRevreted(err: any) {
+		return isExecutionRevreted(err);
 	}
 
 	async hasSupportGetTransactionReceiptsByBlock() {

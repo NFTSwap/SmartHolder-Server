@@ -23,16 +23,35 @@ export class ERC20 extends ContractScaner {
 // watch for weth unlock assets
 export class WETH extends ContractScaner {
 	// event Transfer(address indexed from, address indexed to, uint256 value);
+	// event Approval(address indexed owner, address indexed spender, uint256 value);
+	// event Deposit(address indexed dst, uint256 amount);
+	// event Withdraw(address indexed src, uint256 amount);
 	events = {
+		Approval: {
+			handle: async ({event}: HandleEventData)=>{
+				// console.log('#WETH.Approval event', event.returnValues);
+			}
+		},
+		Deposit: {
+			handle: async ({event}: HandleEventData)=>{
+				// console.log('#WETH.Deposit event', event.returnValues);
+			}
+		},
+		Withdraw: {
+			handle: async ({event}: HandleEventData)=>{
+				// console.log('#WETH.Withdraw event', event.returnValues);
+			}
+		},
 		Transfer: {
 			handle: async ({event,blockNumber,tx}: HandleEventData)=>{
-				console.log('#WETH.Transfer event', event.returnValues);
-
+				// console.log('#WETH.Transfer event', event.returnValues);
 				// unlock asset shell
 				let to = event.returnValues.to;
 				let DAOs = await this.db.selectCount(`dao_${this.chain}`, `first=${escape(to)} or second=${escape(to)}`);
 
 				if (DAOs == 0) return;
+
+				debugger
 
 				let {blocks:[block]} = await sync.watchBlocks[this.chain]
 					.getTransactionLogsFrom(blockNumber, blockNumber, [{address: to, state: 0}]);
@@ -57,13 +76,17 @@ export class WETH extends ContractScaner {
 						let {from,to,id,value} = this.web3.eth.abi
 							.decodeLog(TransferSingle.inputs!, log.data, [log.topic1,log.topic2,log.topic3]);
 						let c = await this.web3.contract(log.address);
-						let item = await c.methods.lockedOf(id,to,from).call(); // get locked item
-						let host = await c.methods.host().call(); // get host address
+						try {
+							var item = await c.methods.lockedOf(id,to,from).call(); // get locked item
+						} catch(err) {
+							if (!this.web3.isExecutionRevreted(err)) throw err;
+						}
 
-						if (item.blockNumber == blockNumber) {
+						if (item && item.blockNumber == blockNumber) {
 							somes.assert(item.count == value, '#WETH.Transfer.handle item count no match');
+
 							await this.db.insert(`asset_unlock_${this.chain}`, {
-								host,
+								host: await c.methods.host().call(), // get host address,
 								token: log.address,
 								tokenId: id,
 								owner: to,

@@ -1,167 +1,182 @@
 {
   "contractName": "Errors",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Errors.sol\":\"Errors\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Errors.sol\":{\"keccak256\":\"0xe8f27a64f64424dae9dae5ac826877e949e574588a48a396018a3ab154dfaee1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://830aa212a96be3bc9a216103d5fa4184cba7d9e7912eb529e0dac8bb2ffab561\",\"dweb:/ipfs/QmQzwsPBaub5ppf9wisToRernAxDLQu7jP8aQjxVT7xgsk\"]}},\"version\":1}",
-  "bytecode": "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212200a41ea0213a39e326b825323e3a42a64522cc051705199b9e457f99106df638864736f6c63430008110033",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212200a41ea0213a39e326b825323e3a42a64522cc051705199b9e457f99106df638864736f6c63430008110033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/libs/Errors.sol\":\"Errors\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/libs/Errors.sol\":{\"keccak256\":\"0x7b06547c7fa5da46351c67a39c330a6a87e1271df5471aefb5fbd90965435f46\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://dbaaa0d8339c27d4092af858dbf92f04416069f0baf2527314d66d3669fe7788\",\"dweb:/ipfs/QmV4afvB3TUeqm42pyyaTYvjYGwTCZdXPNnEKFNg8stoqu\"]}},\"version\":1}",
+  "bytecode": "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea264697066735822122058b47e10d209112b71a89a58beaad8e3a1b1c98c93aeded49a4d6ee7160c5ffb64736f6c63430008110033",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea264697066735822122058b47e10d209112b71a89a58beaad8e3a1b1c98c93aeded49a4d6ee7160c5ffb64736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [],
-  "sourceMap": "3659:17:26:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "3659:17:26:-:0;;;;;;;;",
-  "source": "//SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n// error Test();\n// revert Test(type(uint8).max);\n\nerror InsufficientBalance(); // 0xf4d678b8 payable insufficient balance\nerror PayableInsufficientAmount(); // 0x5bdb36f8 payable insufficient amount\nerror PayableAmountZero(); // 0x41a5bd5c payable amount zero\nerror SendValueFail(); // 0x9993a422 send amount value fail\nerror PermissionDenied(); // 0x1e092104 permission denied\nerror PermissionDeniedForOnlyDAO(); // 0xda002518 permission denied for only dao\nerror PermissionDeniedForMember(); // 0x7832bbc1 specific member no match\nerror CheckInterfaceNoMatch(bytes4 interfaceId);  // 0x2aae78ef check interface or module no match\nerror AddressEmpty(); // 0x5bb7a723 address cannot be empty zero\nerror TokenIDEmpty(); // 0x94e69af8 token Id cannot be empty zero\nerror PermissionDeniedInERC721(); // 0xd3a32745 erc721 action permission denied\nerror TransferOfTokenIDThatIsNotOwnInERC721(); // 0x11307032 transfer of token id that is not own in ERC721\nerror TokenIDNonExistentInERC721(); // 0x5449cd45 nonexistent token id for ERC721\nerror TokenIDAlreadyMintedInERC721(); // 0x082c3a4f token id already minted in ERC721\nerror ApprovalToOwnerInERC721(); // 0x65f090f7 Cannot approve to owner\nerror ApproveAllToCallerInERC721(); // 0x19095a8c cannot approve all to caller or owner in ERC721\nerror NonERC721ReceiverImplementer(); // 0x85d5821e non ERC721 Receiver implementer\nerror OnlyOwnerAvailable(); // 0x399c7579 Only available to the owner\nerror NonContractAddress(); // 0x4aa4cf51 non contract address\nerror AssetNonExistsInAssetShell(); // 0x54ac7492 asset non exists\nerror NeedToUnlockAssetFirst(); // 0xf31df50e You need to unlock the asset first\nerror LockTokenIDEmptyInAssetShell(); // 0x21c67f49 Lock cannot be empty in asset shell\nerror LockTokenIDPreviousOwnerEmptyInAssetShell(); // 0x21c67f49 Lock previous owner cannot be empty in asset shell\nerror InsufficientVotesInMember(); // 0x252f4a32 not votes power enough in member\nerror MemberNonExists(); // 0x7f5c5df9 member non exists\nerror MemberAlreadyExists(); // 0xe0150952 member already exists\nerror MemberRequestJoinAlreadyExists(); // 0xa1ee8585 already exists member join request\nerror ProposalNonExistsInVotePool(); // 0xf0f63e9e proposal non exists\nerror ProposalAlreadyExistsInVotePool(); // 0xec297468 proposal already exists\nerror ProposalDefaultLifespanLimitError(); // 0x420e832e proposal lifespan not less than 12 hours\nerror CreateProposalVotePassEateLimitError(); // 0xeda2bb99 proposal vote pass rate not less than 50%\nerror CreateProposalLifespanLimitError(); // 0xc0c4b93d proposal lifespan not less than current setting lifespan days\nerror CreateProposalLoopTimeLimitError(); // 0x0d67e9dd Loop time must be greater than 1 minute\nerror VotesZero(); // 0xdd3b8d8f votes cannot be zero\nerror ProposalClosed(); // 0x1446e503 proposal closed\nerror VotingMemberNoMatch(); // 0x22dd3c54 Voting Membership Mismatch\nerror DuplicateVoteError(); // 0x29a56ece Cannot vote repeatedly\nerror VoteInsufficientVotes(); // 0xaccf9793 vote insufficient votes\nerror VotingInProgress(); // 0x1182db35 voting in progress\nerror ProposalNotPassed(); // 0xc8c93ba3 Proposal was not passed\nerror MethodNotImplemented(); // 0x29749743 method not implemented\nerror MaximumSupplyLimitInShare(); // 0x9b4cee83 Exceeding the maximum supply limit\nerror TokenIDMustEvenNumberInAsset(); // 0x5a708f03 token id must be an even number\nerror NoPermissionToMintNFTs1155(); // 0x292c3a85 No permission to mint NFTs\nerror TokenIDAlreadyExistsInAsset(); // 0x8791d6ee token id already exists\nerror AmountMinimumLimit(); // 0xf76273e9 amount minimum limit\n\nlibrary Errors {}",
+  "sourceMap": "4141:17:26:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "4141:17:26:-:0;;;;;;;;",
+  "source": "//SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n// error Test();\n// revert Test(type(uint8).max);\n\nerror InsufficientBalance(); // 0xf4d678b8 payable insufficient balance\nerror PayableInsufficientAmount(); // 0x5bdb36f8 payable insufficient amount\nerror PayableAmountZero(); // 0x41a5bd5c payable amount zero\nerror SendValueFail(); // 0x9993a422 send amount value fail\nerror PermissionDenied(); // 0x1e092104 permission denied\nerror PermissionDeniedForOnlyDAO(); // 0xda002518 permission denied for only dao\nerror PermissionDeniedForMember(); // 0x7832bbc1 specific member no match\nerror CheckInterfaceNoMatch(bytes4 interfaceId);  // 0x2aae78ef check interface or module no match\nerror AddressEmpty(); // 0x5bb7a723 address cannot be empty zero\nerror TokenIDEmpty(); // 0x94e69af8 token Id cannot be empty zero\nerror PermissionDeniedInERC721(); // 0xd3a32745 erc721 action permission denied\nerror TransferOfTokenIDThatIsNotOwnInERC721(); // 0x11307032 transfer of token id that is not own in ERC721\nerror TokenIDNonExistentInERC721(); // 0x5449cd45 nonexistent token id for ERC721\nerror TokenIDAlreadyMintedInERC721(); // 0x082c3a4f token id already minted in ERC721\nerror ApprovalToOwnerInERC721(); // 0x65f090f7 Cannot approve to owner\nerror ApproveAllToCallerInERC721(); // 0x19095a8c cannot approve all to caller or owner in ERC721\nerror NonERC721ReceiverImplementer(); // 0x85d5821e non ERC721 Receiver implementer\nerror OnlyOwnerAvailable(); // 0x399c7579 Only available to the owner\nerror NonContractAddress(); // 0x4aa4cf51 non contract address\nerror AssetNonExistsInAssetShell(); // 0x54ac7492 asset non exists\nerror NeedToUnlockAssetFirst(); // 0xf31df50e You need to unlock the asset first\nerror LockTokenIDEmptyInAssetShell(); // 0x21c67f49 Lock cannot be empty in asset shell\nerror LockTokenIDPreviousOwnerEmptyInAssetShell(); // 0x21c67f49 Lock previous owner cannot be empty in asset shell\nerror InsufficientVotesInMember(); // 0x252f4a32 not votes power enough in member\nerror MemberNonExists(); // 0x7f5c5df9 member non exists\nerror MemberAlreadyExists(); // 0xe0150952 member already exists\nerror MemberRequestJoinAlreadyExists(); // 0xa1ee8585 already exists member join request\nerror ProposalNonExistsInVotePool(); // 0xf0f63e9e proposal non exists\nerror ProposalAlreadyExistsInVotePool(); // 0xec297468 proposal already exists\nerror ProposalDefaultLifespanLimitError(); // 0x420e832e proposal lifespan not less than 12 hours\nerror CreateProposalVotePassEateLimitError(); // 0xeda2bb99 proposal vote pass rate not less than 50%\nerror CreateProposalLifespanLimitError(); // 0xc0c4b93d proposal lifespan not less than current setting lifespan days\nerror CreateProposalLoopTimeLimitError(); // 0x0d67e9dd Loop time must be greater than 1 minute\nerror VotesZero(); // 0xdd3b8d8f votes cannot be zero\nerror ProposalClosed(); // 0x1446e503 proposal closed\nerror VotingMemberNoMatch(); // 0x22dd3c54 Voting Membership Mismatch\nerror DuplicateVoteError(); // 0x29a56ece Cannot vote repeatedly\nerror VoteInsufficientVotes(); // 0xaccf9793 vote insufficient votes\nerror VotingInProgress(); // 0x1182db35 voting in progress\nerror ProposalNotPassed(); // 0xc8c93ba3 Proposal was not passed\nerror MethodNotImplemented(); // 0x29749743 method not implemented\nerror MaximumSupplyLimitInShare(); // 0x9b4cee83 Exceeding the maximum supply limit\nerror TokenIDMustEvenNumberInAsset(); // 0x5a708f03 token id must be an even number\nerror NoPermissionToMintNFTs1155(); // 0x292c3a85 No permission to mint NFTs\nerror TokenIDAlreadyExistsInAsset(); // 0x8791d6ee token id already exists\nerror AmountMinimumLimit(); // 0xf76273e9 amount minimum limit\nerror LockTokenIDValueEmptyInAssetShell(); // 0x42e0e2ca Lock value cannot be empty in asset shell\nerror NeedToUnlockAssetFirstForPreviousOwner(); // 0xe0caa311 You need to unlock the asset first\nerror PayableInsufficientAmountWETH(); // 0x8629bf06 payable insufficient amount\nerror PermissionDeniedForOnlyUnlockOperator(); // 0x0ee27f94 permission denied for only dao unlock operator\nerror MINTERC1155QuantityExceedsLimit(); // 0xad1fa1b0 mint ERC1155 asset quantity exceeds limit\n\nlibrary Errors {}",
   "sourcePath": "/Users/louis/Project/hc/NFTSwap/SmartHolder/contracts/libs/Errors.sol",
   "ast": {
     "absolutePath": "project:/contracts/libs/Errors.sol",
     "exportedSymbols": {
       "AddressEmpty": [
-        9972
+        10367
       ],
       "AmountMinimumLimit": [
-        10046
+        10441
       ],
       "ApprovalToOwnerInERC721": [
-        9984
+        10379
       ],
       "ApproveAllToCallerInERC721": [
-        9986
+        10381
       ],
       "AssetNonExistsInAssetShell": [
-        9994
+        10389
       ],
       "CheckInterfaceNoMatch": [
-        9970
+        10365
       ],
       "CreateProposalLifespanLimitError": [
-        10018
+        10413
       ],
       "CreateProposalLoopTimeLimitError": [
-        10020
+        10415
       ],
       "CreateProposalVotePassEateLimitError": [
-        10016
+        10411
       ],
       "DuplicateVoteError": [
-        10028
+        10423
       ],
       "Errors": [
-        10047
+        10452
       ],
       "InsufficientBalance": [
-        9954
+        10349
       ],
       "InsufficientVotesInMember": [
-        10002
+        10397
       ],
       "LockTokenIDEmptyInAssetShell": [
-        9998
+        10393
       ],
       "LockTokenIDPreviousOwnerEmptyInAssetShell": [
-        10000
+        10395
+      ],
+      "LockTokenIDValueEmptyInAssetShell": [
+        10443
+      ],
+      "MINTERC1155QuantityExceedsLimit": [
+        10451
       ],
       "MaximumSupplyLimitInShare": [
-        10038
+        10433
       ],
       "MemberAlreadyExists": [
-        10006
+        10401
       ],
       "MemberNonExists": [
-        10004
+        10399
       ],
       "MemberRequestJoinAlreadyExists": [
-        10008
+        10403
       ],
       "MethodNotImplemented": [
-        10036
+        10431
       ],
       "NeedToUnlockAssetFirst": [
-        9996
+        10391
+      ],
+      "NeedToUnlockAssetFirstForPreviousOwner": [
+        10445
       ],
       "NoPermissionToMintNFTs1155": [
-        10042
+        10437
       ],
       "NonContractAddress": [
-        9992
+        10387
       ],
       "NonERC721ReceiverImplementer": [
-        9988
+        10383
       ],
       "OnlyOwnerAvailable": [
-        9990
+        10385
       ],
       "PayableAmountZero": [
-        9958
+        10353
       ],
       "PayableInsufficientAmount": [
-        9956
+        10351
+      ],
+      "PayableInsufficientAmountWETH": [
+        10447
       ],
       "PermissionDenied": [
-        9962
+        10357
       ],
       "PermissionDeniedForMember": [
-        9966
+        10361
       ],
       "PermissionDeniedForOnlyDAO": [
-        9964
+        10359
+      ],
+      "PermissionDeniedForOnlyUnlockOperator": [
+        10449
       ],
       "PermissionDeniedInERC721": [
-        9976
+        10371
       ],
       "ProposalAlreadyExistsInVotePool": [
-        10012
+        10407
       ],
       "ProposalClosed": [
-        10024
+        10419
       ],
       "ProposalDefaultLifespanLimitError": [
-        10014
+        10409
       ],
       "ProposalNonExistsInVotePool": [
-        10010
+        10405
       ],
       "ProposalNotPassed": [
-        10034
+        10429
       ],
       "SendValueFail": [
-        9960
+        10355
       ],
       "TokenIDAlreadyExistsInAsset": [
-        10044
+        10439
       ],
       "TokenIDAlreadyMintedInERC721": [
-        9982
+        10377
       ],
       "TokenIDEmpty": [
-        9974
+        10369
       ],
       "TokenIDMustEvenNumberInAsset": [
-        10040
+        10435
       ],
       "TokenIDNonExistentInERC721": [
-        9980
+        10375
       ],
       "TransferOfTokenIDThatIsNotOwnInERC721": [
-        9978
+        10373
       ],
       "VoteInsufficientVotes": [
-        10030
+        10425
       ],
       "VotesZero": [
-        10022
+        10417
       ],
       "VotingInProgress": [
-        10032
+        10427
       ],
       "VotingMemberNoMatch": [
-        10026
+        10421
       ]
     },
-    "id": 10048,
+    "id": 10453,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 9952,
+        "id": 10347,
         "literals": [
           "solidity",
           "~",
@@ -173,12 +188,12 @@
       },
       {
         "errorSelector": "f4d678b8",
-        "id": 9954,
+        "id": 10349,
         "name": "InsufficientBalance",
         "nameLocation": "114:19:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9953,
+          "id": 10348,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "133:2:26"
@@ -187,12 +202,12 @@
       },
       {
         "errorSelector": "5bdb36f8",
-        "id": 9956,
+        "id": 10351,
         "name": "PayableInsufficientAmount",
         "nameLocation": "186:25:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9955,
+          "id": 10350,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "211:2:26"
@@ -201,12 +216,12 @@
       },
       {
         "errorSelector": "41a5bd5c",
-        "id": 9958,
+        "id": 10353,
         "name": "PayableAmountZero",
         "nameLocation": "263:17:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9957,
+          "id": 10352,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "280:2:26"
@@ -215,12 +230,12 @@
       },
       {
         "errorSelector": "9993a422",
-        "id": 9960,
+        "id": 10355,
         "name": "SendValueFail",
         "nameLocation": "324:13:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9959,
+          "id": 10354,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "337:2:26"
@@ -229,12 +244,12 @@
       },
       {
         "errorSelector": "1e092104",
-        "id": 9962,
+        "id": 10357,
         "name": "PermissionDenied",
         "nameLocation": "384:16:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9961,
+          "id": 10356,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "400:2:26"
@@ -243,12 +258,12 @@
       },
       {
         "errorSelector": "da002518",
-        "id": 9964,
+        "id": 10359,
         "name": "PermissionDeniedForOnlyDAO",
         "nameLocation": "442:26:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9963,
+          "id": 10358,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "468:2:26"
@@ -257,12 +272,12 @@
       },
       {
         "errorSelector": "7832bbc1",
-        "id": 9966,
+        "id": 10361,
         "name": "PermissionDeniedForMember",
         "nameLocation": "523:25:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9965,
+          "id": 10360,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "548:2:26"
@@ -271,22 +286,22 @@
       },
       {
         "errorSelector": "2aae78ef",
-        "id": 9970,
+        "id": 10365,
         "name": "CheckInterfaceNoMatch",
         "nameLocation": "597:21:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9969,
+          "id": 10364,
           "nodeType": "ParameterList",
           "parameters": [
             {
               "constant": false,
-              "id": 9968,
+              "id": 10363,
               "mutability": "mutable",
               "name": "interfaceId",
               "nameLocation": "626:11:26",
               "nodeType": "VariableDeclaration",
-              "scope": 9970,
+              "scope": 10365,
               "src": "619:18:26",
               "stateVariable": false,
               "storageLocation": "default",
@@ -295,7 +310,7 @@
                 "typeString": "bytes4"
               },
               "typeName": {
-                "id": 9967,
+                "id": 10362,
                 "name": "bytes4",
                 "nodeType": "ElementaryTypeName",
                 "src": "619:6:26",
@@ -313,12 +328,12 @@
       },
       {
         "errorSelector": "5bb7a723",
-        "id": 9972,
+        "id": 10367,
         "name": "AddressEmpty",
         "nameLocation": "696:12:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9971,
+          "id": 10366,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "708:2:26"
@@ -327,12 +342,12 @@
       },
       {
         "errorSelector": "94e69af8",
-        "id": 9974,
+        "id": 10369,
         "name": "TokenIDEmpty",
         "nameLocation": "761:12:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9973,
+          "id": 10368,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "773:2:26"
@@ -341,12 +356,12 @@
       },
       {
         "errorSelector": "d3a32745",
-        "id": 9976,
+        "id": 10371,
         "name": "PermissionDeniedInERC721",
         "nameLocation": "827:24:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9975,
+          "id": 10370,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "851:2:26"
@@ -355,12 +370,12 @@
       },
       {
         "errorSelector": "11307032",
-        "id": 9978,
+        "id": 10373,
         "name": "TransferOfTokenIDThatIsNotOwnInERC721",
         "nameLocation": "907:37:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9977,
+          "id": 10372,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "944:2:26"
@@ -369,12 +384,12 @@
       },
       {
         "errorSelector": "5449cd45",
-        "id": 9980,
+        "id": 10375,
         "name": "TokenIDNonExistentInERC721",
         "nameLocation": "1015:26:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9979,
+          "id": 10374,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1041:2:26"
@@ -383,12 +398,12 @@
       },
       {
         "errorSelector": "082c3a4f",
-        "id": 9982,
+        "id": 10377,
         "name": "TokenIDAlreadyMintedInERC721",
         "nameLocation": "1097:28:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9981,
+          "id": 10376,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1125:2:26"
@@ -397,12 +412,12 @@
       },
       {
         "errorSelector": "65f090f7",
-        "id": 9984,
+        "id": 10379,
         "name": "ApprovalToOwnerInERC721",
         "nameLocation": "1183:23:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9983,
+          "id": 10378,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1206:2:26"
@@ -411,12 +426,12 @@
       },
       {
         "errorSelector": "19095a8c",
-        "id": 9986,
+        "id": 10381,
         "name": "ApproveAllToCallerInERC721",
         "nameLocation": "1254:26:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9985,
+          "id": 10380,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1280:2:26"
@@ -425,12 +440,12 @@
       },
       {
         "errorSelector": "85d5821e",
-        "id": 9988,
+        "id": 10383,
         "name": "NonERC721ReceiverImplementer",
         "nameLocation": "1352:28:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9987,
+          "id": 10382,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1380:2:26"
@@ -439,12 +454,12 @@
       },
       {
         "errorSelector": "399c7579",
-        "id": 9990,
+        "id": 10385,
         "name": "OnlyOwnerAvailable",
         "nameLocation": "1436:18:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9989,
+          "id": 10384,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1454:2:26"
@@ -453,12 +468,12 @@
       },
       {
         "errorSelector": "4aa4cf51",
-        "id": 9992,
+        "id": 10387,
         "name": "NonContractAddress",
         "nameLocation": "1506:18:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9991,
+          "id": 10386,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1524:2:26"
@@ -467,12 +482,12 @@
       },
       {
         "errorSelector": "54ac7492",
-        "id": 9994,
+        "id": 10389,
         "name": "AssetNonExistsInAssetShell",
         "nameLocation": "1569:26:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9993,
+          "id": 10388,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1595:2:26"
@@ -481,12 +496,12 @@
       },
       {
         "errorSelector": "f31df50e",
-        "id": 9996,
+        "id": 10391,
         "name": "NeedToUnlockAssetFirst",
         "nameLocation": "1636:22:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9995,
+          "id": 10390,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1658:2:26"
@@ -495,12 +510,12 @@
       },
       {
         "errorSelector": "21c67f49",
-        "id": 9998,
+        "id": 10393,
         "name": "LockTokenIDEmptyInAssetShell",
         "nameLocation": "1717:28:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9997,
+          "id": 10392,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1745:2:26"
@@ -509,12 +524,12 @@
       },
       {
         "errorSelector": "58686314",
-        "id": 10000,
+        "id": 10395,
         "name": "LockTokenIDPreviousOwnerEmptyInAssetShell",
         "nameLocation": "1805:41:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 9999,
+          "id": 10394,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1846:2:26"
@@ -523,12 +538,12 @@
       },
       {
         "errorSelector": "252f4a32",
-        "id": 10002,
+        "id": 10397,
         "name": "InsufficientVotesInMember",
         "nameLocation": "1921:25:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10001,
+          "id": 10396,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "1946:2:26"
@@ -537,12 +552,12 @@
       },
       {
         "errorSelector": "7f5c5df9",
-        "id": 10004,
+        "id": 10399,
         "name": "MemberNonExists",
         "nameLocation": "2003:15:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10003,
+          "id": 10398,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2018:2:26"
@@ -551,12 +566,12 @@
       },
       {
         "errorSelector": "e0150952",
-        "id": 10006,
+        "id": 10401,
         "name": "MemberAlreadyExists",
         "nameLocation": "2060:19:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10005,
+          "id": 10400,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2079:2:26"
@@ -565,12 +580,12 @@
       },
       {
         "errorSelector": "a1ee8585",
-        "id": 10008,
+        "id": 10403,
         "name": "MemberRequestJoinAlreadyExists",
         "nameLocation": "2125:30:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10007,
+          "id": 10402,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2155:2:26"
@@ -579,12 +594,12 @@
       },
       {
         "errorSelector": "f0f63e9e",
-        "id": 10010,
+        "id": 10405,
         "name": "ProposalNonExistsInVotePool",
         "nameLocation": "2214:27:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10009,
+          "id": 10404,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2241:2:26"
@@ -593,12 +608,12 @@
       },
       {
         "errorSelector": "ec297468",
-        "id": 10012,
+        "id": 10407,
         "name": "ProposalAlreadyExistsInVotePool",
         "nameLocation": "2285:31:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10011,
+          "id": 10406,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2316:2:26"
@@ -607,12 +622,12 @@
       },
       {
         "errorSelector": "420e832e",
-        "id": 10014,
+        "id": 10409,
         "name": "ProposalDefaultLifespanLimitError",
         "nameLocation": "2364:33:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10013,
+          "id": 10408,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2397:2:26"
@@ -621,12 +636,12 @@
       },
       {
         "errorSelector": "eda2bb99",
-        "id": 10016,
+        "id": 10411,
         "name": "CreateProposalVotePassEateLimitError",
         "nameLocation": "2462:36:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10015,
+          "id": 10410,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2498:2:26"
@@ -635,12 +650,12 @@
       },
       {
         "errorSelector": "c0c4b93d",
-        "id": 10018,
+        "id": 10413,
         "name": "CreateProposalLifespanLimitError",
         "nameLocation": "2564:32:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10017,
+          "id": 10412,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2596:2:26"
@@ -649,12 +664,12 @@
       },
       {
         "errorSelector": "0d67e9dd",
-        "id": 10020,
+        "id": 10415,
         "name": "CreateProposalLoopTimeLimitError",
         "nameLocation": "2682:32:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10019,
+          "id": 10414,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2714:2:26"
@@ -663,12 +678,12 @@
       },
       {
         "errorSelector": "dd3b8d8f",
-        "id": 10022,
+        "id": 10417,
         "name": "VotesZero",
         "nameLocation": "2778:9:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10021,
+          "id": 10416,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2787:2:26"
@@ -677,12 +692,12 @@
       },
       {
         "errorSelector": "1446e503",
-        "id": 10024,
+        "id": 10419,
         "name": "ProposalClosed",
         "nameLocation": "2832:14:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10023,
+          "id": 10418,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2846:2:26"
@@ -691,12 +706,12 @@
       },
       {
         "errorSelector": "22dd3c54",
-        "id": 10026,
+        "id": 10421,
         "name": "VotingMemberNoMatch",
         "nameLocation": "2886:19:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10025,
+          "id": 10420,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2905:2:26"
@@ -705,12 +720,12 @@
       },
       {
         "errorSelector": "29a56ece",
-        "id": 10028,
+        "id": 10423,
         "name": "DuplicateVoteError",
         "nameLocation": "2956:18:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10027,
+          "id": 10422,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "2974:2:26"
@@ -719,12 +734,12 @@
       },
       {
         "errorSelector": "accf9793",
-        "id": 10030,
+        "id": 10425,
         "name": "VoteInsufficientVotes",
         "nameLocation": "3021:21:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10029,
+          "id": 10424,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3042:2:26"
@@ -733,12 +748,12 @@
       },
       {
         "errorSelector": "1182db35",
-        "id": 10032,
+        "id": 10427,
         "name": "VotingInProgress",
         "nameLocation": "3090:16:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10031,
+          "id": 10426,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3106:2:26"
@@ -747,12 +762,12 @@
       },
       {
         "errorSelector": "c8c93ba3",
-        "id": 10034,
+        "id": 10429,
         "name": "ProposalNotPassed",
         "nameLocation": "3149:17:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10033,
+          "id": 10428,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3166:2:26"
@@ -761,12 +776,12 @@
       },
       {
         "errorSelector": "29749743",
-        "id": 10036,
+        "id": 10431,
         "name": "MethodNotImplemented",
         "nameLocation": "3214:20:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10035,
+          "id": 10430,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3234:2:26"
@@ -775,12 +790,12 @@
       },
       {
         "errorSelector": "9b4cee83",
-        "id": 10038,
+        "id": 10433,
         "name": "MaximumSupplyLimitInShare",
         "nameLocation": "3281:25:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10037,
+          "id": 10432,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3306:2:26"
@@ -789,12 +804,12 @@
       },
       {
         "errorSelector": "5a708f03",
-        "id": 10040,
+        "id": 10435,
         "name": "TokenIDMustEvenNumberInAsset",
         "nameLocation": "3365:28:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10039,
+          "id": 10434,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3393:2:26"
@@ -803,12 +818,12 @@
       },
       {
         "errorSelector": "292c3a85",
-        "id": 10042,
+        "id": 10437,
         "name": "NoPermissionToMintNFTs1155",
         "nameLocation": "3449:26:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10041,
+          "id": 10436,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3475:2:26"
@@ -817,12 +832,12 @@
       },
       {
         "errorSelector": "8791d6ee",
-        "id": 10044,
+        "id": 10439,
         "name": "TokenIDAlreadyExistsInAsset",
         "nameLocation": "3526:27:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10043,
+          "id": 10438,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3553:2:26"
@@ -831,17 +846,87 @@
       },
       {
         "errorSelector": "f76273e9",
-        "id": 10046,
+        "id": 10441,
         "name": "AmountMinimumLimit",
         "nameLocation": "3601:18:26",
         "nodeType": "ErrorDefinition",
         "parameters": {
-          "id": 10045,
+          "id": 10440,
           "nodeType": "ParameterList",
           "parameters": [],
           "src": "3619:2:26"
         },
         "src": "3595:27:26"
+      },
+      {
+        "errorSelector": "42e0e2ca",
+        "id": 10443,
+        "name": "LockTokenIDValueEmptyInAssetShell",
+        "nameLocation": "3664:33:26",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 10442,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "3697:2:26"
+        },
+        "src": "3658:42:26"
+      },
+      {
+        "errorSelector": "e0caa311",
+        "id": 10445,
+        "name": "NeedToUnlockAssetFirstForPreviousOwner",
+        "nameLocation": "3763:38:26",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 10444,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "3801:2:26"
+        },
+        "src": "3757:47:26"
+      },
+      {
+        "errorSelector": "d53ba6de",
+        "id": 10447,
+        "name": "PayableInsufficientAmountWETH",
+        "nameLocation": "3860:29:26",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 10446,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "3889:2:26"
+        },
+        "src": "3854:38:26"
+      },
+      {
+        "errorSelector": "0ee27f94",
+        "id": 10449,
+        "name": "PermissionDeniedForOnlyUnlockOperator",
+        "nameLocation": "3941:37:26",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 10448,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "3978:2:26"
+        },
+        "src": "3935:46:26"
+      },
+      {
+        "errorSelector": "ad1fa1b0",
+        "id": 10451,
+        "name": "MINTERC1155QuantityExceedsLimit",
+        "nameLocation": "4049:31:26",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 10450,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "4080:2:26"
+        },
+        "src": "4043:40:26"
       },
       {
         "abstract": false,
@@ -850,20 +935,20 @@
         "contractDependencies": [],
         "contractKind": "library",
         "fullyImplemented": true,
-        "id": 10047,
+        "id": 10452,
         "linearizedBaseContracts": [
-          10047
+          10452
         ],
         "name": "Errors",
-        "nameLocation": "3667:6:26",
+        "nameLocation": "4149:6:26",
         "nodeType": "ContractDefinition",
         "nodes": [],
-        "scope": 10048,
-        "src": "3659:17:26",
+        "scope": 10453,
+        "src": "4141:17:26",
         "usedErrors": []
       }
     ],
-    "src": "31:3645:26"
+    "src": "31:4127:26"
   },
   "compiler": {
     "name": "solc",
@@ -871,7 +956,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-04-23T06:30:17.669Z",
+  "updatedAt": "2023-05-11T06:07:52.733Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

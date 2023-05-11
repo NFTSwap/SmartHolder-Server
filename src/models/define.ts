@@ -65,14 +65,14 @@ export interface MemberInfo {
 }
 
 export enum Selling { // 销售平台类型
-	UnsellOrUnknown  = 0,  // 0未销售or未知
-	Order   = 1 << 0,   // 2其它平台
-	Opensea = 1 << 1, // 1销售opensea
+	Unsell   = 0,      // 0 Unsold
+	Opensea  = 1 << 0, // 1 Opensea
 }
 
 export enum State {
 	Enable,
 	Disable,
+	Complete, // extend state for asset unlock
 }
 
 export interface Asset {

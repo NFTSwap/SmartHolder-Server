@@ -25,6 +25,7 @@ import {scopeLock} from 'bclib/atomic_lock';
 import redis from 'bclib/redis';
 import {formatHex} from '../sync/scaner';
 import {DatabaseCRUD} from 'somes/db';
+import * as orderApi from './order';
 
 const isDev = cfg.env == 'dev';
 const seaports: Map<ChainType, Seaport> = new Map();
@@ -267,8 +268,7 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 		--compressed
 	*/
 
-	let token = order.offer[0].token;
-	let tokenId = order.offer[0].identifierOrCriteria;
+	let {token,identifierOrCriteria:tokenId,startAmount} = order.offer[0];
 	let order1 = await getOrder(chain, token, tokenId);
 
 	somes.assert(!order1, errno.ERR_OPENSEA_ORDER_EXIST);
@@ -283,32 +283,7 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 		sellPrice += BigInt(c.startAmount);
 	}
 
-	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
-}
-
-export async function maskOrderSelling(
-	chain: ChainType, token: string, tokenId: string,
-	selling: Selling, sellPrice = '', sold = false, db_?: DatabaseCRUD
-) {
-	let id = formatHex(tokenId, 32);
-	let data: Dict = {selling};
-	if (selling !== Selling.UnsellOrUnknown) {
-		data.sellingTime = Date.now();
-		if (sellPrice)
-			data.sellPrice = sellPrice;
-	}
-	else if (selling === Selling.UnsellOrUnknown && sold)
-		data.soldTime = Date.now();
-	await (db_||db).update(`asset_${chain}`, data, { token, tokenId: id });
-	// console.log('maskOrderSelling', num, token, id);
-}
-
-export async function maskOrderClose(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', false, db_);
-}
-
-export async function maskOrderSold(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', true, db_);
+	await orderApi.maskSellOrder(chain, token, tokenId, BigInt(startAmount), order.offerer, Selling.Opensea, sellPrice+'');
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
@@ -337,19 +312,9 @@ export async function getOrders(chain: ChainType, token: string, tokenIds: strin
 
 		orders = Array.isArray(orders) ? orders: [];
 
-		// maskOrderSelling close
-		for (let it of tokenIds) 
-			await maskOrderSelling(chain, token, it, Selling.UnsellOrUnknown, '');
-
 		for (let it of orders) {
 			let order = it?.protocol_data?.parameters as OrderComponents;
 			if (order) {
-				let tokenId = formatHex(order.offer[0].identifierOrCriteria, 32);
-				let sellPrice = BigInt(0);
-				for (let c of order.consideration) {
-					sellPrice += BigInt(c.startAmount);
-				}
-				await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 				ls.push(order);
 			}
 		}

@@ -8,6 +8,7 @@ import { ChainType, State,Selling,LedgerType,TokenURIInfo,AssetType} from '../db
 import * as utils from '../models/utils';
 import * as dao from '../models/dao';
 import * as asset from '../models/asset';
+import * as order from '../models/order';
 import * as events from '../models/events';
 import * as member from '../models/member';
 import * as ledger from '../models/ledger';
@@ -81,14 +82,14 @@ export default class extends ApiController {
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
 	getAssetFrom({
-		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not,tokens
+		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not,tokenIds
 	}: {
 		chain: ChainType, host?: string, owner?: string, author?: string,
-		owner_not?: string, author_not?: string, state?: State,tokens?: string[],
+		owner_not?: string, author_not?: string, state?: State,tokenIds?: string[],
 		selling?: Selling, selling_not?: Selling, assetType?: AssetType,
 		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom.query({chain,host,owner,author,tokenIds:tokens,
+		return asset.getAssetFrom.query({chain,host,owner,author,tokenIds,
 			owner_not,author_not,state,name,time,assetType,orderBy,limit,selling,selling_not});
 	}
 
@@ -107,7 +108,7 @@ export default class extends ApiController {
 		fromAddres_not?: string, toAddress_not?: string,
 		tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return asset.getAssetOrderFrom.query({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit});
+		return order.getAssetOrderFrom.query({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit});
 	}
 
 	getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,fromAddres_not,toAddress_not,name,time}: {
@@ -115,14 +116,14 @@ export default class extends ApiController {
 		fromAddres_not?: string, toAddress_not?: string,
 		tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetOrderFrom.queryTotal({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time});
+		return order.getAssetOrderFrom.queryTotal({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time});
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getOrderSummarys({chain,host,fromAddres, toAddress,
+		return order.getOrderSummarys({chain,host,fromAddres, toAddress,
 			fromAddres_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 

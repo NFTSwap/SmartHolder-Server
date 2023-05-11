@@ -20,6 +20,7 @@ import * as cryptoTx from 'crypto-tx';
 import {DatabaseCRUD} from 'somes/db';
 import db from '../../db';
 import { EventNoticer } from 'somes/event';
+import sync from '..';
 
 export function formatHex(num: string | number | bigint, btyes: number = 32) {
 	let s = '';
@@ -195,8 +196,8 @@ export abstract class ContractScaner {
 			throw err;
 		}
 
-		somes.assert(tx.blockNumber, '#ContractScaner.solveReceiptLogFrom blockNumber is null');
-		(this as any).blockNumber = Number(tx.blockNumber);
+		somes.assert(log.blockNumber, '#ContractScaner.solveReceiptLogFrom blockNumber is null');
+		(this as any).blockNumber = Number(log.blockNumber);
 
 		let e: EventData = {
 			returnValues,

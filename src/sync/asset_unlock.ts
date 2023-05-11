@@ -13,7 +13,6 @@ import buffer, {IBuffer} from 'somes/buffer';
 import * as cryptoTx from 'crypto-tx';
 import * as aes from 'crypto-tx/aes';
 import * as cfg from '../../config';
-import errno from 'web3-tx/errno';
 
 export class AssetUnlockWatch implements WatchCat {
 	readonly cattime = 10; // 60 seconds cat()
@@ -34,20 +33,13 @@ export class AssetUnlockWatch implements WatchCat {
 		});
 	}
 
-	private is_EXECUTION_REVERTED(err: any) {
-		if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
-			err.errno == errno.ERR_EXECUTION_Returned_Values_Invalid[0]) return true;
-		return false;
-	}
-
 	private async tryCall(addr: string, method: string, ...args: any[]) {
 		let c = await this.web3.contract(addr);
 		try {
-			return await c.methods.lockedOf(...args).call(); // get locked item
+			return await c.methods[method](...args).call(); // get locked item
 		} catch(err) {
-			if (this.is_EXECUTION_REVERTED(err)) {
+			if (this.web3.isExecutionRevreted(err))
 				return false;
-			}
 			throw err;
 		}
 	}
@@ -88,6 +80,15 @@ export class AssetUnlockWatch implements WatchCat {
 			}
 			let unlockOperator = await this.tryCall(host, 'unlockOperator');
 			if (!unlockOperator || DAOsAddress != unlockOperator) {
+				await disable(id); continue;
+			}
+
+			let c = await this.web3.contract(token);
+			let seller_fee_basis_points = await c.methods.seller_fee_basis_points().call();
+			let price = BigInt(payValue) * BigInt(10_000) / BigInt(seller_fee_basis_points); // transfer price
+			let min_price = BigInt(await c.methods.minimumPrice(tokenId).call()) * BigInt(item.count);
+			if (price < min_price) {
+				// revert PayableInsufficientAmount();
 				await disable(id); continue;
 			}
 
@@ -137,7 +138,7 @@ export class AssetUnlockWatch implements WatchCat {
 			await db.transaction(async db=>{
 				for (let i of data) {
 					for (let j of i.data) {
-						db.update(`asset_unlock_${this.chain}`, {state: 1}, {id:j.id});
+						db.update(`asset_unlock_${this.chain}`, {state: 2}, {id:j.id});
 					}
 				}
 			});
