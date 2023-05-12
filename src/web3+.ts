@@ -122,7 +122,7 @@ class MvpMultipleProvider extends MultipleProvider {
 }
 
 export class MvpWeb3 extends BcWeb3 {
-	private _HasSupportGetTransactionReceiptsByBlock = -1;
+	private _HasSupportGetTransactionReceiptsByBlock: (number)[] = [];
 	readonly chain: ChainType;
 	readonly mode: Web3Mode;
 
@@ -152,9 +152,7 @@ export class MvpWeb3 extends BcWeb3 {
 	}
 
 	private setProviderByIdx(idx: number) {
-		if (this.provider.setProviderIndex(idx)) {
-			this._HasSupportGetTransactionReceiptsByBlock = -1;
-		}
+		this.provider.setProviderIndex(idx)
 	}
 
 	swatchRpc() {
@@ -167,7 +165,7 @@ export class MvpWeb3 extends BcWeb3 {
 		let req = this.provider.request({
 			method: 'eth_getTransactionReceiptsByBlock',
 			params:  [`0x${block.toString(16)}`],
-		});
+		}, this.provider.providerIndex);
 		// return somes.timeout(req, 3e4); // 30s
 		return req;
 	}
@@ -177,18 +175,17 @@ export class MvpWeb3 extends BcWeb3 {
 	}
 
 	async hasSupportGetTransactionReceiptsByBlock() {
-		if (this._HasSupportGetTransactionReceiptsByBlock != 0 &&
-			this._HasSupportGetTransactionReceiptsByBlock + 1e5 < Date.now() // second
-		) {
+		let idx = this.provider.providerIndex;
+		if (this._HasSupportGetTransactionReceiptsByBlock[idx] == undefined) {
 			try {
 				await this.getTransactionReceiptsByBlock(1);
-				this._HasSupportGetTransactionReceiptsByBlock = 0;
+				this._HasSupportGetTransactionReceiptsByBlock[idx] = 0;
 			} catch(err: any) {
 				if (!err.httpErr)
-					this._HasSupportGetTransactionReceiptsByBlock = Date.now();
+					this._HasSupportGetTransactionReceiptsByBlock[idx] = Date.now();
 			}
 		}
-		return !this._HasSupportGetTransactionReceiptsByBlock;
+		return !this._HasSupportGetTransactionReceiptsByBlock[idx];
 	}
 
 	private _blockNumber(provider: BaseProvider) {
