@@ -412,7 +412,7 @@ export class WatchBlock implements WatchCat {
 			if (isRpcLimitRequestAccount(web3, err)) {
 				web3.swatchRpc();
 			}
-			console.error('#WatchBlock.cat', ...err.filter(['message', 'description', 'stack']));
+			console.error(`#WatchBlock.cat chain=${this.web3.chain}`, ...err.filter(['message', 'description', 'stack']));
 		}
 
 		return true;

@@ -8,7 +8,6 @@ module.exports = {
 		// 'https://mainnet.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		// 'https://mainnet.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
 		// 'https://mainnet.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
-		// // 'https://mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 		// 'https://mainnet.infura.io/v3/5fad8ac4c3c946f489e0a5fec628d40e', // louistru@live.com
 		// 'https://mainnet.infura.io/v3/1ad04dd9dfa3421ca28519a575c959d9', // jfm.s@163.com
 		// 'https://mainnet.infura.io/v3/dde6a07efab74ec2998d48ff4a77ec03', // 97071932@qq.com
@@ -18,13 +17,13 @@ module.exports = {
 		// 'https://mainnet.infura.io/v3/81e184a58fd04f8ea6c7d026f26c34d5', // yuyongpeng@hotmail.com
 		// 'https://mainnet.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
 		// 'https://mainnet.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
+		// // 'https://mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 	],
 	GOERLI: [
 		'https://goerli.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		'https://goerli.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		'https://goerli.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
 		'https://goerli.infura.io/v3/295cc6a3082a464cbf5c77562c0d78d7', // louistru@hotmail.com
-		// 'https://goerli.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 		'https://goerli.infura.io/v3/5fad8ac4c3c946f489e0a5fec628d40e', // louistru@live.com
 		'https://goerli.infura.io/v3/1ad04dd9dfa3421ca28519a575c959d9', // jfm.s@163.com
 		'https://goerli.infura.io/v3/dde6a07efab74ec2998d48ff4a77ec03', // 97071932@qq.com
@@ -34,6 +33,7 @@ module.exports = {
 		'https://goerli.infura.io/v3/81e184a58fd04f8ea6c7d026f26c34d5', // yuyongpeng@hotmail.com
 		'https://goerli.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
 		'https://goerli.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
+		// 'https://goerli.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 	],
 	MATIC: [
 		'https://rpc-mainnet.maticvigil.com/v1/2db5bb18b8b1b3f1b47a080e4c9ce6d2c7a5128c', // louistru@live.com
