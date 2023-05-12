@@ -21,7 +21,8 @@ module.exports = {
 		// 'https://mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 	],
 	GOERLI: [
-		'https://goerli.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
+		'https://eth-goerli.g.alchemy.com/v2/lwDFslNRvhCjzogUVLPtPzGIN4ZZDa8I',
+		// 'https://goerli.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
 		// 'https://goerli.infura.io/v3/eb482df3997d45599d7b1798be60fec9', // third-party@hard-chain.cn
 		// 'https://goerli.infura.io/v3/52963da6ae3a4e68a7506f982c196701', // zhuce@stars-mine.com
 		// 'https://goerli.infura.io/v3/84456ff83aca4daa9e8d5da84d7dd6fb', // chuxuewen@hard-chain.cn
