@@ -138,6 +138,7 @@ export class WatchBlock implements WatchCat {
 			let address = log.address;
 			let logIndex = Number(log.logIndex);
 			somes.assert(!isNaN(logIndex), '#WatchBlock.solveReceipt() logIndex type no match');
+
 			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
 					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
