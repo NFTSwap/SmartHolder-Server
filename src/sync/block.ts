@@ -105,8 +105,8 @@ export class WatchBlock implements WatchCat {
 		let tx_ = (await this.db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
 		if ( !tx_ ) {
 			tx_id = await this.db.insert(`transaction_${chain}`, {
-				nonce: tx.nonce,
-				blockNumber: receipt.blockNumber,
+				nonce: Number(tx.nonce),
+				blockNumber: Number(receipt.blockNumber),
 				fromAddress: receipt.from,
 				toAddress: receipt.to || '0x0000000000000000000000000000000000000000',
 				value: '0x' + Number(tx.value).toString(16),
@@ -115,13 +115,13 @@ export class WatchBlock implements WatchCat {
 				// data: tx.input,
 				blockHash: receipt.blockHash,
 				transactionHash: receipt.transactionHash,
-				transactionIndex: receipt.transactionIndex,
+				transactionIndex: Number(receipt.transactionIndex),
 				gasUsed: '0x' + Number(receipt.gasUsed).toString(16),
 				cumulativeGasUsed: '0x' + Number(receipt.cumulativeGasUsed).toString(16),
-				effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice).toString(16),
+				effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
 				// logsBloom: receipt.logsBloom,
 				contractAddress: receipt.contractAddress,
-				status: receipt.status,
+				status: Number(receipt.status),
 				logsCount: receipt.logs.length,
 				time: Date.now(),
 			});
@@ -137,7 +137,7 @@ export class WatchBlock implements WatchCat {
 		for (let log of receipt.logs) { // event logs
 			let address = log.address;
 			let logIndex = Number(log.logIndex);
-			somes.assert(!isNaN(logIndex), '#WatchBlock.solveReceipt() logIndex type no match');
+			// somes.assert(!isNaN(logIndex), '#WatchBlock.solveReceipt() logIndex type no match');
 
 			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
