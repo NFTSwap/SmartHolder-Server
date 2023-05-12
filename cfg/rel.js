@@ -5,9 +5,9 @@ var rpc = require('./util/rpc');
 module.exports = {
 	...base,
 	web3s: {
-		GOERLI: rpc.GOERLI.slice(1), // skip local
-		ETHEREUM: rpc.ETHEREUM.slice(0,2), // only use local
-		MATIC: rpc.MATIC.slice(0,1), // only use local
+		GOERLI: rpc.GOERLI,
+		ETHEREUM: rpc.ETHEREUM,
+		MATIC: rpc.MATIC,
 	},
 	autoIndex: false,
 	root: '/data/apps/smart-dao/smart-dao-new/out',

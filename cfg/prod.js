@@ -5,7 +5,7 @@ var rpc = require('./util/rpc');
 module.exports = {
 	...base,
 	web3s: {
-		ETHEREUM: rpc.ETHEREUM.slice(0,1), // only use local
+		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
 		GOERLI: rpc.GOERLI,
 	},
