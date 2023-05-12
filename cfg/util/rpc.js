@@ -4,6 +4,7 @@ module.exports = {
 		// '8/http:172.16.1.93:8545', // jp geth
 		// '8/http:172.16.1.119:8545', // jp geth
 		'https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM',
+		'https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ',
 		// -----------------------------------------------------------
 		// 'https://mainnet.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
 		// -----------------------------------------------------------
