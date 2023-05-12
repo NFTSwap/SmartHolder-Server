@@ -122,10 +122,8 @@ class MvpMultipleProvider extends MultipleProvider {
 }
 
 export class MvpWeb3 extends BcWeb3 {
-	private _HasSupportGetTransactionReceiptsByBlock: boolean | undefined;
-
+	private _HasSupportGetTransactionReceiptsByBlock = -1;
 	readonly chain: ChainType;
-
 	readonly mode: Web3Mode;
 
 	cattime = 10; // 1 minute call cat()
@@ -150,12 +148,12 @@ export class MvpWeb3 extends BcWeb3 {
 		this.gasPriceLimit = Number(cfg.web3PriceLimit[chain_str]) || 0;
 		this.setProvider(new MvpMultipleProvider(_cfg, undefined, switchMode));
 		if (cfg.logs.rpc || env == 'dev')
-			this.provider.printLog = true;
+			this.provider.logs = 2;
 	}
 
 	private setProviderByIdx(idx: number) {
 		if (this.provider.setProviderIndex(idx)) {
-			this._HasSupportGetTransactionReceiptsByBlock = undefined;
+			this._HasSupportGetTransactionReceiptsByBlock = -1;
 		}
 	}
 
@@ -166,10 +164,12 @@ export class MvpWeb3 extends BcWeb3 {
 	}
 
 	getTransactionReceiptsByBlock(block: number) {
-		return somes.timeout(this.provider.request({
+		let req = this.provider.request({
 			method: 'eth_getTransactionReceiptsByBlock',
-			params:  [`0x${block.toString(16)}`]
-		}), 3e4); // 30s
+			params:  [`0x${block.toString(16)}`],
+		});
+		// return somes.timeout(req, 3e4); // 30s
+		return req;
 	}
 
 	isExecutionRevreted(err: any) {
@@ -177,16 +177,18 @@ export class MvpWeb3 extends BcWeb3 {
 	}
 
 	async hasSupportGetTransactionReceiptsByBlock() {
-		if (this._HasSupportGetTransactionReceiptsByBlock === undefined) {
+		if (this._HasSupportGetTransactionReceiptsByBlock != 0 &&
+			this._HasSupportGetTransactionReceiptsByBlock + 1e5 < Date.now() // second
+		) {
 			try {
 				await this.getTransactionReceiptsByBlock(1);
-				this._HasSupportGetTransactionReceiptsByBlock = true;
+				this._HasSupportGetTransactionReceiptsByBlock = 0;
 			} catch(err: any) {
 				if (!err.httpErr)
-					this._HasSupportGetTransactionReceiptsByBlock = false;
+					this._HasSupportGetTransactionReceiptsByBlock = Date.now();
 			}
 		}
-		return !!this._HasSupportGetTransactionReceiptsByBlock;
+		return !this._HasSupportGetTransactionReceiptsByBlock;
 	}
 
 	private _blockNumber(provider: BaseProvider) {

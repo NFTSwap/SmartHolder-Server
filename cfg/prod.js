@@ -16,6 +16,7 @@ module.exports = {
 	mbus_auth: 'smartholder:xWhL#BP4QjsmartholderdSQGq%sKcM', // user:password
 	mbus_topic: 'shs_default_prod',
 	enable_auth: true,
+	moreLog: false,
 	env: 'prod', // dev|prod
 	mysql: {
 		host: '172.16.2.46', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao',
