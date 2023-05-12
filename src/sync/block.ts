@@ -135,7 +135,9 @@ export class WatchBlock implements WatchCat {
 		}
 
 		for (let log of receipt.logs) { // event logs
-			let {address,logIndex} = log;
+			let address = log.address;
+			let logIndex = Number(log.logIndex);
+			somes.assert(logIndex, '#WatchBlock.solveReceipt() logIndex type no match');
 			if ( !await this.db.selectOne<ITransaction>(`transaction_log_${chain}`, {transactionHash, logIndex}) ) {
 				if (log.data.length > 65535) {
 					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
