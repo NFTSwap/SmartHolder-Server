@@ -21,9 +21,7 @@ module.exports = {
 		// 'https://eth-mainnet.alchemyapi.io/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
 	],
 	MATIC: [
-		// '10/http://103.210.22.186:8545', // PUBLIC HK inner 10.8.63.231
-		'16/http://172.16.1.154:8545', // jp matic
-		// 'http://172.16.0.173:8545', // public cn
+		'https://polygon-mainnet.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
 		// 'https://polygon-mainnet.infura.io/v3/295cce92179b4be498665b1b16dfee34',
 		// 'https://rpc-mainnet.maticvigil.com/v1/2db5bb18b8b1b3f1b47a080e4c9ce6d2c7a5128c', // louistru@live.com
 		// 'https://rpc-mainnet.maticvigil.com/v1/a20a1a70e42a8e7a1e20dbec5bce46adcd36cdab', // louis.tru@gmail.com
