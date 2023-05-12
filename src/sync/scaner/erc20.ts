@@ -51,8 +51,6 @@ export class WETH extends ContractScaner {
 
 				if (DAOs == 0) return;
 
-				debugger
-
 				let {blocks:[block]} = await sync.watchBlocks[this.chain]
 					.getTransactionLogsFrom(blockNumber, blockNumber, [{address: to, state: 0}]);
 
