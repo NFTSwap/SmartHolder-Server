@@ -10,7 +10,7 @@ module.exports = {
 		GOERLI: rpc.GOERLI,
 	},
 	autoIndex: false,
-	root: ['/data/apps/smart-dao/smart-dao', __dirname + '/../public'],
+	root: '/data/apps/smart-dao/smart-dao',
 	publicURL: 'https://dao.smartholder.jp',
 	mbus: 'mqtt://172.16.3.114:1883',
 	mbus_auth: 'smartholder:xWhL#BP4QjsmartholderdSQGq%sKcM', // user:password

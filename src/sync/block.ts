@@ -348,15 +348,15 @@ export class WatchBlock implements WatchCat {
 		return tx;
 	}
 
-	async getTransactions(IDs: number[]) {
+	async getTransactions(ids: number[]) {
 		if (this.useRpc) {
 			return (await api.get<ITransaction[]>('chain/getTransactions', {
-				chain: this.web3.chain, IDs
+				chain: this.web3.chain, ids
 			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
 
 		let tx = await this.db.select<ITransaction>(
-			`transaction_${this.web3.chain}`, `id in (${IDs.map(e=>escape(e))})`);
+			`transaction_${this.web3.chain}`, `id in (${ids.map(e=>escape(e))})`);
 		return tx;
 	}
 

@@ -162,6 +162,7 @@ export class Indexer implements WatchCat {
 		while (blockNumber < curBlockNumber) {
 			let end = Math.min(blockNumber + 100, curBlockNumber);
 			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber+1, end, this._dsList);
+			debugger
 
 			for (let block of logsAll.blocks) {
 				let allScaner: (ContractScaner)[] = [];
