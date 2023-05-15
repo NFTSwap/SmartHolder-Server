@@ -285,12 +285,13 @@ export class WatchBlock implements WatchCat {
 			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
 		`;
 
-		
 		let logs = await this.db.query<Log>(sql);
 		let txs: Dict<ITransaction> = {};
 
-		for (let tx of await this.getTransactions(logs.map(e=>e.tx_id)))
-			txs[tx.id] = tx;
+		if (logs.length) {
+			for (let tx of await this.getTransactions(logs.map(e=>e.tx_id)))
+				txs[tx.id] = tx;
+		}
 
 		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
 
@@ -355,9 +356,13 @@ export class WatchBlock implements WatchCat {
 			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
 
-		let tx = await this.db.select<ITransaction>(
-			`transaction_${this.web3.chain}`, `id in (${ids.map(e=>escape(e))})`);
-		return tx;
+		if (ids.length) {
+			let tx = await this.db.select<ITransaction>(
+				`transaction_${this.web3.chain}`, `id in (${ids.map(e=>escape(e))})`);
+			return tx;
+		} else {
+			return [];
+		}
 	}
 
 	private async getWatchBlockWorkers() {
