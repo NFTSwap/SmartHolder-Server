@@ -3,7 +3,7 @@
  * @date 2023-05-09
  */
 
-import {ContractScaner,HandleEventData} from '.';
+import {ContractScaner,HandleEventData, formatHex} from '.';
 import {escape} from 'somes/db';
 import {DAO,ContractType} from '../../db';
 import sync from '..';
@@ -29,17 +29,17 @@ export class WETH extends ContractScaner {
 	events = {
 		Approval: {
 			handle: async ({event}: HandleEventData)=>{
-				// console.log('#WETH.Approval event', event.returnValues);
+				console.log('#WETH.Approval event', event.returnValues);
 			}
 		},
 		Deposit: {
 			handle: async ({event}: HandleEventData)=>{
-				// console.log('#WETH.Deposit event', event.returnValues);
+				console.log('#WETH.Deposit event', event.returnValues);
 			}
 		},
 		Withdraw: {
 			handle: async ({event}: HandleEventData)=>{
-				// console.log('#WETH.Withdraw event', event.returnValues);
+				console.log('#WETH.Withdraw event', event.returnValues);
 			}
 		},
 		Transfer: {
@@ -86,7 +86,7 @@ export class WETH extends ContractScaner {
 							await this.db.insert(`asset_unlock_${this.chain}`, {
 								host: await c.methods.host().call(), // get host address,
 								token: log.address,
-								tokenId: id,
+								tokenId: formatHex(id),
 								owner: to,
 								previous: from,
 								payType: 1, // kWETH
