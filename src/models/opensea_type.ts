@@ -8,6 +8,7 @@ import { OrderComponents } from "seaport-smart/types";
 import { OPENSEA_CONDUIT_ADDRESS, OPENSEA_CONDUIT_KEY,ItemType, OrderType } from 'seaport-smart/constants';
 
 export const CROSS_CHAIN_SEAPORT_ADDRESS = "0x00000000000001ad428e4906aE43D8F9852d0dD6";
+// export const Protocol_Address = '0x00000000000000adc04c56bf30ac9d3c0aaf14dc';
 
 export {Seaport,OrderComponents,OPENSEA_CONDUIT_ADDRESS,OPENSEA_CONDUIT_KEY,ItemType, OrderType};
 

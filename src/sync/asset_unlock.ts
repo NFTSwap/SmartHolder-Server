@@ -56,7 +56,7 @@ export class AssetUnlockWatch implements WatchCat {
 		});
 
 		interface Data {
-			token: string, valueInt: bigint, value: string,
+			token: string, value: string,
 			data: {
 				id: number,
 				lock: {tokenId: string,owner: string,previous: string},
@@ -71,17 +71,17 @@ export class AssetUnlockWatch implements WatchCat {
 		{
 			let it = dict[token];
 			if (!dict[token]) {
-				it = { token, valueInt: BigInt(0), value: '0', data: [] };
+				it = { token, value: '0', data: [] };
 			}
 
 			let item = await this.tryCall(token, 'lockedOf', tokenId,owner,previous); // get locked item
 			if (!item && item.blockNumber != blockNumber) {
 				await disable(id); continue;
 			}
-			let unlockOperator = await this.tryCall(host, 'unlockOperator');
-			if (!unlockOperator || DAOsAddress != unlockOperator) {
-				await disable(id); continue;
-			}
+			// let unlockOperator = await this.tryCall(host, 'unlockOperator');
+			// if (!unlockOperator || DAOsAddress != unlockOperator) {
+			// 	await disable(id); continue;
+			// }
 
 			let c = await this.web3.contract(token);
 			let seller_fee_basis_points = await c.methods.seller_fee_basis_points().call();
@@ -94,7 +94,7 @@ export class AssetUnlockWatch implements WatchCat {
 
 			length++;
 
-			it.valueInt = it.valueInt + BigInt(payValue);
+			it.value = BigInt(it.value) + BigInt(payValue) + '';
 			it.data.push({
 				id,lock: {tokenId,owner,previous}, payType,payValue,payBank,payer
 			});
@@ -102,9 +102,7 @@ export class AssetUnlockWatch implements WatchCat {
 			dict[token] = it;
 		}
 
-		let data = Object.values(dict).map(e=>(e.value = e.valueInt + '', e));
-
-		return {data, length};
+		return {data: Object.values(dict), length};
 	}
 
 	async cat() {
@@ -118,7 +116,7 @@ export class AssetUnlockWatch implements WatchCat {
 		let {data,length} = await this.getAssetUnlockData(DAOsAddress);
 
 		if (length < 100) {
-			if (length == 0 || Date.now() - this._prevExec < 1e3*3600*24) { // 1 days
+			if (length == 0 || Date.now() - this._prevExec < 1e3*3600/**24*/) { // 1 days
 				return true; // skip
 			}
 		}
@@ -126,24 +124,22 @@ export class AssetUnlockWatch implements WatchCat {
 		// send data to block chain
 		let DAOs = await this.web3.contract(DAOsAddress);
 		let method = DAOs.methods.unlockAssetForOperator(data);
-
 		await method.call({from}); // try call
 
-		let tx = await this.web3.signTx({ to: DAOsAddress, data: method.encodeABI() }, {
+		let tx = await this.web3.signTx({ from, to: DAOsAddress, data: method.encodeABI() }, {
 			sign: async (message)=>cryptoTx.sign(message, key),
 		});
 		let receipt = await this.web3.sendSignedTransaction(tx.data);
+		somes.assert(receipt.status, '#AssetUnlockWatch.cat() sendSignedTransaction fail, receipt.status==0');
 
-		if (receipt.status) {
-			await db.transaction(async db=>{
-				for (let i of data) {
-					for (let j of i.data) {
-						db.update(`asset_unlock_${this.chain}`, {state: 2}, {id:j.id});
-					}
+		await db.transaction(async db=>{
+			for (let i of data) {
+				for (let j of i.data) {
+					db.update(`asset_unlock_${this.chain}`, {state: State.Complete}, {id:j.id});
 				}
-			});
-			this._prevExec = Date.now();
-		}
+			}
+		});
+		this._prevExec = Date.now();
 
 		return true;
 	}
