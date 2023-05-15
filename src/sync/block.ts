@@ -102,7 +102,8 @@ export class WatchBlock implements WatchCat {
 		let tx = await getTx();
 		let transactionHash = receipt.transactionHash;
 		let tx_id = 0;
-		let tx_ = (await this.db.selectOne<ITransaction>(`transaction_${chain}`, {transactionHash}))!;
+		let [tx_] = (await this.db.query<{id:number}>(
+			`select id from transaction_${chain} where transactionHash=${escape(transactionHash)}`));
 		if ( !tx_ ) {
 			tx_id = await this.db.insert(`transaction_${chain}`, {
 				nonce: Number(tx.nonce),
