@@ -88,19 +88,11 @@ export class Indexer implements WatchCat {
 		}
 	}
 
-	private async solveLogs(logs: TransactionLog[], info: ContractInfo, db: DatabaseCRUD, out: ContractScaner[] ) {
-
-		let tx: Transaction | null = null;
-		let getTx = async (hash: string)=>{
-			if (!tx)
-				tx = await index.watchBlocks[this.chain].getTransaction(hash);
-			return tx!;
-		}
-
+	private async solveLogs(logs: (TransactionLog&{tx:Transaction})[], info: ContractInfo, db: DatabaseCRUD, out: ContractScaner[] ) {
 		for (let log of logs) {
 			let address = log.address;
 			let scaner = mk_scaner(address, info.type, this.chain, db);
-			let tx = await getTx(log.transactionHash);
+			let tx = log.tx;
 
 			if (log.data.slice(0,2) != '0x') {
 				if (log.data == 'rpc:fetch' || log.data.slice(0,4) == 'http'/*Compatible with old*/) {

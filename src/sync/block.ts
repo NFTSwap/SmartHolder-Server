@@ -258,6 +258,7 @@ export class WatchBlock implements WatchCat {
 	async getTransactionLogsFrom<T extends {state: number,address: string}>(
 		startBlockNumber: number, endBlockNumber: number, info: T[]
 	) {
+		type Log = TransactionLog & {tx:ITransaction};
 		let chain = this.web3.chain;
 		let logsAll = {
 			info,
@@ -266,7 +267,7 @@ export class WatchBlock implements WatchCat {
 				logs: {
 					idx: number, // index for info
 					// address: string, // info address
-					logs: TransactionLog[],
+					logs: Log[],
 				}[],
 			}[],
 		};
@@ -284,15 +285,21 @@ export class WatchBlock implements WatchCat {
 			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
 		`;
 
-		let logs = await this.db.query<TransactionLog>(sql);
+		
+		let logs = await this.db.query<Log>(sql);
+		let txs: Dict<ITransaction> = {};
+
+		for (let tx of await this.getTransactions(logs.map(e=>e.tx_id)))
+			txs[tx.id] = tx;
 
 		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
 
-		let blogs = [] as {blockNumber: number, logs: TransactionLog[]}[];
+		let blogs = [] as {blockNumber: number, logs: Log[]}[];
 
 		for (let log of logs) {
-			let {blockNumber} = log
+			let {blockNumber} = log;
 			let blog = blogs.indexReverse(0);
+			log.tx = txs[log.tx_id];
 			if (blog) {
 				if (blog.blockNumber == blockNumber) {
 					blog.logs.push(log);
@@ -308,7 +315,7 @@ export class WatchBlock implements WatchCat {
 
 		for (let {blockNumber,logs} of blogs) { // each block
 			let block = { blockNumber, logs: [] } as typeof logsAll.blocks[0];
-			let logsDict: Dict<TransactionLog[]> = {};
+			let logsDict: Dict<Log[]> = {};
 
 			for (let log of logs) {
 				let logs = logsDict[log.address];
@@ -338,6 +345,18 @@ export class WatchBlock implements WatchCat {
 
 		let tx = await this.db.selectOne<ITransaction>(
 			`transaction_${this.web3.chain}`, { transactionHash: txHash });
+		return tx;
+	}
+
+	async getTransactions(IDs: number[]) {
+		if (this.useRpc) {
+			return (await api.get<ITransaction[]>('chain/getTransactions', {
+				chain: this.web3.chain, IDs
+			}, {logs: cfg.moreLog, gzip: true})).data;
+		}
+
+		let tx = await this.db.select<ITransaction>(
+			`transaction_${this.web3.chain}`, `id in (${IDs.map(e=>escape(e))})`);
 		return tx;
 	}
 
