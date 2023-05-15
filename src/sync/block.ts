@@ -274,7 +274,7 @@ export class WatchBlock implements WatchCat {
 		if (this.useRpc) {
 			let r = await api.post<typeof logsAll>('chain/getTransactionLogsFrom', {
 				chain, startBlockNumber, endBlockNumber, info: info.map(e=>({state: e.state,address:e.address}))
-			});
+			}, {logs: cfg.moreLog, gzip: true});
 			r.data.info = info;
 			return r.data;
 		}
@@ -333,7 +333,7 @@ export class WatchBlock implements WatchCat {
 		if (this.useRpc) {
 			return (await api.get<ITransaction>('chain/getTransaction', {
 				chain: this.web3.chain, txHash
-			})).data;
+			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
 
 		let tx = await this.db.selectOne<ITransaction>(
