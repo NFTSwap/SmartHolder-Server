@@ -1,32 +1,32 @@
 {
   "contractName": "DAOsStore",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"All contracts that need to implement upgrades should inherit this `DAOsStore` contract,  and it should be the first parent class inherited\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/gen/DAOsProxy.sol\":\"DAOsStore\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/gen/DAOsProxy.sol\":{\"keccak256\":\"0x14e688bb6db0245e034e49977b4e8a746248e097d4881b4e47b9ec55939b0127\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://aba083e462d85fa9a816567952d9ce190124412d0e876fa8e34e29895d2ea114\",\"dweb:/ipfs/QmX5rSKMqUrCkDFikacUA6RfGC5xnbS3vwaAxz4zFNbB2S\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220a5d837fef23fe9e0b0ed3d23add464669dcb97af14a1a37ff8edd3c7c39b453664736f6c63430008110033",
-  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220a5d837fef23fe9e0b0ed3d23add464669dcb97af14a1a37ff8edd3c7c39b453664736f6c63430008110033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"All contracts that need to implement upgrades should inherit this `DAOsStore` contract,  and it should be the first parent class inherited\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/gen/DAOsProxy.sol\":\"DAOsStore\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/gen/DAOsProxy.sol\":{\"keccak256\":\"0x06eb1d749b3cd6086ab8eae00cb19b334e915efd7e56a089cabdf1b85ff69936\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://89ee889c6104c251bafa8ba1e3f0032f1ca8492365cd88952830a87fc637afa8\",\"dweb:/ipfs/QmeSAFWrjn5yxzuYr8qJi5PRacsqDHPKbz6LU71Ckg5Wb2\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122052165c6aecfb6f12f11b3d7e34a6a6b3bc8f4bdd3eddd699c97c95b58ae8b79e64736f6c63430008110033",
+  "deployedBytecode": "0x6080604052600080fdfea264697066735822122052165c6aecfb6f12f11b3d7e34a6a6b3bc8f4bdd3eddd699c97c95b58ae8b79e64736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [],
-  "sourceMap": "215:720:13:-:0;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "215:720:13:-:0;;;;;",
-  "source": "// SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n/**\n\t*@dev All contracts that need to implement upgrades should inherit this `DAOsStore` contract, \n\t* and it should be the first parent class inherited\n\t*/\ncontract DAOsStore {\n\tstruct EnumerableSet_Set {\n\t\t\t\t\tbytes32[] _values;\n\t\t\t\t\tmapping(bytes32 => uint256) _indexes;\n}\nstruct EnumerableSet_Bytes32Set {\n\t\t\t\tEnumerableSet_Set _inner;\n}\nstruct EnumerableMap_Bytes32ToBytes32Map {\n\t\t\tEnumerableSet_Bytes32Set _keys;\n\t\t\tmapping(bytes32 => bytes32) _values;\n}\nstruct EnumerableMap_UintToAddressMap {\n\t\tEnumerableMap_Bytes32ToBytes32Map _inner;\n}\nstruct DAOs_DAOIMPLs {\n\t\taddress DAO;\n\t\taddress Member;\n\t\taddress VotePool;\n\t\taddress Ledger;\n\t\taddress Asset;\n\t\taddress AssetShell;\n\t\taddress Share;\n}\n\n\taddress _impl;\n\tuint8 _initialized;\n\tbool _initializing;\n\taddress _owner;\n\tEnumerableMap_UintToAddressMap _DAOs;\n\tDAOs_DAOIMPLs defaultIMPLs;\n\tuint256[50] __; // impl address\n}\n\n/**\n * @dev The context here is that the externally exposed contract entities are only used to store data, \n * and the implemented business logic should be placed in the impl\n * Any method that calls this contract will be directed to `fallback()`, \n * and then use `delegatecall()` to call the actual implementation and pass the current data context to impl\n */\ncontract DAOsProxy is DAOsStore {\n\t// The size allocated by Layout Store should be specified by dynamic compilation, \n\t// and the storage size needs to be read from the original contract\n\n\tconstructor(address impl_) public {\n\t\t_impl = impl_;\n\t}\n\n\tfallback() external payable {\n\t\t(bool suc, bytes memory _data) = _impl.delegatecall(msg.data);\n\t\tassembly {\n\t\t\tlet len := mload(_data)\n\t\t\tlet data := add(_data, 0x20)\n\t\t\tswitch suc\n\t\t\tcase 0 { revert(data, len) }\n\t\t\tdefault { return(data, len) }\n\t\t}\n\t}\n}",
+  "sourceMap": "215:740:13:-:0;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "215:740:13:-:0;;;;;",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n/**\n\t*@dev All contracts that need to implement upgrades should inherit this `DAOsStore` contract, \n\t* and it should be the first parent class inherited\n\t*/\ncontract DAOsStore {\n\tstruct EnumerableSet_Set {\n\t\t\t\t\tbytes32[] _values;\n\t\t\t\t\tmapping(bytes32 => uint256) _indexes;\n}\nstruct EnumerableSet_Bytes32Set {\n\t\t\t\tEnumerableSet_Set _inner;\n}\nstruct EnumerableMap_Bytes32ToBytes32Map {\n\t\t\tEnumerableSet_Bytes32Set _keys;\n\t\t\tmapping(bytes32 => bytes32) _values;\n}\nstruct EnumerableMap_UintToAddressMap {\n\t\tEnumerableMap_Bytes32ToBytes32Map _inner;\n}\nstruct DAOs_DAOIMPLs {\n\t\taddress DAO;\n\t\taddress Member;\n\t\taddress VotePool;\n\t\taddress Ledger;\n\t\taddress Asset;\n\t\taddress AssetShell;\n\t\taddress Share;\n}\n\n\taddress _impl;\n\tuint8 _initialized;\n\tbool _initializing;\n\taddress _owner;\n\tEnumerableMap_UintToAddressMap _DAOs;\n\tDAOs_DAOIMPLs defaultIMPLs;\n\taddress _operator;\n\tuint256[49] __; // impl address\n}\n\n/**\n * @dev The context here is that the externally exposed contract entities are only used to store data, \n * and the implemented business logic should be placed in the impl\n * Any method that calls this contract will be directed to `fallback()`, \n * and then use `delegatecall()` to call the actual implementation and pass the current data context to impl\n */\ncontract DAOsProxy is DAOsStore {\n\t// The size allocated by Layout Store should be specified by dynamic compilation, \n\t// and the storage size needs to be read from the original contract\n\n\tconstructor(address impl_) public {\n\t\t_impl = impl_;\n\t}\n\n\tfallback() external payable {\n\t\t(bool suc, bytes memory _data) = _impl.delegatecall(msg.data);\n\t\tassembly {\n\t\t\tlet len := mload(_data)\n\t\t\tlet data := add(_data, 0x20)\n\t\t\tswitch suc\n\t\t\tcase 0 { revert(data, len) }\n\t\t\tdefault { return(data, len) }\n\t\t}\n\t}\n}",
   "sourcePath": "/Users/louis/Project/hc/NFTSwap/SmartHolder/contracts/gen/DAOsProxy.sol",
   "ast": {
     "absolutePath": "project:/contracts/gen/DAOsProxy.sol",
     "exportedSymbols": {
       "DAOsProxy": [
-        6531
+        6537
       ],
       "DAOsStore": [
-        6502
+        6508
       ]
     },
-    "id": 6532,
+    "id": 6538,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6443,
+        "id": 6447,
         "literals": [
           "solidity",
           "~",
@@ -43,15 +43,15 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 6444,
+          "id": 6448,
           "nodeType": "StructuredDocumentation",
           "src": "58:156:13",
           "text": "@dev All contracts that need to implement upgrades should inherit this `DAOsStore` contract, \n and it should be the first parent class inherited"
         },
         "fullyImplemented": true,
-        "id": 6502,
+        "id": 6508,
         "linearizedBaseContracts": [
-          6502
+          6508
         ],
         "name": "DAOsStore",
         "nameLocation": "224:9:13",
@@ -59,16 +59,16 @@
         "nodes": [
           {
             "canonicalName": "DAOsStore.EnumerableSet_Set",
-            "id": 6452,
+            "id": 6456,
             "members": [
               {
                 "constant": false,
-                "id": 6447,
+                "id": 6451,
                 "mutability": "mutable",
                 "name": "_values",
                 "nameLocation": "279:7:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6452,
+                "scope": 6456,
                 "src": "269:17:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -78,7 +78,7 @@
                 },
                 "typeName": {
                   "baseType": {
-                    "id": 6445,
+                    "id": 6449,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "269:7:13",
@@ -87,7 +87,7 @@
                       "typeString": "bytes32"
                     }
                   },
-                  "id": 6446,
+                  "id": 6450,
                   "nodeType": "ArrayTypeName",
                   "src": "269:9:13",
                   "typeDescriptions": {
@@ -99,12 +99,12 @@
               },
               {
                 "constant": false,
-                "id": 6451,
+                "id": 6455,
                 "mutability": "mutable",
                 "name": "_indexes",
                 "nameLocation": "321:8:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6452,
+                "scope": 6456,
                 "src": "293:36:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -113,9 +113,9 @@
                   "typeString": "mapping(bytes32 => uint256)"
                 },
                 "typeName": {
-                  "id": 6450,
+                  "id": 6454,
                   "keyType": {
-                    "id": 6448,
+                    "id": 6452,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "301:7:13",
@@ -131,7 +131,7 @@
                     "typeString": "mapping(bytes32 => uint256)"
                   },
                   "valueType": {
-                    "id": 6449,
+                    "id": 6453,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "312:7:13",
@@ -147,46 +147,46 @@
             "name": "EnumerableSet_Set",
             "nameLocation": "244:17:13",
             "nodeType": "StructDefinition",
-            "scope": 6502,
+            "scope": 6508,
             "src": "237:95:13",
             "visibility": "public"
           },
           {
             "canonicalName": "DAOsStore.EnumerableSet_Bytes32Set",
-            "id": 6456,
+            "id": 6460,
             "members": [
               {
                 "constant": false,
-                "id": 6455,
+                "id": 6459,
                 "mutability": "mutable",
                 "name": "_inner",
                 "nameLocation": "389:6:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6456,
+                "scope": 6460,
                 "src": "371:24:13",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$6452_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_Set_$6456_storage_ptr",
                   "typeString": "struct DAOsStore.EnumerableSet_Set"
                 },
                 "typeName": {
-                  "id": 6454,
+                  "id": 6458,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 6453,
+                    "id": 6457,
                     "name": "EnumerableSet_Set",
                     "nameLocations": [
                       "371:17:13"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 6452,
+                    "referencedDeclaration": 6456,
                     "src": "371:17:13"
                   },
-                  "referencedDeclaration": 6452,
+                  "referencedDeclaration": 6456,
                   "src": "371:17:13",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$6452_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableSet_Set_$6456_storage_ptr",
                     "typeString": "struct DAOsStore.EnumerableSet_Set"
                   }
                 },
@@ -196,46 +196,46 @@
             "name": "EnumerableSet_Bytes32Set",
             "nameLocation": "340:24:13",
             "nodeType": "StructDefinition",
-            "scope": 6502,
+            "scope": 6508,
             "src": "333:65:13",
             "visibility": "public"
           },
           {
             "canonicalName": "DAOsStore.EnumerableMap_Bytes32ToBytes32Map",
-            "id": 6464,
+            "id": 6468,
             "members": [
               {
                 "constant": false,
-                "id": 6459,
+                "id": 6463,
                 "mutability": "mutable",
                 "name": "_keys",
                 "nameLocation": "470:5:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6464,
+                "scope": 6468,
                 "src": "445:30:13",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$6456_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$6460_storage_ptr",
                   "typeString": "struct DAOsStore.EnumerableSet_Bytes32Set"
                 },
                 "typeName": {
-                  "id": 6458,
+                  "id": 6462,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 6457,
+                    "id": 6461,
                     "name": "EnumerableSet_Bytes32Set",
                     "nameLocations": [
                       "445:24:13"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 6456,
+                    "referencedDeclaration": 6460,
                     "src": "445:24:13"
                   },
-                  "referencedDeclaration": 6456,
+                  "referencedDeclaration": 6460,
                   "src": "445:24:13",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$6456_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableSet_Bytes32Set_$6460_storage_ptr",
                     "typeString": "struct DAOsStore.EnumerableSet_Bytes32Set"
                   }
                 },
@@ -243,12 +243,12 @@
               },
               {
                 "constant": false,
-                "id": 6463,
+                "id": 6467,
                 "mutability": "mutable",
                 "name": "_values",
                 "nameLocation": "508:7:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6464,
+                "scope": 6468,
                 "src": "480:35:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -257,9 +257,9 @@
                   "typeString": "mapping(bytes32 => bytes32)"
                 },
                 "typeName": {
-                  "id": 6462,
+                  "id": 6466,
                   "keyType": {
-                    "id": 6460,
+                    "id": 6464,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "488:7:13",
@@ -275,7 +275,7 @@
                     "typeString": "mapping(bytes32 => bytes32)"
                   },
                   "valueType": {
-                    "id": 6461,
+                    "id": 6465,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "499:7:13",
@@ -291,46 +291,46 @@
             "name": "EnumerableMap_Bytes32ToBytes32Map",
             "nameLocation": "406:33:13",
             "nodeType": "StructDefinition",
-            "scope": 6502,
+            "scope": 6508,
             "src": "399:119:13",
             "visibility": "public"
           },
           {
             "canonicalName": "DAOsStore.EnumerableMap_UintToAddressMap",
-            "id": 6468,
+            "id": 6472,
             "members": [
               {
                 "constant": false,
-                "id": 6467,
+                "id": 6471,
                 "mutability": "mutable",
                 "name": "_inner",
                 "nameLocation": "595:6:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6468,
+                "scope": 6472,
                 "src": "561:40:13",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$6464_storage_ptr",
+                  "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$6468_storage_ptr",
                   "typeString": "struct DAOsStore.EnumerableMap_Bytes32ToBytes32Map"
                 },
                 "typeName": {
-                  "id": 6466,
+                  "id": 6470,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 6465,
+                    "id": 6469,
                     "name": "EnumerableMap_Bytes32ToBytes32Map",
                     "nameLocations": [
                       "561:33:13"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 6464,
+                    "referencedDeclaration": 6468,
                     "src": "561:33:13"
                   },
-                  "referencedDeclaration": 6464,
+                  "referencedDeclaration": 6468,
                   "src": "561:33:13",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$6464_storage_ptr",
+                    "typeIdentifier": "t_struct$_EnumerableMap_Bytes32ToBytes32Map_$6468_storage_ptr",
                     "typeString": "struct DAOsStore.EnumerableMap_Bytes32ToBytes32Map"
                   }
                 },
@@ -340,22 +340,22 @@
             "name": "EnumerableMap_UintToAddressMap",
             "nameLocation": "526:30:13",
             "nodeType": "StructDefinition",
-            "scope": 6502,
+            "scope": 6508,
             "src": "519:85:13",
             "visibility": "public"
           },
           {
             "canonicalName": "DAOsStore.DAOs_DAOIMPLs",
-            "id": 6483,
+            "id": 6487,
             "members": [
               {
                 "constant": false,
-                "id": 6470,
+                "id": 6474,
                 "mutability": "mutable",
                 "name": "DAO",
                 "nameLocation": "638:3:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "630:11:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -364,7 +364,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6469,
+                  "id": 6473,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "630:7:13",
@@ -378,12 +378,12 @@
               },
               {
                 "constant": false,
-                "id": 6472,
+                "id": 6476,
                 "mutability": "mutable",
                 "name": "Member",
                 "nameLocation": "653:6:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "645:14:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -392,7 +392,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6471,
+                  "id": 6475,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "645:7:13",
@@ -406,12 +406,12 @@
               },
               {
                 "constant": false,
-                "id": 6474,
+                "id": 6478,
                 "mutability": "mutable",
                 "name": "VotePool",
                 "nameLocation": "671:8:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "663:16:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -420,7 +420,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6473,
+                  "id": 6477,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "663:7:13",
@@ -434,12 +434,12 @@
               },
               {
                 "constant": false,
-                "id": 6476,
+                "id": 6480,
                 "mutability": "mutable",
                 "name": "Ledger",
                 "nameLocation": "691:6:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "683:14:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -448,7 +448,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6475,
+                  "id": 6479,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "683:7:13",
@@ -462,12 +462,12 @@
               },
               {
                 "constant": false,
-                "id": 6478,
+                "id": 6482,
                 "mutability": "mutable",
                 "name": "Asset",
                 "nameLocation": "709:5:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "701:13:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -476,7 +476,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6477,
+                  "id": 6481,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "701:7:13",
@@ -490,12 +490,12 @@
               },
               {
                 "constant": false,
-                "id": 6480,
+                "id": 6484,
                 "mutability": "mutable",
                 "name": "AssetShell",
                 "nameLocation": "726:10:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "718:18:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -504,7 +504,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6479,
+                  "id": 6483,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "718:7:13",
@@ -518,12 +518,12 @@
               },
               {
                 "constant": false,
-                "id": 6482,
+                "id": 6486,
                 "mutability": "mutable",
                 "name": "Share",
                 "nameLocation": "748:5:13",
                 "nodeType": "VariableDeclaration",
-                "scope": 6483,
+                "scope": 6487,
                 "src": "740:13:13",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -532,7 +532,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 6481,
+                  "id": 6485,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "740:7:13",
@@ -548,18 +548,18 @@
             "name": "DAOs_DAOIMPLs",
             "nameLocation": "612:13:13",
             "nodeType": "StructDefinition",
-            "scope": 6502,
+            "scope": 6508,
             "src": "605:151:13",
             "visibility": "public"
           },
           {
             "constant": false,
-            "id": 6485,
+            "id": 6489,
             "mutability": "mutable",
             "name": "_impl",
             "nameLocation": "767:5:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
+            "scope": 6508,
             "src": "759:13:13",
             "stateVariable": true,
             "storageLocation": "default",
@@ -568,7 +568,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 6484,
+              "id": 6488,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "759:7:13",
@@ -582,12 +582,12 @@
           },
           {
             "constant": false,
-            "id": 6487,
+            "id": 6491,
             "mutability": "mutable",
             "name": "_initialized",
             "nameLocation": "781:12:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
+            "scope": 6508,
             "src": "775:18:13",
             "stateVariable": true,
             "storageLocation": "default",
@@ -596,7 +596,7 @@
               "typeString": "uint8"
             },
             "typeName": {
-              "id": 6486,
+              "id": 6490,
               "name": "uint8",
               "nodeType": "ElementaryTypeName",
               "src": "775:5:13",
@@ -609,12 +609,12 @@
           },
           {
             "constant": false,
-            "id": 6489,
+            "id": 6493,
             "mutability": "mutable",
             "name": "_initializing",
             "nameLocation": "801:13:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
+            "scope": 6508,
             "src": "796:18:13",
             "stateVariable": true,
             "storageLocation": "default",
@@ -623,7 +623,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 6488,
+              "id": 6492,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "796:4:13",
@@ -636,12 +636,12 @@
           },
           {
             "constant": false,
-            "id": 6491,
+            "id": 6495,
             "mutability": "mutable",
             "name": "_owner",
             "nameLocation": "825:6:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
+            "scope": 6508,
             "src": "817:14:13",
             "stateVariable": true,
             "storageLocation": "default",
@@ -650,7 +650,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 6490,
+              "id": 6494,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "817:7:13",
@@ -664,74 +664,37 @@
           },
           {
             "constant": false,
-            "id": 6494,
+            "id": 6498,
             "mutability": "mutable",
             "name": "_DAOs",
             "nameLocation": "865:5:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
+            "scope": 6508,
             "src": "834:36:13",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$6468_storage",
+              "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$6472_storage",
               "typeString": "struct DAOsStore.EnumerableMap_UintToAddressMap"
             },
             "typeName": {
-              "id": 6493,
+              "id": 6497,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 6492,
+                "id": 6496,
                 "name": "EnumerableMap_UintToAddressMap",
                 "nameLocations": [
                   "834:30:13"
                 ],
                 "nodeType": "IdentifierPath",
-                "referencedDeclaration": 6468,
+                "referencedDeclaration": 6472,
                 "src": "834:30:13"
               },
-              "referencedDeclaration": 6468,
+              "referencedDeclaration": 6472,
               "src": "834:30:13",
               "typeDescriptions": {
-                "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$6468_storage_ptr",
+                "typeIdentifier": "t_struct$_EnumerableMap_UintToAddressMap_$6472_storage_ptr",
                 "typeString": "struct DAOsStore.EnumerableMap_UintToAddressMap"
-              }
-            },
-            "visibility": "internal"
-          },
-          {
-            "constant": false,
-            "id": 6497,
-            "mutability": "mutable",
-            "name": "defaultIMPLs",
-            "nameLocation": "887:12:13",
-            "nodeType": "VariableDeclaration",
-            "scope": 6502,
-            "src": "873:26:13",
-            "stateVariable": true,
-            "storageLocation": "default",
-            "typeDescriptions": {
-              "typeIdentifier": "t_struct$_DAOs_DAOIMPLs_$6483_storage",
-              "typeString": "struct DAOsStore.DAOs_DAOIMPLs"
-            },
-            "typeName": {
-              "id": 6496,
-              "nodeType": "UserDefinedTypeName",
-              "pathNode": {
-                "id": 6495,
-                "name": "DAOs_DAOIMPLs",
-                "nameLocations": [
-                  "873:13:13"
-                ],
-                "nodeType": "IdentifierPath",
-                "referencedDeclaration": 6483,
-                "src": "873:13:13"
-              },
-              "referencedDeclaration": 6483,
-              "src": "873:13:13",
-              "typeDescriptions": {
-                "typeIdentifier": "t_struct$_DAOs_DAOIMPLs_$6483_storage_ptr",
-                "typeString": "struct DAOsStore.DAOs_DAOIMPLs"
               }
             },
             "visibility": "internal"
@@ -740,57 +703,122 @@
             "constant": false,
             "id": 6501,
             "mutability": "mutable",
-            "name": "__",
-            "nameLocation": "914:2:13",
+            "name": "defaultIMPLs",
+            "nameLocation": "887:12:13",
             "nodeType": "VariableDeclaration",
-            "scope": 6502,
-            "src": "902:14:13",
+            "scope": 6508,
+            "src": "873:26:13",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_array$_t_uint256_$50_storage",
-              "typeString": "uint256[50]"
+              "typeIdentifier": "t_struct$_DAOs_DAOIMPLs_$6487_storage",
+              "typeString": "struct DAOsStore.DAOs_DAOIMPLs"
+            },
+            "typeName": {
+              "id": 6500,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 6499,
+                "name": "DAOs_DAOIMPLs",
+                "nameLocations": [
+                  "873:13:13"
+                ],
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 6487,
+                "src": "873:13:13"
+              },
+              "referencedDeclaration": 6487,
+              "src": "873:13:13",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_DAOs_DAOIMPLs_$6487_storage_ptr",
+                "typeString": "struct DAOsStore.DAOs_DAOIMPLs"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "constant": false,
+            "id": 6503,
+            "mutability": "mutable",
+            "name": "_operator",
+            "nameLocation": "910:9:13",
+            "nodeType": "VariableDeclaration",
+            "scope": 6508,
+            "src": "902:17:13",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 6502,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "902:7:13",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "constant": false,
+            "id": 6507,
+            "mutability": "mutable",
+            "name": "__",
+            "nameLocation": "934:2:13",
+            "nodeType": "VariableDeclaration",
+            "scope": 6508,
+            "src": "922:14:13",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_uint256_$49_storage",
+              "typeString": "uint256[49]"
             },
             "typeName": {
               "baseType": {
-                "id": 6498,
+                "id": 6504,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
-                "src": "902:7:13",
+                "src": "922:7:13",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
-              "id": 6500,
+              "id": 6506,
               "length": {
-                "hexValue": "3530",
-                "id": 6499,
+                "hexValue": "3439",
+                "id": 6505,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
                 "kind": "number",
                 "lValueRequested": false,
                 "nodeType": "Literal",
-                "src": "910:2:13",
+                "src": "930:2:13",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_rational_50_by_1",
-                  "typeString": "int_const 50"
+                  "typeIdentifier": "t_rational_49_by_1",
+                  "typeString": "int_const 49"
                 },
-                "value": "50"
+                "value": "49"
               },
               "nodeType": "ArrayTypeName",
-              "src": "902:11:13",
+              "src": "922:11:13",
               "typeDescriptions": {
-                "typeIdentifier": "t_array$_t_uint256_$50_storage_ptr",
-                "typeString": "uint256[50]"
+                "typeIdentifier": "t_array$_t_uint256_$49_storage_ptr",
+                "typeString": "uint256[49]"
               }
             },
             "visibility": "internal"
           }
         ],
-        "scope": 6532,
-        "src": "215:720:13",
+        "scope": 6538,
+        "src": "215:740:13",
         "usedErrors": []
       },
       {
@@ -798,59 +826,59 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 6504,
+              "id": 6510,
               "name": "DAOsStore",
               "nameLocations": [
-                "1321:9:13"
+                "1341:9:13"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 6502,
-              "src": "1321:9:13"
+              "referencedDeclaration": 6508,
+              "src": "1341:9:13"
             },
-            "id": 6505,
+            "id": 6511,
             "nodeType": "InheritanceSpecifier",
-            "src": "1321:9:13"
+            "src": "1341:9:13"
           }
         ],
         "canonicalName": "DAOsProxy",
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 6503,
+          "id": 6509,
           "nodeType": "StructuredDocumentation",
-          "src": "937:361:13",
+          "src": "957:361:13",
           "text": " @dev The context here is that the externally exposed contract entities are only used to store data, \n and the implemented business logic should be placed in the impl\n Any method that calls this contract will be directed to `fallback()`, \n and then use `delegatecall()` to call the actual implementation and pass the current data context to impl"
         },
         "fullyImplemented": true,
-        "id": 6531,
+        "id": 6537,
         "linearizedBaseContracts": [
-          6531,
-          6502
+          6537,
+          6508
         ],
         "name": "DAOsProxy",
-        "nameLocation": "1308:9:13",
+        "nameLocation": "1328:9:13",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 6514,
+              "id": 6520,
               "nodeType": "Block",
-              "src": "1522:21:13",
+              "src": "1542:21:13",
               "statements": [
                 {
                   "expression": {
-                    "id": 6512,
+                    "id": 6518,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 6510,
+                      "id": 6516,
                       "name": "_impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6485,
-                      "src": "1526:5:13",
+                      "referencedDeclaration": 6489,
+                      "src": "1546:5:13",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
                         "typeString": "address"
@@ -859,30 +887,30 @@
                     "nodeType": "Assignment",
                     "operator": "=",
                     "rightHandSide": {
-                      "id": 6511,
+                      "id": 6517,
                       "name": "impl_",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6507,
-                      "src": "1534:5:13",
+                      "referencedDeclaration": 6513,
+                      "src": "1554:5:13",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
                         "typeString": "address"
                       }
                     },
-                    "src": "1526:13:13",
+                    "src": "1546:13:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
                     }
                   },
-                  "id": 6513,
+                  "id": 6519,
                   "nodeType": "ExpressionStatement",
-                  "src": "1526:13:13"
+                  "src": "1546:13:13"
                 }
               ]
             },
-            "id": 6515,
+            "id": 6521,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
@@ -890,18 +918,18 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6508,
+              "id": 6514,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6507,
+                  "id": 6513,
                   "mutability": "mutable",
                   "name": "impl_",
-                  "nameLocation": "1508:5:13",
+                  "nameLocation": "1528:5:13",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6515,
-                  "src": "1500:13:13",
+                  "scope": 6521,
+                  "src": "1520:13:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -909,10 +937,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 6506,
+                    "id": 6512,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1500:7:13",
+                    "src": "1520:7:13",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -922,41 +950,41 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1499:15:13"
+              "src": "1519:15:13"
             },
             "returnParameters": {
-              "id": 6509,
+              "id": 6515,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1522:0:13"
+              "src": "1542:0:13"
             },
-            "scope": 6531,
-            "src": "1488:55:13",
+            "scope": 6537,
+            "src": "1508:55:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           },
           {
             "body": {
-              "id": 6529,
+              "id": 6535,
               "nodeType": "Block",
-              "src": "1574:224:13",
+              "src": "1594:224:13",
               "statements": [
                 {
                   "assignments": [
-                    6519,
-                    6521
+                    6525,
+                    6527
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 6519,
+                      "id": 6525,
                       "mutability": "mutable",
                       "name": "suc",
-                      "nameLocation": "1584:3:13",
+                      "nameLocation": "1604:3:13",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6529,
-                      "src": "1579:8:13",
+                      "scope": 6535,
+                      "src": "1599:8:13",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
@@ -964,10 +992,10 @@
                         "typeString": "bool"
                       },
                       "typeName": {
-                        "id": 6518,
+                        "id": 6524,
                         "name": "bool",
                         "nodeType": "ElementaryTypeName",
-                        "src": "1579:4:13",
+                        "src": "1599:4:13",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
@@ -977,13 +1005,13 @@
                     },
                     {
                       "constant": false,
-                      "id": 6521,
+                      "id": 6527,
                       "mutability": "mutable",
                       "name": "_data",
-                      "nameLocation": "1602:5:13",
+                      "nameLocation": "1622:5:13",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6529,
-                      "src": "1589:18:13",
+                      "scope": 6535,
+                      "src": "1609:18:13",
                       "stateVariable": false,
                       "storageLocation": "memory",
                       "typeDescriptions": {
@@ -991,10 +1019,10 @@
                         "typeString": "bytes"
                       },
                       "typeName": {
-                        "id": 6520,
+                        "id": 6526,
                         "name": "bytes",
                         "nodeType": "ElementaryTypeName",
-                        "src": "1589:5:13",
+                        "src": "1609:5:13",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_storage_ptr",
                           "typeString": "bytes"
@@ -1003,31 +1031,31 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 6527,
+                  "id": 6533,
                   "initialValue": {
                     "arguments": [
                       {
                         "expression": {
-                          "id": 6524,
+                          "id": 6530,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
                           "referencedDeclaration": 4294967281,
-                          "src": "1630:3:13",
+                          "src": "1650:3:13",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 6525,
+                        "id": 6531,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
-                        "memberLocation": "1634:4:13",
+                        "memberLocation": "1654:4:13",
                         "memberName": "data",
                         "nodeType": "MemberAccess",
-                        "src": "1630:8:13",
+                        "src": "1650:8:13",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
                           "typeString": "bytes calldata"
@@ -1042,32 +1070,32 @@
                         }
                       ],
                       "expression": {
-                        "id": 6522,
+                        "id": 6528,
                         "name": "_impl",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6485,
-                        "src": "1611:5:13",
+                        "referencedDeclaration": 6489,
+                        "src": "1631:5:13",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         }
                       },
-                      "id": 6523,
+                      "id": 6529,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
                       "lValueRequested": false,
-                      "memberLocation": "1617:12:13",
+                      "memberLocation": "1637:12:13",
                       "memberName": "delegatecall",
                       "nodeType": "MemberAccess",
-                      "src": "1611:18:13",
+                      "src": "1631:18:13",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_baredelegatecall_nonpayable$_t_bytes_memory_ptr_$returns$_t_bool_$_t_bytes_memory_ptr_$",
                         "typeString": "function (bytes memory) returns (bool,bytes memory)"
                       }
                     },
-                    "id": 6526,
+                    "id": 6532,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1076,7 +1104,7 @@
                     "nameLocations": [],
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1611:28:13",
+                    "src": "1631:28:13",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$_t_bool_$_t_bytes_memory_ptr_$",
@@ -1084,55 +1112,55 @@
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
-                  "src": "1578:61:13"
+                  "src": "1598:61:13"
                 },
                 {
                   "AST": {
                     "nodeType": "YulBlock",
-                    "src": "1652:143:13",
+                    "src": "1672:143:13",
                     "statements": [
                       {
                         "nodeType": "YulVariableDeclaration",
-                        "src": "1657:23:13",
+                        "src": "1677:23:13",
                         "value": {
                           "arguments": [
                             {
                               "name": "_data",
                               "nodeType": "YulIdentifier",
-                              "src": "1674:5:13"
+                              "src": "1694:5:13"
                             }
                           ],
                           "functionName": {
                             "name": "mload",
                             "nodeType": "YulIdentifier",
-                            "src": "1668:5:13"
+                            "src": "1688:5:13"
                           },
                           "nodeType": "YulFunctionCall",
-                          "src": "1668:12:13"
+                          "src": "1688:12:13"
                         },
                         "variables": [
                           {
                             "name": "len",
                             "nodeType": "YulTypedName",
-                            "src": "1661:3:13",
+                            "src": "1681:3:13",
                             "type": ""
                           }
                         ]
                       },
                       {
                         "nodeType": "YulVariableDeclaration",
-                        "src": "1684:28:13",
+                        "src": "1704:28:13",
                         "value": {
                           "arguments": [
                             {
                               "name": "_data",
                               "nodeType": "YulIdentifier",
-                              "src": "1700:5:13"
+                              "src": "1720:5:13"
                             },
                             {
                               "kind": "number",
                               "nodeType": "YulLiteral",
-                              "src": "1707:4:13",
+                              "src": "1727:4:13",
                               "type": "",
                               "value": "0x20"
                             }
@@ -1140,16 +1168,16 @@
                           "functionName": {
                             "name": "add",
                             "nodeType": "YulIdentifier",
-                            "src": "1696:3:13"
+                            "src": "1716:3:13"
                           },
                           "nodeType": "YulFunctionCall",
-                          "src": "1696:16:13"
+                          "src": "1716:16:13"
                         },
                         "variables": [
                           {
                             "name": "data",
                             "nodeType": "YulTypedName",
-                            "src": "1688:4:13",
+                            "src": "1708:4:13",
                             "type": ""
                           }
                         ]
@@ -1159,7 +1187,7 @@
                           {
                             "body": {
                               "nodeType": "YulBlock",
-                              "src": "1737:21:13",
+                              "src": "1757:21:13",
                               "statements": [
                                 {
                                   "expression": {
@@ -1167,33 +1195,33 @@
                                       {
                                         "name": "data",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1746:4:13"
+                                        "src": "1766:4:13"
                                       },
                                       {
                                         "name": "len",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1752:3:13"
+                                        "src": "1772:3:13"
                                       }
                                     ],
                                     "functionName": {
                                       "name": "revert",
                                       "nodeType": "YulIdentifier",
-                                      "src": "1739:6:13"
+                                      "src": "1759:6:13"
                                     },
                                     "nodeType": "YulFunctionCall",
-                                    "src": "1739:17:13"
+                                    "src": "1759:17:13"
                                   },
                                   "nodeType": "YulExpressionStatement",
-                                  "src": "1739:17:13"
+                                  "src": "1759:17:13"
                                 }
                               ]
                             },
                             "nodeType": "YulCase",
-                            "src": "1730:28:13",
+                            "src": "1750:28:13",
                             "value": {
                               "kind": "number",
                               "nodeType": "YulLiteral",
-                              "src": "1735:1:13",
+                              "src": "1755:1:13",
                               "type": "",
                               "value": "0"
                             }
@@ -1201,7 +1229,7 @@
                           {
                             "body": {
                               "nodeType": "YulBlock",
-                              "src": "1770:21:13",
+                              "src": "1790:21:13",
                               "statements": [
                                 {
                                   "expression": {
@@ -1209,73 +1237,73 @@
                                       {
                                         "name": "data",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1779:4:13"
+                                        "src": "1799:4:13"
                                       },
                                       {
                                         "name": "len",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1785:3:13"
+                                        "src": "1805:3:13"
                                       }
                                     ],
                                     "functionName": {
                                       "name": "return",
                                       "nodeType": "YulIdentifier",
-                                      "src": "1772:6:13"
+                                      "src": "1792:6:13"
                                     },
                                     "nodeType": "YulFunctionCall",
-                                    "src": "1772:17:13"
+                                    "src": "1792:17:13"
                                   },
                                   "nodeType": "YulExpressionStatement",
-                                  "src": "1772:17:13"
+                                  "src": "1792:17:13"
                                 }
                               ]
                             },
                             "nodeType": "YulCase",
-                            "src": "1762:29:13",
+                            "src": "1782:29:13",
                             "value": "default"
                           }
                         ],
                         "expression": {
                           "name": "suc",
                           "nodeType": "YulIdentifier",
-                          "src": "1723:3:13"
+                          "src": "1743:3:13"
                         },
                         "nodeType": "YulSwitch",
-                        "src": "1716:75:13"
+                        "src": "1736:75:13"
                       }
                     ]
                   },
                   "evmVersion": "petersburg",
                   "externalReferences": [
                     {
-                      "declaration": 6521,
+                      "declaration": 6527,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1674:5:13",
+                      "src": "1694:5:13",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 6521,
+                      "declaration": 6527,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1700:5:13",
+                      "src": "1720:5:13",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 6519,
+                      "declaration": 6525,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1723:3:13",
+                      "src": "1743:3:13",
                       "valueSize": 1
                     }
                   ],
-                  "id": 6528,
+                  "id": 6534,
                   "nodeType": "InlineAssembly",
-                  "src": "1643:152:13"
+                  "src": "1663:152:13"
                 }
               ]
             },
-            "id": 6530,
+            "id": 6536,
             "implemented": true,
             "kind": "fallback",
             "modifiers": [],
@@ -1283,30 +1311,30 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6516,
+              "id": 6522,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1554:2:13"
+              "src": "1574:2:13"
             },
             "returnParameters": {
-              "id": 6517,
+              "id": 6523,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1574:0:13"
+              "src": "1594:0:13"
             },
-            "scope": 6531,
-            "src": "1546:252:13",
+            "scope": 6537,
+            "src": "1566:252:13",
             "stateMutability": "payable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6532,
-        "src": "1299:501:13",
+        "scope": 6538,
+        "src": "1319:501:13",
         "usedErrors": []
       }
     ],
-    "src": "32:1768:13"
+    "src": "32:1788:13"
   },
   "compiler": {
     "name": "solc",
@@ -1314,7 +1342,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-05-11T06:07:52.707Z",
+  "updatedAt": "2023-05-15T13:11:25.579Z",
   "devdoc": {
     "details": "All contracts that need to implement upgrades should inherit this `DAOsStore` contract,  and it should be the first parent class inherited",
     "kind": "dev",

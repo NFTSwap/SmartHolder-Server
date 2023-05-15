@@ -149,7 +149,7 @@ async function load_main_db() {
 				tokenId      char    (66)                      not null,  -- hash
 				owner        char    (42)                      not null,  -- owner
 				previous     char    (42)                      not null,  -- previous
-				payType      int                               not null,
+				payType      int                               not null,  -- 0:ETH,1:WETH
 				payValue     varchar (78)                      not null,
 				payBank      char    (42)                      not null,
 				payer        char    (42)                      not null,

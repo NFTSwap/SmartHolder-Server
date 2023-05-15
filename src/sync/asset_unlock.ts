@@ -60,7 +60,7 @@ export class AssetUnlockWatch implements WatchCat {
 			data: {
 				id: number,
 				lock: {tokenId: string,owner: string,previous: string},
-				payType: string, payValue: string,payBank: string,payer: string
+				payType: number, payValue: string,payBank: string,payer: string
 			}[];
 		}
 		let dict: Dict<Data> = {};

@@ -145,7 +145,7 @@ export interface AssetUnlock {
 	tokenId: string;//      char    (66)                      not null,  -- hash
 	owner: string;//        char    (42)                      not null,  -- owner
 	previous: string;//     char    (42)                      not null,  -- previous
-	payType: string;//      int                               not null,
+	payType: number;//      int                               not null,  -- 0:ETH,1:WETH
 	payValue: string;//     varchar (78)                      not null,
 	payBank: string;//      char    (42)                      not null,
 	payer: string;//        char    (42)                      not null,
