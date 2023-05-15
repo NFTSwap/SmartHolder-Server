@@ -266,7 +266,7 @@ export class WatchBlock implements WatchCat {
 				blockNumber: number,
 				logs: {
 					idx: number, // index for info
-					// address: string, // info address
+					address: string, // info address
 					logs: Log[],
 				}[],
 			}[],
@@ -328,7 +328,7 @@ export class WatchBlock implements WatchCat {
 			info.forEach((e,idx)=>{
 				let logs = logsDict[e.address];
 				if (logs)
-					block.logs.push({ idx, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
+					block.logs.push({ idx, address: e.address, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
 			});
 
 			logsAll.blocks.push(block);
