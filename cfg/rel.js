@@ -18,6 +18,7 @@ module.exports = {
 	enable_auth: true,
 	watch_meta: 'watch_indexer',
 	env: 'rel',
+	moreLog: true,
 	mysql: {
 		host: '127.0.0.1', port: 3306, user: 'smartdao', password: 'smartdao', database: 'smartdao', // rel inner
 	},

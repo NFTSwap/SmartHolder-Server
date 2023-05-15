@@ -51,6 +51,7 @@ module.exports = {
 		accessKey: 'iiMyOZsCAMpDbj2t-JLnLvyEbGMGfRO78NTIUdrO',
 		secretKey: 'HkaFTPPG8zdoUB-xxyYfGXZth2PCNX75oKPFJeL5',
 	},
+	moreLog: true,
 	mysql: {
 		host: '192.168.0.189', port: 22022, user: 'root', password: 'uzBGtlhlHnAQFtxdKj*Z', database: 'mvp', // dev
 	},
