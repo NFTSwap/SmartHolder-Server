@@ -175,8 +175,8 @@ export class WatchBlock implements WatchCat {
 				let logIndex = Number(log.logIndex);
 				let topic = '0x' + (log.topics.length ? log.topics.map(e=>e.slice(2)).join(''): '0');
 
-				if (log.topics.length == 0)
-					console.warn('#WatchBlock.solveReceipt topic is empty', log);
+				//if (log.topics.length == 0)
+				//	console.warn('#WatchBlock.solveReceipt topic is empty', log);
 
 				if (log.data.length > 65535*2+2) {
 					log.data = '0x' + buffer.from('rpc:fetch').toString('hex');
