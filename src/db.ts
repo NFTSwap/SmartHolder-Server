@@ -302,10 +302,10 @@ async function load_main_db() {
 				in logIndex_    smallint,
 				in blockNumber_ int
 			) begin
-				set @count = (select count(*) from transaction_log_bin_5 where tx_id=tx_id_ and logIndex=logIndex_);
+				set @count = (select count(*) from transaction_log_bin_${chain} where tx_id=tx_id_ and logIndex=logIndex_);
 				if @count=0 then
-					insert into transaction_log_bin_5 (tx_id,address,topic,data,logIndex,blockNumber)
-					values                            (tx_id_,address_,topic_,data_,logIndex_,blockNumber_);
+					insert into transaction_log_bin_${chain} (tx_id,address,topic,data,logIndex,blockNumber)
+					values                                   (tx_id_,address_,topic_,data_,logIndex_,blockNumber_);
 				end if;
 			end;
 
