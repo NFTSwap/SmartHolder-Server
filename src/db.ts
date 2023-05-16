@@ -437,10 +437,10 @@ async function load_main_db() {
 			`create         index transaction_bin_${chain}_5     on transaction_bin_${chain}        (toAddress)`,
 			//transaction_log_bin
 			`create         index transaction_log_bin_${chain}_0 on transaction_log_bin_${chain}    (tx_id)`,
-			`create         index transaction_log_bin_${chain}_1 on transaction_log_bin_${chain}    (address)`,
+			// `create         index transaction_log_bin_${chain}_1 on transaction_log_bin_${chain}    (address)`,
 			`create         index transaction_log_bin_${chain}_2 on transaction_log_bin_${chain}    (address,topic)`,
-			`create         index transaction_log_bin_${chain}_3 on transaction_log_bin_${chain}    (blockNumber)`,
-			`create         index transaction_log_bin_${chain}_4 on transaction_log_bin_${chain}    (blockNumber,address)`,
+			// `create         index transaction_log_bin_${chain}_3 on transaction_log_bin_${chain}    (blockNumber)`,
+			`create         index transaction_log_bin_${chain}_4 on transaction_log_bin_${chain}    (address,blockNumber)`,
 		], `shs_${chain}`);
 	}
 
