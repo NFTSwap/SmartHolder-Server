@@ -212,7 +212,7 @@ export class WatchBlock implements WatchCat {
 			try {
 				receipts = await web3.getTransactionReceiptsByBlock(blockNumber);
 			} catch(err: any) {
-				console.warn(`#WatchBlock._watchReceipt`, err);
+				console.warn(`#WatchBlock._watchReceipt`, chain, err);
 			}
 
 			if (receipts) {
