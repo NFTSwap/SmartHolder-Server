@@ -281,9 +281,9 @@ async function load_main_db() {
 				contractAddress   binary (20)                  null, -- created contract address
 				status            bit                          not null,
 				logsCount         smallint                     not null -- logs count
-			);
+			) row_format=compressed;
 
-			create table if not exists transaction_log_bin_${chain} (
+			create table compressed if not exists transaction_log_bin_${chain} (
 				tx_id             int                          not null, -- id for transaction table
 				address           binary (20)                  not null,
 				topic             varbinary (128)              not null,
@@ -291,7 +291,7 @@ async function load_main_db() {
 				logIndex          smallint                     not null, -- log index for transaction
 				blockNumber       int                          not null,
 				primary key (tx_id,logIndex)
-			);
+			) row_format=compressed;
 
 			drop procedure if exists insert_transaction_log_${chain};
 			create procedure insert_transaction_log_${chain}(
