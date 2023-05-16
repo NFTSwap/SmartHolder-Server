@@ -323,7 +323,8 @@ export class WatchBlock implements WatchCat {
 		let addressSet: Dict = {};
 		let addressHash = info.filter(e=>e.state==0).map(e=>{
 			let buffer = toBuffer(e.address);
-			addressSet['0x'+buffer.toString('hex')] = 1;
+			e.address = '0x' + buffer.toString('hex');
+			addressSet[e.address] = 1;
 			return hashCode(buffer);
 		}).join(',');
 
