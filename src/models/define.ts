@@ -401,6 +401,9 @@ export interface Transaction {
 	contractAddress?: string;//  binary (20)                  null, -- created contract address
 	status: boolean;//           bit                          not null,
 	logsCount: number;//         int                          not null -- logs count
+	txHash: number;//            int                          not null, -- short transaction hash
+	fromHash: number;//          int                          not null,
+	toHash: number;//            int                          not null
 }
 
 export interface TransactionLog {
@@ -412,7 +415,8 @@ export interface TransactionLog {
 	transactionIndex: number;//  smallint                     not null,
 	transactionHash: string;//   binary (32)                  not null,
 	blockHash: string;//         binary (32)                  not null,
-	blockNumber: number;//       int                          not null
+	blockNumber: number;//       int                          not null,
+	addressHash: number;//       int                          not null
 }
 
 export interface Indexer {

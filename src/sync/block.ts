@@ -65,6 +65,10 @@ function formatTransactionLog(log: any, tx: ITransaction): TransactionLog {
 	return log;
 }
 
+function hashCode(buff: IBuffer) {
+	return Number((BigInt(buff.hashCode()) & BigInt(0xffffffff)));
+}
+
 export class WatchBlock implements WatchCat {
 	readonly web3: MvpWeb3;
 	readonly db: typeof db_;
@@ -132,17 +136,21 @@ export class WatchBlock implements WatchCat {
 		somes.assert(receipt, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 		somes.assert(transactionIndex == receipt.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
 
-		let transactionHash = receipt.transactionHash;
+		let transactionHash = toBuffer(receipt.transactionHash);
+		let txHash = hashCode(transactionHash);
 		let tx_id = 0;
 		let [tx_] = (await this.db.query<{id:number}>(
-			`select id from transaction_bin_${chain} where transactionHash=${transactionHash}`));
+			`select id from transaction_bin_${chain} where txHash=${txHash}`));
 
 		if ( !tx_ ) {
 			let tx = await getTx();
+			let fromAddress = toBuffer(receipt.from);
+			let toAddress = toBuffer(receipt.to || '0x0000000000000000000000000000000000000000');
+
 			tx_id = await this.db.insert(`transaction_bin_${chain}`, {
 				nonce: Number(tx.nonce),
-				fromAddress: toBuffer(receipt.from),
-				toAddress: toBuffer(receipt.to || '0x0000000000000000000000000000000000000000'),
+				fromAddress,
+				toAddress,
 				value: toBuffer(tx.value),
 				gasPrice: toBuffer(tx.gasPrice),
 				gas: toBuffer(tx.gas), // gas limit
@@ -152,12 +160,15 @@ export class WatchBlock implements WatchCat {
 				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
 				blockNumber: toBuffer(receipt.blockNumber),
 				blockHash: toBuffer(receipt.blockHash),
-				transactionHash: toBuffer(receipt.transactionHash),
+				transactionHash,
 				transactionIndex: Number(receipt.transactionIndex),
 				// logsBloom: receipt.logsBloom,
 				contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
 				status: Number(receipt.status),
 				logsCount: receipt.logs.length,
+				txHash: txHash,
+				fromHash: hashCode(fromAddress),
+				toHash: hashCode(toAddress),
 			});
 		} else {
 			tx_id = tx_.id;
@@ -174,6 +185,7 @@ export class WatchBlock implements WatchCat {
 				let address = log.address;
 				let logIndex = Number(log.logIndex);
 				let topic = '0x' + (log.topics.length ? log.topics.map(e=>e.slice(2)).join(''): '0');
+				let addressHash = hashCode(buffer.from(address.slice(2), 'hex'));
 
 				//if (log.topics.length == 0)
 				//	console.warn('#WatchBlock.solveReceipt topic is empty', log);
@@ -183,7 +195,7 @@ export class WatchBlock implements WatchCat {
 				}
 				let data = log.data && log.data.length > 2 ? log.data: 'NULL';
 				sql.push(
-					`call insert_transaction_log_${chain}(${tx_id},${address},${topic},${data},${logIndex},${blockNumber});`
+					`call insert_transaction_log_${chain}(${tx_id},${address},${topic},${data},${logIndex},${blockNumber},${addressHash});`
 				);
 			}
 			await this.db.exec(sql.join('\n'));
@@ -308,62 +320,71 @@ export class WatchBlock implements WatchCat {
 			return r.data;
 		}
 
-		let addressIn = info.filter(e=>e.state==0)
-			.map(e=>escape(buffer.from(e.address.slice(2), 'hex'))).join(',');
+		let addressSet: Dict = {};
+		let addressHash = info.filter(e=>e.state==0).map(e=>{
+			let buffer = toBuffer(e.address);
+			addressSet['0x'+buffer.toString('hex')] = 1;
+			return hashCode(buffer);
+		}).join(',');
 
-		let sql = `select * from transaction_log_bin_${chain} where address in (${addressIn}) 
+		let sql = `select * from transaction_log_bin_${chain} where addressHash in (${addressHash}) 
 			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
 		`;
 
-		let logs = await this.db.query<Log>(sql);
+		let logs = ((await this.db.query<Log>(sql)));
 		let txs: Dict<ITransaction> = {};
+
+		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
 
 		if (logs.length) {
 			for (let tx of await this.getTransactions(logs.map(e=>e.tx_id)))
 				txs[tx.id] = tx;
 		}
 
-		logs = logs.sort((a,b)=>a.blockNumber-b.blockNumber);
-
-		let blogs = [] as {blockNumber: number, logs: Log[]}[];
+		let b_logs = [] as {blockNumber: number, logs: Log[]}[];
 
 		for (let log of logs) {
 			let tx = txs[log.tx_id];
 			somes.assert(tx, '#WatchBlock.getTransactionLogsFrom() tx is null');
 			log.tx = tx;
 			log = formatTransactionLog(log, tx) as Log;
-
-			let {blockNumber} = log;
-			let blog = blogs.indexReverse(0);
-
-			if (blog) {
-				if (blog.blockNumber == blockNumber) {
-					blog.logs.push(log);
+			
+			if (addressSet[log.address]) {
+				let {blockNumber} = log;
+				let b_log = b_logs.indexReverse(0);
+				if (b_log) {
+					if (b_log.blockNumber == blockNumber) {
+						b_log.logs.push(log);
+					} else {
+						somes.assert(b_log.blockNumber < blockNumber,
+							'#WatchBlock.getTransactionLogsFrom blockNumber order error');
+							b_logs.push({blockNumber, logs: [log]});
+					}
 				} else {
-					somes.assert(blog.blockNumber < blockNumber,
-						'#WatchBlock.getTransactionLogsFrom blockNumber order error');
-					blogs.push({blockNumber, logs: [log]});
+					b_logs[0] = {blockNumber, logs: [log]};
 				}
-			} else {
-				blogs[0] = {blockNumber, logs: [log]};
 			}
-		}
+		} // for (let log of logs)
 
-		for (let {blockNumber,logs} of blogs) { // each block
+		for (let {blockNumber,logs} of b_logs) { // each block
 			let block = { blockNumber, logs: [] } as typeof logsAll.blocks[0];
-			let logsDict: Dict<Log[]> = {};
+			let logsDict: Dict<Log[]> = {}; // address => log[]
 
 			for (let log of logs) {
 				let logs = logsDict[log.address];
 				if (!logs)
 					logsDict[log.address] = logs = [];
-				logs.push(log);
+				logs.push(log); // address => log[]
 			}
 
 			info.forEach((e,idx)=>{
 				let logs = logsDict[e.address];
-				if (logs)
-					block.logs.push({ idx, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
+				if (logs) {
+					let logsSet = {} as Dict;
+					logs = logs.filter(e=>logsSet[e.logIndex] ? 0: logsSet[e.logIndex]=1); // exclude duplicates
+					logs = logs.sort((a,b)=>a.logIndex-b.logIndex); // sort
+					block.logs.push({ idx, logs });
+				}
 			});
 
 			logsAll.blocks.push(block);
@@ -372,17 +393,19 @@ export class WatchBlock implements WatchCat {
 		return logsAll;
 	}
 
-	async getTransaction(txHash: string): Promise<ITransaction | null> {
+	async getTransaction(transactionHash: string): Promise<ITransaction | null> {
 		if (this.useRpc) {
 			return (await api.get<ITransaction>('chain/getTransaction', {
-				chain: this.web3.chain, txHash
+				chain: this.web3.chain, txHash: transactionHash,
 			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
+		let txHash = hashCode(toBuffer(transactionHash));
 
-		let tx = await this.db.selectOne(
-			`transaction_bin_${this.web3.chain}`, { transactionHash: buffer.from(txHash.slice(2), 'hex') });
+		let tx = await this.db.select<ITransaction>(
+			`transaction_bin_${this.web3.chain}`, { txHash }, {limit: 3});
+		let txOne = tx.map(e=>formatTransaction(e)).find(e=>e.transactionHash==transactionHash);
 
-		return tx ? formatTransaction(tx): null;
+		return txOne || null;
 	}
 
 	async getTransactions(ids: number[]) {
