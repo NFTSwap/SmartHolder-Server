@@ -349,8 +349,6 @@ async function load_main_db() {
 			//
 			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add count  varchar (78)   default ('')  not null`,
-			// transaction
-			`alter table transaction_${chain} add time           bigint         default (0)  not null`,
 			// contract_info
 			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
 			// asset_order
