@@ -293,7 +293,7 @@ async function load_main_db() {
 				address           binary (20)                  not null,
 				topic             varbinary (128)              not null,
 				data              blob                         null,
-				logIndex          smallint unsigned            not null, -- log index for transaction
+				logIndex          int unsigned                 not null, -- log index for transaction
 				blockNumber       int unsigned                 not null,
 				addressHash       int unsigned                 not null
 				-- primary key (tx_id,logIndex)
@@ -305,7 +305,7 @@ async function load_main_db() {
 				in address_     binary(20),
 				in topic_       varbinary(128),
 				in data_        blob,
-				in logIndex_    smallint,
+				in logIndex_    int unsigned,
 				in blockNumber_ int unsigned,
 				in addressHash_ int unsigned
 			) begin
@@ -442,7 +442,7 @@ async function load_main_db() {
 			`create         index transaction_bin_${chain}_2     on transaction_bin_${chain}        (fromHash)`,
 			`create         index transaction_bin_${chain}_3     on transaction_bin_${chain}        (toHash)`,
 			//transaction_log_bin
-			`create         index transaction_log_bin_${chain}_0 on transaction_log_bin_${chain}    (tx_id)`,
+			`create unique  index transaction_log_bin_${chain}_0 on transaction_log_bin_${chain}    (tx_id,logIndex)`,
 			`create         index transaction_log_bin_${chain}_1 on transaction_log_bin_${chain}    (addressHash)`,
 			`create         index transaction_log_bin_${chain}_2 on transaction_log_bin_${chain}    (blockNumber,addressHash)`,
 		], `shs_${chain}`);
