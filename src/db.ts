@@ -283,7 +283,7 @@ async function load_main_db() {
 				logsCount         smallint                     not null -- logs count
 			) row_format=compressed;
 
-			create table compressed if not exists transaction_log_bin_${chain} (
+			create table if not exists transaction_log_bin_${chain} (
 				tx_id             int                          not null, -- id for transaction table
 				address           binary (20)                  not null,
 				topic             varbinary (128)              not null,
