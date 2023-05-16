@@ -173,7 +173,7 @@ export class WatchBlock implements WatchCat {
 			for (let log of receipt.logs) {
 				let address = log.address;
 				let logIndex = Number(log.logIndex);
-				let topic = '0x' + log.topics.map(e=>e.slice(2)).join('');
+				let topic = '0x' + (log.topics.length ? log.topics.map(e=>e.slice(2)).join(''): '0');
 
 				if (log.data.length > 65535*2+2) {
 					log.data = '0x' + buffer.from('rpc:fetch').toString('hex');
