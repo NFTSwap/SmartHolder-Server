@@ -68,11 +68,11 @@ export class WETH extends ContractScaner {
 				let logsCount = 0;
 
 				for (let log of logs) {
-					if (log.topic0 == signature) { // TransferSingle
+					if (log.topic[0] == signature) { // TransferSingle
 						somes.assert(logsCount++ == 0, '#WETH.Transfer.handle logs length no match');
 
 						let {from,to,id,value} = this.web3.eth.abi
-							.decodeLog(TransferSingle.inputs!, log.data, [log.topic1,log.topic2,log.topic3]);
+							.decodeLog(TransferSingle.inputs!, log.data, log.topic);
 						let c = await this.web3.contract(log.address);
 						try {
 							var item = await c.methods.lockedOf(id,to,from).call(); // get locked item

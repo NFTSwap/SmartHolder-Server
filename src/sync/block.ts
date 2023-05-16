@@ -5,6 +5,7 @@
 
 import '../uncaught';
 import somes from 'somes';
+import buffer, {IBuffer} from 'somes/buffer';
 import {WatchCat} from 'bclib/watch';
 import db_, { storage as storage_, ChainType,
 	Transaction as ITransaction,TransactionLog } from '../db';
@@ -24,6 +25,7 @@ import {Storage} from 'bclib/storage';
 import * as env from '../env';
 import api from '../request';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
+import {toBuffer} from 'crypto-tx';
 
 export async function testDB() {
 	await somes.sleep(1e3);
@@ -31,6 +33,36 @@ export async function testDB() {
 	let cfg_ = cfg.watchBlock;
 	let db = new MysqlTools(cfg_.mysql);
 	await db.load('', [], []);
+}
+
+function formatTransaction(tx: any): ITransaction {
+	tx.fromAddress = '0x' + tx.fromAddress.toString('hex');
+	tx.toAddress = '0x' + tx.toAddress.toString('hex');
+	tx.value = '0x' + tx.value.toString('hex');
+	tx.gasPrice = '0x' + tx.gasPrice.toString('hex');
+	tx.gas = '0x' + tx.gas.toString('hex');
+	tx.gasUsed = '0x' + tx.gasUsed.toString('hex');
+	tx.cumulativeGasUsed = '0x' + tx.cumulativeGasUsed.toString('hex');
+	tx.blockHash = '0x' + tx.blockHash.toString('hex');
+	tx.transactionHash = '0x' + tx.transactionHash.toString('hex');
+	tx.contractAddress = tx.contractAddress ? '0x' + tx.contractAddress.toString('hex'): undefined;
+	return tx as any;
+}
+
+function formatTransactionLog(log: any, tx: ITransaction): TransactionLog {
+	let topic = log.topic as IBuffer;
+	log.address = '0x' + log.address.toString('hex');
+	log.topic = [
+		topic.slice(0, 32),
+		topic.slice(32, 32),
+		topic.slice(64, 32),
+		topic.slice(96, 32),
+	].filter(e=>e.length).map(e=>'0x'+e.toString('hex'));
+	log.data = log.data ? '0x' + log.data.toString('hex'): '0x';
+	log.transactionIndex = tx.transactionIndex;
+	log.transactionHash = tx.transactionHash;
+	log.blockHash = tx.blockHash;
+	return log;
 }
 
 export class WatchBlock implements WatchCat {
@@ -97,34 +129,35 @@ export class WatchBlock implements WatchCat {
 
 	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
 		let chain = this.web3.chain;
-		somes.assert(receipt, `#WatchBlock._watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+		somes.assert(receipt, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+		somes.assert(transactionIndex == receipt.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
 
-		let tx = await getTx();
 		let transactionHash = receipt.transactionHash;
 		let tx_id = 0;
 		let [tx_] = (await this.db.query<{id:number}>(
-			`select id from transaction_${chain} where transactionHash=${escape(transactionHash)}`));
+			`select id from transaction_bin_${chain} where transactionHash=${transactionHash}`));
+
 		if ( !tx_ ) {
-			tx_id = await this.db.insert(`transaction_${chain}`, {
+			let tx = await getTx();
+			tx_id = await this.db.insert(`transaction_bin_${chain}`, {
 				nonce: Number(tx.nonce),
-				blockNumber: Number(receipt.blockNumber),
-				fromAddress: receipt.from,
-				toAddress: receipt.to || '0x0000000000000000000000000000000000000000',
-				value: '0x' + Number(tx.value).toString(16),
-				gasPrice: '0x' + Number(tx.gasPrice).toString(16),
-				gas: '0x' + Number(tx.gas).toString(16),
+				fromAddress: toBuffer(receipt.from),
+				toAddress: toBuffer(receipt.to || '0x0000000000000000000000000000000000000000'),
+				value: toBuffer(tx.value),
+				gasPrice: toBuffer(tx.gasPrice),
+				gas: toBuffer(tx.gas), // gas limit
 				// data: tx.input,
-				blockHash: receipt.blockHash,
-				transactionHash: receipt.transactionHash,
+				gasUsed: toBuffer(receipt.gasUsed),
+				cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
+				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
+				blockNumber: toBuffer(receipt.blockNumber),
+				blockHash: toBuffer(receipt.blockHash),
+				transactionHash: toBuffer(receipt.transactionHash),
 				transactionIndex: Number(receipt.transactionIndex),
-				gasUsed: '0x' + Number(receipt.gasUsed).toString(16),
-				cumulativeGasUsed: '0x' + Number(receipt.cumulativeGasUsed).toString(16),
-				effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
 				// logsBloom: receipt.logsBloom,
-				contractAddress: receipt.contractAddress,
+				contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
 				status: Number(receipt.status),
 				logsCount: receipt.logs.length,
-				time: Date.now(),
 			});
 		} else {
 			tx_id = tx_.id;
@@ -135,31 +168,22 @@ export class WatchBlock implements WatchCat {
 			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
 
-		for (let log of receipt.logs) { // event logs
-			let address = log.address;
-			let logIndex = Number(log.logIndex);
-			// somes.assert(!isNaN(logIndex), '#WatchBlock.solveReceipt() logIndex type no match');
+		if (receipt.logs.length) { // event logs
+			let sql: string[] = [];
+			for (let log of receipt.logs) {
+				let address = log.address;
+				let logIndex = Number(log.logIndex);
+				let topic = '0x' + log.topics.map(e=>e.slice(2)).join('');
 
-			if ( await this.db.selectCount(`transaction_log_${chain}`, {transactionHash, logIndex}) == 0) {
-				if (log.data.length > 65535) {
-					//log.data = await utils.storage(buffer.from(log.data.slice(2), 'hex'), '.data');
-					log.data = 'rpc:fetch';
+				if (log.data.length > 65535*2+2) {
+					log.data = '0x' + buffer.from('rpc:fetch').toString('hex');
 				}
-				await this.db.insert(`transaction_log_${chain}`, {
-					tx_id,
-					address,
-					topic0: log.topics[0] || '',
-					topic1: log.topics[1],
-					topic2: log.topics[2],
-					topic3: log.topics[3],
-					data: log.data,
-					logIndex,
-					transactionIndex,
-					transactionHash,
-					blockHash: receipt.blockHash,
-					blockNumber,
-				});
+				let data = log.data && log.data.length > 2 ? log.data: 'NULL';
+				sql.push(
+					`call insert_transaction_log_${chain}(${tx_id},${address},${topic},${data},${logIndex},${blockNumber});`
+				);
 			}
+			await this.db.exec(sql.join('\n'));
 		}
 	}
 
@@ -267,7 +291,7 @@ export class WatchBlock implements WatchCat {
 				blockNumber: number,
 				logs: {
 					idx: number, // index for info
-					address: string, // info address
+					// address: string, // info address
 					logs: Log[],
 				}[],
 			}[],
@@ -281,8 +305,10 @@ export class WatchBlock implements WatchCat {
 			return r.data;
 		}
 
-		let address = info.filter(e=>e.state==0).map(e=>escape(e.address)).join(',');
-		let sql = `select * from transaction_log_${chain} where address in (${address}) 
+		let addressIn = info.filter(e=>e.state==0)
+			.map(e=>escape(buffer.from(e.address.slice(2), 'hex'))).join(',');
+
+		let sql = `select * from transaction_log_bin_${chain} where address in (${addressIn}) 
 			and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
 		`;
 
@@ -299,9 +325,14 @@ export class WatchBlock implements WatchCat {
 		let blogs = [] as {blockNumber: number, logs: Log[]}[];
 
 		for (let log of logs) {
+			let tx = txs[log.tx_id];
+			somes.assert(tx, '#WatchBlock.getTransactionLogsFrom() tx is null');
+			log.tx = tx;
+			log = formatTransactionLog(log, tx) as Log;
+
 			let {blockNumber} = log;
 			let blog = blogs.indexReverse(0);
-			log.tx = txs[log.tx_id];
+
 			if (blog) {
 				if (blog.blockNumber == blockNumber) {
 					blog.logs.push(log);
@@ -329,7 +360,7 @@ export class WatchBlock implements WatchCat {
 			info.forEach((e,idx)=>{
 				let logs = logsDict[e.address];
 				if (logs)
-					block.logs.push({ idx, address: e.address, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
+					block.logs.push({ idx, logs: logs.sort((a,b)=>a.logIndex-b.logIndex) });
 			});
 
 			logsAll.blocks.push(block);
@@ -338,16 +369,17 @@ export class WatchBlock implements WatchCat {
 		return logsAll;
 	}
 
-	async getTransaction(txHash: string) {
+	async getTransaction(txHash: string): Promise<ITransaction | null> {
 		if (this.useRpc) {
 			return (await api.get<ITransaction>('chain/getTransaction', {
 				chain: this.web3.chain, txHash
 			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
 
-		let tx = await this.db.selectOne<ITransaction>(
-			`transaction_${this.web3.chain}`, { transactionHash: txHash });
-		return tx;
+		let tx = await this.db.selectOne(
+			`transaction_bin_${this.web3.chain}`, { transactionHash: buffer.from(txHash.slice(2), 'hex') });
+
+		return tx ? formatTransaction(tx): null;
 	}
 
 	async getTransactions(ids: number[]) {
@@ -358,9 +390,9 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (ids.length) {
-			let tx = await this.db.select<ITransaction>(
-				`transaction_${this.web3.chain}`, `id in (${ids.map(e=>escape(e))})`);
-			return tx;
+			let tx = await this.db.select(
+				`transaction_bin_${this.web3.chain}`, `id in (${ids.map(e=>escape(e))})`);
+			return tx.map(e=>formatTransaction(e));
 		} else {
 			return [];
 		}

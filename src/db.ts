@@ -261,44 +261,53 @@ async function load_main_db() {
 				state        int             default (0)  not null
 			);
 
-			create table if not exists transaction_${chain} (
+			create table if not exists transaction_bin_${chain} (
 				id                int primary key auto_increment,
 				nonce             int                          not null,
+				fromAddress       binary (20)                  not null,
+				toAddress         binary (20)                  not null,
+				value             varbinary (32)               not null,
+				gasPrice          varbinary (32)               not null,
+				gas               varbinary (32)               not null, -- gas limit
+				-- data              blob                         null,  -- input data hex format
+				gasUsed           varbinary (32)               not null, -- use gasd
+				cumulativeGasUsed varbinary (32)               not null,
+				-- effectiveGasPrice varbinary (32)               not null,
 				blockNumber       int                          not null, -- input
-				fromAddress       char (42)                    not null,
-				toAddress         char (42)                    not null,
-				value             varchar (66)                 not null,
-				gasPrice          varchar (66)                 not null,
-				gas               varchar (66)                 not null, -- gas limit
-				-- data              text                             null, -- input data hex format
-				blockHash         char (66)                    not null, -- receipt
-				transactionHash   char (66)                    not null,
-				transactionIndex  int                          not null,
-				gasUsed           varchar (66)                 not null, -- use gasd
-				cumulativeGasUsed varchar (66)                 not null,
-				effectiveGasPrice varchar (66)                 not null,
-				-- logsBloom         varchar (514)                not null,
-				contractAddress   char (42)                    null, -- created contract address
+				blockHash         binary (32)                  not null, -- receipt
+				transactionHash   binary (32)                  not null,
+				transactionIndex  smallint                     not null,
+				-- logsBloom         blob                         not null,
+				contractAddress   binary (20)                  null, -- created contract address
 				status            bit                          not null,
-				logsCount         int                          not null, -- logs count
-				time              bigint         default (0)   not null
+				logsCount         smallint                     not null -- logs count
 			);
 
-			create table if not exists transaction_log_${chain} (
-				id                int primary key auto_increment,
-				tx_id             int                          not null,
-				address           char (42)                    not null,
-				topic0            varchar (66)                 not null,
-				topic1            varchar (66)  default ('')   not null,
-				topic2            varchar (66)  default ('')   not null,
-				topic3            varchar (66)  default ('')   not null,
-				data              text                         null,
-				logIndex          int                          not null,
-				transactionIndex  int                          not null,
-				transactionHash   char (66)                    not null,
-				blockHash         char (66)                    not null,
-				blockNumber       int                          not null
+			create table if not exists transaction_log_bin_${chain} (
+				tx_id             int                          not null, -- id for transaction table
+				address           binary (20)                  not null,
+				topic             varbinary (128)              not null,
+				data              blob                         null,
+				logIndex          smallint                     not null, -- log index for transaction
+				blockNumber       int                          not null,
+				primary key (tx_id,logIndex)
 			);
+
+			drop procedure if exists insert_transaction_log_${chain};
+			create procedure insert_transaction_log_${chain}(
+				in tx_id_       int,
+				in address_     binary(20),
+				in topic_       varbinary(128),
+				in data_        blob,
+				in logIndex_    smallint,
+				in blockNumber_ int
+			) begin
+				set @count = (select count(*) from transaction_log_bin_5 where tx_id=tx_id_ and logIndex=logIndex_);
+				if @count=0 then
+					insert into transaction_log_bin_5 (tx_id,address,topic,data,logIndex,blockNumber)
+					values                            (tx_id_,address_,topic_,data_,logIndex_,blockNumber_);
+				end if;
+			end;
 
 		`, [
 			// dao
@@ -423,24 +432,17 @@ async function load_main_db() {
 			// indexer
 			`create unique  index indexer_${chain}_0             on indexer_${chain}                (hash)`,
 			// transaction
-			`create unique  index transaction_${chain}_0         on transaction_${chain}            (transactionHash)`,
-			`create         index transaction_${chain}_1         on transaction_${chain}            (blockHash)`,
-			`create         index transaction_${chain}_2         on transaction_${chain}            (blockNumber)`,
-			`create         index transaction_${chain}_3         on transaction_${chain}            (blockNumber,fromAddress)`,
-			`create         index transaction_${chain}_4         on transaction_${chain}            (blockNumber,toAddress)`,
-			`create         index transaction_${chain}_5         on transaction_${chain}            (fromAddress)`,
-			`create         index transaction_${chain}_6         on transaction_${chain}            (toAddress)`,
-			//transaction_log
-			`create unique  index transaction_log_${chain}_0     on transaction_log_${chain}        (transactionHash,logIndex)`,
-			`create         index transaction_log_${chain}_1     on transaction_log_${chain}        (transactionHash)`,
-			`create         index transaction_log_${chain}_2     on transaction_log_${chain}        (blockNumber)`,
-			`create         index transaction_log_${chain}_3     on transaction_log_${chain}        (blockNumber,address)`,
-			`create         index transaction_log_${chain}_4     on transaction_log_${chain}        (address)`,
-			`create         index transaction_log_${chain}_5     on transaction_log_${chain}        (address,topic0)`,
-			`create         index transaction_log_${chain}_6     on transaction_log_${chain}        (address,topic0,topic1)`,
-			`create         index transaction_log_${chain}_7     on transaction_log_${chain}        (address,topic0,topic1,topic2)`,
-			`create         index transaction_log_${chain}_8     on transaction_log_${chain}        (address,topic0,topic1,topic2,topic3)`,
-			`create         index transaction_log_${chain}_9     on transaction_log_${chain}        (tx_id)`,
+			`create unique  index transaction_bin_${chain}_0     on transaction_bin_${chain}        (transactionHash)`,
+			`create         index transaction_bin_${chain}_1     on transaction_bin_${chain}        (blockHash)`,
+			`create         index transaction_bin_${chain}_2     on transaction_bin_${chain}        (blockNumber)`,
+			`create         index transaction_bin_${chain}_4     on transaction_bin_${chain}        (fromAddress)`,
+			`create         index transaction_bin_${chain}_5     on transaction_bin_${chain}        (toAddress)`,
+			//transaction_log_bin
+			`create         index transaction_log_bin_${chain}_0 on transaction_log_bin_${chain}    (tx_id)`,
+			`create         index transaction_log_bin_${chain}_1 on transaction_log_bin_${chain}    (address)`,
+			`create         index transaction_log_bin_${chain}_2 on transaction_log_bin_${chain}    (address,topic)`,
+			`create         index transaction_log_bin_${chain}_3 on transaction_log_bin_${chain}    (blockNumber)`,
+			`create         index transaction_log_bin_${chain}_4 on transaction_log_bin_${chain}    (blockNumber,address)`,
 		], `shs_${chain}`);
 	}
 

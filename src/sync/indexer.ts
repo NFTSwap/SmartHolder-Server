@@ -4,6 +4,7 @@
  */
 
 import watch, {WatchCat} from 'bclib/watch';
+import buffer from 'somes/buffer';
 import db, {
 	ChainType, ContractInfo, Indexer as IIndexer,
 	ContractType, Transaction, TransactionLog } from '../db';
@@ -94,8 +95,8 @@ export class Indexer implements WatchCat {
 			let scaner = mk_scaner(address, info.type, this.chain, db);
 			let tx = log.tx;
 
-			if (log.data.slice(0,2) != '0x') {
-				if (log.data == 'rpc:fetch' || log.data.slice(0,4) == 'http'/*Compatible with old*/) {
+			if (log.data) {
+				if (log.data == '0x7270633a6665746368') { // rpc:fetch
 					let logs = await scaner.web3.eth.getPastLogs({
 						fromBlock: log.blockNumber, toBlock: log.blockNumber, address: address,
 					});
@@ -106,9 +107,9 @@ export class Indexer implements WatchCat {
 			}
 
 			let log_ = {
-				address,
-				data: log.data,
-				topics: [log.topic0, log.topic1, log.topic2, log.topic3].filter(e=>e),
+				address: address,
+				data: log.data?log.data: '0x',
+				topics: log.topic,
 				logIndex: log.logIndex,
 				transactionIndex: log.transactionIndex,
 				transactionHash: log.transactionHash,
