@@ -54,9 +54,9 @@ function formatTransactionLog(log: any, tx: ITransaction): TransactionLog {
 	log.address = '0x' + log.address.toString('hex');
 	log.topic = [
 		topic.slice(0, 32),
-		topic.slice(32, 32),
-		topic.slice(64, 32),
-		topic.slice(96, 32),
+		topic.slice(32, 64),
+		topic.slice(64, 96),
+		topic.slice(96, 128),
 	].filter(e=>e.length).map(e=>'0x'+e.toString('hex'));
 	log.data = log.data ? '0x' + log.data.toString('hex'): '0x';
 	log.transactionIndex = tx.transactionIndex;
