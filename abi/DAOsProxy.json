@@ -14,7 +14,8 @@
     },
     {
       "stateMutability": "payable",
-      "type": "fallback"
+      "type": "fallback",
+      "payable": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"impl_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"stateMutability\":\"payable\",\"type\":\"fallback\"}],\"devdoc\":{\"details\":\"The context here is that the externally exposed contract entities are only used to store data,  and the implemented business logic should be placed in the impl Any method that calls this contract will be directed to `fallback()`,  and then use `delegatecall()` to call the actual implementation and pass the current data context to impl\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/gen/DAOsProxy.sol\":\"DAOsProxy\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/gen/DAOsProxy.sol\":{\"keccak256\":\"0x06eb1d749b3cd6086ab8eae00cb19b334e915efd7e56a089cabdf1b85ff69936\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://89ee889c6104c251bafa8ba1e3f0032f1ca8492365cd88952830a87fc637afa8\",\"dweb:/ipfs/QmeSAFWrjn5yxzuYr8qJi5PRacsqDHPKbz6LU71Ckg5Wb2\"]}},\"version\":1}",
@@ -1817,9 +1818,17 @@
     "name": "solc",
     "version": "0.8.17+commit.8df45f5f.Emscripten.clang"
   },
-  "networks": {},
+  "networks": {
+    "137": {
+      "events": {},
+      "links": {},
+      "address": "0x179596783388e24a9D4E1ef982bc0c9224C41F43",
+      "transactionHash": "0x7de98b34e09931d4ab60ba589ce47602124ee8996b2a1da76b08a2bb2a4d902b"
+    }
+  },
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-05-15T13:11:25.579Z",
+  "updatedAt": "2023-05-17T09:37:53.341Z",
+  "networkType": "ethereum",
   "devdoc": {
     "details": "The context here is that the externally exposed contract entities are only used to store data,  and the implemented business logic should be placed in the impl Any method that calls this contract will be directed to `fallback()`,  and then use `delegatecall()` to call the actual implementation and pass the current data context to impl",
     "kind": "dev",
