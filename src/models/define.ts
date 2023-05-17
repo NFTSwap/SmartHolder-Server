@@ -382,41 +382,41 @@ export interface TokenURIInfo {
 }
 
 export interface Transaction {
-	id: number;//                int primary key auto_increment,
-	nonce: number;//             int                            not null,
-	fromAddress: string;//       binary (20)                    not null,
-	toAddress: string;//         binary (20)                    not null,
-	value: string;//             varbinary (32)                 not null,
-	gasPrice: string;//          varbinary (32)                 not null,
-	gas: string;//               varbinary (32)                 not null, -- gas limit
+	id: number;//                int unsigned primary key auto_increment,
+	nonce: number;//             int unsigned                 not null,
+	fromAddress: string;//       binary (20)                  not null,
+	toAddress: string;//         binary (20)                  not null,
+	value: string;//             varbinary (32)               not null,
+	gasPrice: string;//          varbinary (32)               not null,
+	gas: string;//               varbinary (32)               not null, -- gas limit
 	// data: string;//              blob                           null, -- input data hex format
-	gasUsed: string;//           varbinary (32)                 not null, -- use gasd
-	cumulativeGasUsed: string;// varbinary (32)                 not null,
+	gasUsed: string;//           varbinary (32)               not null, -- use gasd
+	cumulativeGasUsed: string;// varbinary (32)               not null,
 	// effectiveGasPrice: string;// varbinary (32)                 not null,
-	blockNumber: number;//       int                            not null, -- input
-	blockHash: string;//         binary (32)                    not null, -- receipt
-	transactionHash: string;//   binary (32)                    not null,
-	transactionIndex: number;//  smallint                       not null,
+	blockNumber: number;//       int unsigned                 not null, -- input
+	blockHash: string;//         binary (32)                  not null, -- receipt
+	transactionHash: string;//   binary (32)                  not null,
+	transactionIndex: number;//  smallint unsigned            not null,
 	// logsBloom: number;//         blob                           not null,
 	contractAddress?: string;//  binary (20)                  null, -- created contract address
 	status: boolean;//           bit                          not null,
-	logsCount: number;//         int                          not null -- logs count
-	txHash: number;//            int                          not null, -- short transaction hash
-	fromHash: number;//          int                          not null,
-	toHash: number;//            int                          not null
+	logsCount: number;//         smallint unsigned            not null -- logs count
+	txHash: number;//            int unsigned                 not null, -- short transaction hash
+	fromHash: number;//          int unsigned                 not null,
+	toHash: number;//            int unsigned                 not null
 }
 
 export interface TransactionLog {
-	tx_id: number;//             int                          not null,
+	tx_id: number;//             int unsigned                 not null,
 	address: string;//           binary (20)                  not null,
 	topic: string[];//           varbinary (128)              not null,
 	data: string;//              blob                         null,
-	logIndex: number;//          smallint                     not null,
-	transactionIndex: number;//  smallint                     not null,
+	logIndex: number;//          int unsigned                 not null,
+	transactionIndex: number;//  smallint unsigned            not null,
 	transactionHash: string;//   binary (32)                  not null,
 	blockHash: string;//         binary (32)                  not null,
-	blockNumber: number;//       int                          not null,
-	addressHash: number;//       int                          not null
+	blockNumber: number;//       int unsigned                 not null,
+	addressHash: number;//       int unsigned                 not null
 }
 
 export interface Indexer {

@@ -288,7 +288,7 @@ async function load_main_db() {
 			) row_format=compressed;
 
 			create table if not exists transaction_log_bin_${chain} (
-				id                int primary key auto_increment,
+				id                int unsigned primary key auto_increment,
 				tx_id             int unsigned                 not null, -- id for transaction table
 				address           binary (20)                  not null,
 				topic             varbinary (128)              not null,
@@ -296,7 +296,6 @@ async function load_main_db() {
 				logIndex          int unsigned                 not null, -- log index for transaction
 				blockNumber       int unsigned                 not null,
 				addressHash       int unsigned                 not null
-				-- primary key (tx_id,logIndex)
 			) row_format=compressed;
 
 			drop procedure if exists insert_transaction_log_${chain};
@@ -388,8 +387,6 @@ async function load_main_db() {
 			`create  unique index asset_owner_${chain}_idx2      on asset_owner_${chain}            (token,tokenId,owner)`,
 			`create         index asset_owner_${chain}_idx3      on asset_owner_${chain}            (token,owner)`,
 			`create         index asset_owner_${chain}_idx4      on asset_owner_${chain}            (asset_id)`,
-			// `create         index asset_owner_${chain}_idx5      on asset_owner_${chain}            (host)`,
-			// `create         index asset_owner_${chain}_idx6      on asset_owner_${chain}            (host,owner)`,
 			// asset order
 			`create         index asset_order_${chain}_idx0      on asset_order_${chain}            (token,tokenId)`,
 			`create         index asset_order_${chain}_idx1      on asset_order_${chain}            (fromAddres)`,

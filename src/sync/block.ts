@@ -381,6 +381,8 @@ export class WatchBlock implements WatchCat {
 			info.forEach((e,idx)=>{
 				let logs = logsDict[e.address];
 				if (logs) {
+					// let logsSet = {} as Dict;
+					// logs = logs.filter(e=>logsSet[e.logIndex] ? 0: logsSet[e.logIndex]=1); // exclude duplicates
 					logs = logs.sort((a,b)=>a.logIndex-b.logIndex); // sort
 					block.logs.push({ idx, logs });
 				}
