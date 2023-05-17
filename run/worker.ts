@@ -8,8 +8,7 @@
 // console.log('maxSockets', http.globalAgent.maxSockets);
 
 import somes from 'somes';
-import * as cfg from '../config'; somes.config = __dirname + '/..'; // set config dir
-import cfg_ from 'bclib/cfg'; Object.assign(cfg, cfg_);
+somes.config = __dirname + '/..'; // set config dir
 
 export default async function runWorker() {
 	// await (await import('../src/sync/block')).testDB();
