@@ -4,12 +4,14 @@
  */
 
 import somes from 'somes';
-somes.config = __dirname + '/..'; // set config dir
+import * as cfg from '../config'; somes.config = __dirname + '/..'; // set config dir
+import * as cfg_ from 'bclib/cfg'; Object.assign(cfg, cfg_);
+
 import uncaught from '../src/uncaught';
 import local_storage from 'bclib/storage';
 import * as db from '../src/db';
 import {Daemon} from 'bclib/daemon';
-import * as cfg from '../config';
+
 import * as net from 'net';
 
 const ENV   = process.env;
