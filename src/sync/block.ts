@@ -25,7 +25,27 @@ import {Storage} from 'bclib/storage';
 import * as env from '../env';
 import api from '../request';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
-import {toBuffer} from 'crypto-tx';
+import {toBuffer as toBuffer_0} from 'crypto-tx';
+import * as cry_utils from 'crypto-tx/utils';
+
+const addressZero = '0x0000000000000000000000000000000000000000';
+const Zero = BigInt(0);
+
+function toBuffer(v?: string|number|bigint|Uint8Array) {
+	if (typeof v == 'string') {
+		if (cry_utils.isHexString(v)) {
+			return buffer.from(cry_utils.padToEven(cry_utils.stripHexPrefix(v)), 'hex');
+		} else {
+			v = BigInt(v);
+			if (v == Zero) {
+				return buffer.Zero;
+			} else {
+				return buffer.from(cry_utils.padToEven(v.toString(16)), 'hex');
+			}
+		}
+	}
+	return toBuffer_0(v);
+}
 
 export async function testDB() {
 	await somes.sleep(1e3);
@@ -38,7 +58,7 @@ export async function testDB() {
 function formatTransaction(tx: any): ITransaction {
 	tx.fromAddress = '0x' + tx.fromAddress.toString('hex');
 	tx.toAddress = '0x' + tx.toAddress.toString('hex');
-	tx.value = '0x' + tx.value.toString('hex');
+	tx.value =  '0x' + (tx.value.length ? tx.value.toString('hex'): '0');
 	tx.gasPrice = '0x' + tx.gasPrice.toString('hex');
 	tx.gas = '0x' + tx.gas.toString('hex');
 	tx.gasUsed = '0x' + tx.gasUsed.toString('hex');
@@ -144,8 +164,10 @@ export class WatchBlock implements WatchCat {
 
 		if ( !tx_ ) {
 			let tx = await getTx();
-			let fromAddress = toBuffer(receipt.from);
-			let toAddress = toBuffer(receipt.to || '0x0000000000000000000000000000000000000000');
+			somes.assert(tx.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
+
+			let fromAddress = toBuffer(tx.from);
+			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 
 			tx_id = await this.db.insert(`transaction_bin_${chain}`, {
 				nonce: Number(tx.nonce),
@@ -155,7 +177,7 @@ export class WatchBlock implements WatchCat {
 				gasPrice: toBuffer(tx.gasPrice),
 				gas: toBuffer(tx.gas), // gas limit
 				// data: tx.input,
-				gasUsed: toBuffer(receipt.gasUsed),
+				gasUsed: toBuffer(BigInt(receipt.gasUsed)),
 				cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
 				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
 				blockNumber: toBuffer(receipt.blockNumber),
