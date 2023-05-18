@@ -250,7 +250,7 @@ export class WatchBlock implements WatchCat {
 				if (tx.from == addressZero) { // fix from address is equal zero error
 					let tx2 = await getTransaction2(idx);
 					if (tx2) {
-						somes.assert(tx2.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
+						somes.assert(tx2.from != addressZero, '#WatchBlock.solveBlock.getTransaction from is equal zero');
 						tx = tx2;
 					}
 				}
