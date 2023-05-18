@@ -29,7 +29,7 @@ import {toBuffer as toBuffer_0} from 'crypto-tx';
 import * as cry_utils from 'crypto-tx/utils';
 // import {web3s_2} from '../web3+';
 
-// const addressZero = '0x0000000000000000000000000000000000000000';
+const addressZero = '0x0000000000000000000000000000000000000000';
 const Zero = BigInt(0);
 
 function toBuffer(v?: string|number|bigint|Uint8Array) {
@@ -165,7 +165,7 @@ export class WatchBlock implements WatchCat {
 
 		if ( !tx_ ) {
 			let tx = await getTx();
-			let fromAddress = toBuffer(tx.from);
+			let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
 			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 
 			tx_id = await this.db.insert(`transaction_bin_${chain}`, {
