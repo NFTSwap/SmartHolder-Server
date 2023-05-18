@@ -4,7 +4,6 @@
  */
 
 import watch, {WatchCat} from 'bclib/watch';
-import buffer from 'somes/buffer';
 import db, {
 	ChainType, ContractInfo, Indexer as IIndexer,
 	ContractType, Transaction, TransactionLog } from '../db';
@@ -21,6 +20,7 @@ import {Event} from 'somes/event';
 import somes from 'somes';
 import * as weth from '../../cfg/util/weth';
 import {AssetUnlockWatch} from './asset_unlock';
+import {web3s, web3s_2} from '../web3+';
 
 /**
  * @class indexer for dao
@@ -92,7 +92,7 @@ export class Indexer implements WatchCat {
 	private async solveLogs(logs: (TransactionLog&{tx:Transaction})[], info: ContractInfo, db: DatabaseCRUD, out: ContractScaner[] ) {
 		for (let log of logs) {
 			let address = log.address;
-			let scaner = mk_scaner(address, info.type, this.chain, db);
+			let scaner = mk_scaner(address, info.type,  web3s_2[this.chain] || web3s[this.chain], db);
 			let tx = log.tx;
 
 			if (log.data) {

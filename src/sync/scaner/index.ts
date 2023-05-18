@@ -20,7 +20,6 @@ import * as cryptoTx from 'crypto-tx';
 import {DatabaseCRUD} from 'somes/db';
 import db from '../../db';
 import { EventNoticer } from 'somes/event';
-import sync from '..';
 
 export function formatHex(num: string | number | bigint, btyes: number = 32) {
 	let s = '';
@@ -115,11 +114,16 @@ export abstract class ContractScaner {
 	async methods() { return (await this.contract()).methods }
 	async host() { return (await this.info()).host }
 
-	constructor(address: string, type: ContractType, chain: ChainType, db_?: DatabaseCRUD) {
+	constructor(address: string, type: ContractType, chain: ChainType | MvpWeb3, db_?: DatabaseCRUD) {
 		this.address = cryptoTx.checksumAddress(address);
 		this.type = type;
-		this.chain = chain;
-		this._web3 = web3s[chain];
+		if (typeof chain == 'number') {
+			this.chain = chain;
+			this._web3 = web3s[chain];
+		} else {
+			this._web3 = chain;
+			this.chain = chain.chain;
+		}
 		this.db = db_ || db;
 		this.blockNumber = 0;
 	}

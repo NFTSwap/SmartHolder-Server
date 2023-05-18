@@ -222,19 +222,29 @@ export class MvpWeb3 extends BcWeb3 {
 }
 
 export const web3s: Dict<MvpWeb3> = {};
+export const web3s_2: Dict<MvpWeb3> = {}; // optimize web rpc
 
 export async function initialize(addWatch: (watch: WatchCat)=>void) {
 	for (var [k,v] of Object.entries(cfg.web3s)) {
-		var chain: ChainType = (ChainType as any)[k];
+		let chain: ChainType = (ChainType as any)[k];
 		somes.assert(chain, `ChainType no match "${k}"`);
-		var web3 = new MvpWeb3(chain, v as string[]);
-		await web3.cat();
+		let web3 = new MvpWeb3(chain, v.filter(e=>e.indexOf('optimize:')==-1) as string[]);
 		web3s[chain] = web3;
 		bcweb3[chain] = web3;
 		addWatch(web3);
 		addWatch(web3.tx);
 		web3.tx.cattime = 10;
-	}
+		await web3.cat();
+
+		// optimize web3
+		let optimize = v.filter(e=>e.indexOf('optimize:')==0).map(e=>e.substring('optimize:'.length));
+		if (optimize.length) {
+			let web3_2 = new MvpWeb3(chain, optimize as string[]);
+			web3s_2[chain] = web3_2;
+			addWatch(web3_2);
+			await web3.cat();
+		}
+	} // for
 }
 
 export default function(type: ChainType) {

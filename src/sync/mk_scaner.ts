@@ -15,6 +15,7 @@ import {DAOs} from './scaner/daos';
 import {DatabaseCRUD} from 'somes/db';
 import {Share} from './scaner/share';
 import {ERC20,WETH} from './scaner/erc20';
+import {MvpWeb3} from '../web3+';
 
 export * from './scaner';
 
@@ -22,7 +23,7 @@ export function makeFrom(info: ContractInfo, chain: ChainType, db?: DatabaseCRUD
 	return make(info.address, info.type, chain, db);
 }
 
-export default function make(address: string, type: ContractType, chain: ChainType, db?: DatabaseCRUD): ContractScaner {
+export default function make(address: string, type: ContractType, chain: ChainType | MvpWeb3, db?: DatabaseCRUD): ContractScaner {
 	var cs: ContractScaner;
 	somes.assert(chain, '#mk_scaner.make chain Invalid');
 
