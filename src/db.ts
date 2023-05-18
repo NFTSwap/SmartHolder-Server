@@ -12,6 +12,7 @@ import pool from 'somes/mysql/pool';
 import {Charsets} from 'somes/mysql/constants';
 import * as cfg from '../config';
 import {ChainType} from './models/define';
+import * as env from './env';
 
 export * from './models/define';
 
@@ -488,7 +489,7 @@ async function load_main_db() {
 }
 
 export async function initialize() {
-	if (cfg.fastStart) {
+	if (cfg.fastStart || env.workers) {
 		await main_db.load(``, [], [], 'shs');
 	} else {
 		await load_main_db();
