@@ -177,7 +177,7 @@ export class WatchBlock implements WatchCat {
 				gasPrice: toBuffer(tx.gasPrice),
 				gas: toBuffer(tx.gas), // gas limit
 				// data: tx.input,
-				gasUsed: toBuffer(BigInt(receipt.gasUsed)),
+				gasUsed: toBuffer(receipt.gasUsed),
 				cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
 				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
 				blockNumber: toBuffer(receipt.blockNumber),
