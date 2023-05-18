@@ -27,6 +27,7 @@ import api from '../request';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import {toBuffer as toBuffer_0} from 'crypto-tx';
 import * as cry_utils from 'crypto-tx/utils';
+import {web3s_2} from '../web3+';
 
 const addressZero = '0x0000000000000000000000000000000000000000';
 const Zero = BigInt(0);
@@ -164,10 +165,6 @@ export class WatchBlock implements WatchCat {
 
 		if ( !tx_ ) {
 			let tx = await getTx();
-			if (tx.from == addressZero) {
-				tx = await this.web3.eth.getTransaction(receipt.transactionHash);
-				somes.assert(tx.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
-			}
 			let fromAddress = toBuffer(tx.from);
 			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 
@@ -233,11 +230,32 @@ export class WatchBlock implements WatchCat {
 		//if (blockNumber % 100 === this._worker)
 
 		let txs: Transaction[] | null = null;
+		let txs_2: Transaction[] | null = null;
+
+		async function getTransaction2(idx: number) {
+			if (!txs_2) {
+				let web3 = web3s_2[chain];
+				if (web3)
+					txs_2 = (await web3.eth.getBlock(blockNumber, true)).transactions;
+			}
+			return txs_2 ? txs_2[idx]: null;
+		}
 
 		async function getTransaction(idx: number) {
 			if (!txs)
 				txs = (await web3.eth.getBlock(blockNumber, true)).transactions;
-			return txs[idx];
+
+			let tx = txs[idx];
+			if (tx) { // check data error
+				if (tx.from == addressZero) { // fix from address is equal zero error
+					let tx2 = await getTransaction2(idx);
+					if (tx2) {
+						somes.assert(tx2.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
+						tx = tx2;
+					}
+				}
+			}
+			return tx;
 		}
 
 		// let lastBlockNumber = await web3.getBlockNumber();
