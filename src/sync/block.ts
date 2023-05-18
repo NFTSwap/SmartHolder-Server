@@ -164,8 +164,10 @@ export class WatchBlock implements WatchCat {
 
 		if ( !tx_ ) {
 			let tx = await getTx();
-			somes.assert(tx.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
-
+			if (tx.from == addressZero) {
+				tx = await this.web3.eth.getTransaction(receipt.transactionHash);
+				somes.assert(tx.from != addressZero, '#WatchBlock.solveReceipt from is equal zero');
+			}
 			let fromAddress = toBuffer(tx.from);
 			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 
