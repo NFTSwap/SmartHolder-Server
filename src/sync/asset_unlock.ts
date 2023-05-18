@@ -75,13 +75,13 @@ export class AssetUnlockWatch implements WatchCat {
 			}
 
 			let item = await this.tryCall(token, 'lockedOf', tokenId,owner,previous); // get locked item
-			if (!item && item.blockNumber != blockNumber) {
+			if (!item || item.blockNumber != blockNumber) {
 				await disable(id); continue;
 			}
-			// let unlockOperator = await this.tryCall(host, 'unlockOperator');
-			// if (!unlockOperator || DAOsAddress != unlockOperator) {
-			// 	await disable(id); continue;
-			// }
+			let unlockOperator = await this.tryCall(host, 'unlockOperator');
+			if (!unlockOperator || DAOsAddress != unlockOperator) {
+				await disable(id); continue;
+			}
 
 			let c = await this.web3.contract(token);
 			let seller_fee_basis_points = await c.methods.seller_fee_basis_points().call();

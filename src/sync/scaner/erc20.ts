@@ -80,7 +80,7 @@ export class WETH extends ContractScaner {
 							if (!this.web3.isExecutionRevreted(err)) throw err;
 						}
 
-						if (item && item.blockNumber == blockNumber) {
+						if (item.blockNumber == blockNumber) {
 							somes.assert(item.count == value, '#WETH.Transfer.handle item count no match');
 
 							await this.db.insert(`asset_unlock_${this.chain}`, {

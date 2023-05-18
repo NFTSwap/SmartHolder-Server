@@ -58,7 +58,7 @@ module.exports = {
 		'https://rpc-mainnet.maticvigil.com/v1/ef8f16191b474bb494f33283a81a38487e4dc245', // louistru@tom.com
 		'https://rpc-mainnet.maticvigil.com/v1/b706532e6bd03d1b5c93ba66d91a50aebf212dde', // louistru2@tom.com
 		'https://rpc-mainnet.maticvigil.com/v1/368d0a19a1108e223d0dca757a342716f403dbb6', // moqi.reg@gmail.com
-		'optimize:https://polygon-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // optimize rpc
+		'optimize:https://polygon-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // dedicated to indexer
 	],
 	MUMBAI: [
 		'https://rpc-mumbai.maticvigil.com/v1/2db5bb18b8b1b3f1b47a080e4c9ce6d2c7a5128c', // louistru@live.com
