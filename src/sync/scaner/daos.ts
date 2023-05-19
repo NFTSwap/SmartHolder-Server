@@ -101,20 +101,8 @@ export class DAOs extends ContractScaner {
 				if (Root != addressZero) {
 					defaultVoteTime = Number(await (await web3.contract(Root)).methods.lifespan().call());
 				}
-
-				let image = '';
-				try {
-					image = await dao.methods.image().call();
-				} catch(err) {
-					console.warn('#daos.Created dao.image() call error', err);
-				}
-
-				let extend = buffer.Zero;
-				try {
-					extend = crypto.toBuffer(await dao.methods.extend().call());
-				} catch(err) {
-					console.warn('#daos.Created dao.extend() call error', err);
-				}
+				let image = await dao.methods.image().call();
+				let extend = crypto.toBuffer(await dao.methods.extend().call());
 
 				await this.db.insert(`dao_${chain}`, {
 					address: host,
