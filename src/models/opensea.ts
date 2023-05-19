@@ -183,9 +183,9 @@ export async function getOrderParameters(
 		primaryType: 'OrderComponents',
 		domain: {
 			chainId: chain,
-			name: "Seaport",
-			verifyingContract: '0x00000000000001ad428e4906aE43D8F9852d0dD6',
-			version: "1.4"
+			name: 'Seaport',
+			verifyingContract: CROSS_CHAIN_SEAPORT_ADDRESS,
+			version: '1.5'
 		},
 		types: orderTypes,
 		value: {
