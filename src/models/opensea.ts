@@ -23,11 +23,8 @@ import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
 import redis from 'bclib/redis';
-import {formatHex} from '../sync/scaner';
-import {DatabaseCRUD} from 'somes/db';
 import * as orderApi from './order';
 
-const isDev = cfg.env == 'dev';
 const seaports: Map<ChainType, Seaport> = new Map();
 
 export type TypedDataDomain = {
@@ -52,24 +49,21 @@ export interface OrderParametersAll {
 	OPENSEA_CONDUIT_ADDRESS: string;
 }
 
-function getPrefix(chain: ChainType, isGet?: boolean) {
-	// let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
+function getPrefix(chain: ChainType) {
 	if (chain == ChainType.ETHEREUM) {
-		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
-		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
-		// https://opensea15.p.rapidapi.com
-		// return { prefix, network: 'ethereum' };
+		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum', test: false };
+	} else if (chain == ChainType.MATIC) {
+		return { prefix: 'https://api.opensea.io/v2', network: 'matic', test: false };
 	} else if (chain == ChainType.GOERLI) {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli' };
-		// return { prefix: isGet ? 'https://testnets-api.opensea.io/v2': 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli', test: true };
 	} else if (chain == ChainType.RINKEBY) {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby', test: true };
 	} else {
 		throw Error.new(`unsupported network chain=${chain}`);
 	}
 }
 
-function _handleStatusCode(r: Result) {
+function handleStatusCode(r: Result) {
 	r.data = r.data.toString('utf8');
 	if (r.statusCode != 200) {
 		if (r.statusCode == 404) {
@@ -92,34 +86,22 @@ function _handleStatusCode(r: Result) {
 }
 
 async function get<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
-	let {prefix, network} = getPrefix(chain, true);
+	let {prefix, network,test} = getPrefix(chain);
 	let url = new URL(`${prefix}/${String.format(path, network)}`);
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let onlyProxy = isDev ? href.indexOf('opensea') != -1: false;
 	let r = await get_(href, {
-		handleStatusCode: _handleStatusCode,
-		headers: {
-			// 'X-API-KEY': cfg.opensea_api_key,
-			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			// 'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
-		},
-	}, onlyProxy, 2);
+		handleStatusCode, headers: test ? {}:{ 'X-API-KEY': cfg.opensea_api_key },
+	}, false, 2);
 	return r.data as any as T;
 }
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
-	let {prefix, network} = getPrefix(chain);
-	let onlyProxy = isDev ? `${prefix}/${String.format(path, network)}`.indexOf('opensea') != -1: false;
+	let {prefix, network,test} = getPrefix(chain);
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
-		handleStatusCode: _handleStatusCode,
-		headers: {
-			// 'X-API-KEY': cfg.opensea_api_key,
-			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			// 'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
-		},
-	}, onlyProxy, 2);
+		handleStatusCode, headers: test ? {}:{ 'X-API-KEY': cfg.opensea_api_key },
+	}, false, 2);
 	return r.data as any as T;
 }
 
