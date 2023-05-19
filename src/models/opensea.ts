@@ -258,6 +258,7 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 	await post(chain, 'orders/{0}/seaport/listings', {
 		parameters: order,
 		signature,
+		protocol_address: CROSS_CHAIN_SEAPORT_ADDRESS,
 	});
 
 	let sellPrice = BigInt(0);
