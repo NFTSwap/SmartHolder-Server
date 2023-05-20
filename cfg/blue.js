@@ -4,15 +4,15 @@ var rpc = require('./util/rpc');
 
 module.exports = {
 	...base,
-	var: '/var/smart-dao/shs/var', // `${__dirname}/var`,
-	extendConfigPath: '',
+	var: '/var/smart-dao/shs/var_v2', // `${__dirname}/var`,
+	extendConfigPath: '/data/smart-dao/shs/var_v2/config', // extend config file
 	web3s: {
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
 		GOERLI: rpc.GOERLI,
 	},
 	autoIndex: false,
-	root: '/var/smart-dao/web',
+	root: '/var/smart-dao/public',
 	publicURL: 'https://dao.smartholder.jp',
 	mbus: 'mqtt://127.0.0.1:1883',
 	mbus_topic: 'shs_default_prod',
@@ -21,7 +21,4 @@ module.exports = {
 	env: 'prod', // dev|prod
 	atomicLock: 'http://127.0.0.1:9802', // atomic lock service
 	redis: 'redis://127.0.0.1:6379/10', // redis cfg
-	mysql: {
-		host: '127.0.0.1', port: 22022, user: 'root', password: 'root', database: 'smartdao', // dev
-	},
 };
