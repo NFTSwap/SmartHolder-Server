@@ -5,7 +5,7 @@ var rpc = require('./util/rpc');
 module.exports = {
 	...base,
 	var: '/var/smart-dao/shs/var_v2', // `${__dirname}/var`,
-	extendConfigPath: '/data/smart-dao/shs/var_v2/config', // extend config file
+	extendConfigPath: '/var/smart-dao/shs/var_v2/config', // extend config file
 	web3s: {
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
