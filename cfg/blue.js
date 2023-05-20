@@ -21,4 +21,7 @@ module.exports = {
 	env: 'prod', // dev|prod
 	atomicLock: 'http://127.0.0.1:9802', // atomic lock service
 	redis: 'redis://127.0.0.1:6379/10', // redis cfg
+	mysql: {
+		host: '127.0.0.1', port: 22022, user: 'root', password: 'root', database: 'smartdao',
+	},
 };
