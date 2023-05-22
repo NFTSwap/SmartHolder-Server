@@ -4,9 +4,10 @@
  */
 
 import db, {ChainType, User,DAO,UserLikeDAO} from '../db';
-import {fillMemberObjs} from './dao';
+import {fillMemberObjs,getDAONoEmpty} from './dao';
 import { DAOExtend } from './define_ext';
 import auth from '../auth';
+import somes from 'somes';
 
 export async function getUser({id,address}:{address?: string, id?: number}) {
 	let defaultValue: User = {
@@ -48,26 +49,34 @@ export async function setUser(id: number, user: Partial<User>) {
 	return setUser1(id, obj);
 }
 
-export async function addLikeDAO(id: number, dao_id: number, chain: ChainType) {
-	let user_like_dao = await db.selectOne<UserLikeDAO>(`user_like_dao`, {user_id: id, dao_id, chain});
+export async function addLikeDAO(chain: ChainType, uid: number, dao_id?: number, host?: string) {
+	if (!dao_id) {
+		somes.assert(host, '#user.addLikeDAO dao_id and host no is empty');
+		dao_id = (await getDAONoEmpty(chain, host!)).id;
+	}
+	let user_like_dao = await db.selectOne<UserLikeDAO>(`user_like_dao`, {user_id: uid, dao_id, chain});
 
 	if ( ! user_like_dao || user_like_dao.state != 0 ) { // add
-		let user = await getUser({id});
+		let user = await getUser({id: uid});
 		let dao = (await db.selectOne<DAO>(`dao_${chain}`, {id: dao_id}))!;
 
 		await db.transaction(async db=>{
 			if (user_like_dao) {
 				await db.update(`user_like_dao`, {state: 0, time: Date.now()}, {id: user_like_dao.id});
 			} else {
-				await db.insert(`user_like_dao`, {user_id: id, dao_id, chain, time: Date.now()});
+				await db.insert(`user_like_dao`, {user_id: uid, dao_id, chain, time: Date.now()});
 			}
-			await setUser1(id, {likes: user.likes + 1});
+			await setUser1(uid, {likes: user.likes + 1});
 			await db.update(`dao_${chain}`, {likes: dao.likes + 1}, {id: dao_id});
 		})
 	}
 }
 
-export async function deleteLikeDAO(id: number, dao_id: number, chain: ChainType) {
+export async function deleteLikeDAO(chain: ChainType, id: number, dao_id?: number, host?: string) {
+	if (!dao_id) {
+		somes.assert(host, '#user.deleteLikeDAO dao_id and host no is empty');
+		dao_id = (await getDAONoEmpty(chain, host!)).id;
+	}
 	let user_like_dao = await db.selectOne<UserLikeDAO>(`user_like_dao`, {user_id: id, dao_id, chain});
 
 	if (user_like_dao && user_like_dao.state == 0) { // delete
