@@ -30,6 +30,9 @@ export class Ledger extends ModuleScaner {
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
 
+				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) )
+					return;
+
 				// id           int primary key auto_increment,
 				// host         varchar (64)                 not null, -- dao host
 				// address      varchar (64)                 not null, -- 合约地址
@@ -61,11 +64,42 @@ export class Ledger extends ModuleScaner {
 			},
 		},
 
+		// TODO ...
+		// Release: {
+		// 	handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+		// 		let db = this.db;
+		// 		let {member,to,balance} = e.returnValues;
+		// 		let txHash = e.transactionHash;
+		// 		let type = LedgerType.Release;
+		// 		let member_id = formatHex(member);
+		// 		if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) ) {
+		// 			let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
+
+		// 			await db.insert(`ledger_${this.chain}`, {
+		// 				host: await this.host(),
+		// 				address: this.address,
+		// 				txHash: txHash,
+		// 				type: type,
+		// 				ref: to,
+		// 				target: to,
+		// 				balance: numberStr(balance),
+		// 				description: log?.log || '',
+		// 				member_id,
+		// 				time,
+		// 				blockNumber: Number(e.blockNumber) || 0,
+		// 			});
+		// 		}
+		// 	},
+		// },
+
 		ReleaseLog: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
-				let {operator,balance,log} = e.returnValues;
+				let {operator,balance,log,erc20} = e.returnValues;
 				let txHash = e.transactionHash;
+
+				if ( await db.selectCount(`ledger_release_log_${this.chain}`, { address: this.address, txHash }) )
+					return;
 
 				// id           int primary key auto_increment,
 				// address      varchar (64)                 not null, -- 合约地址
@@ -73,20 +107,20 @@ export class Ledger extends ModuleScaner {
 				// txHash       varchar (72)                 not null, -- tx hash
 				// log          varchar (1024)               not null,
 				// time         bigint                       not null,
+				// erc20        varchar (42)                 not null,
 				// blockNumber  int                          not null
 
-				if ( ! await db.selectOne(`ledger_release_log_${this.chain}`, { address: this.address, txHash }) ) {
-					await db.insert(`ledger_release_log_${this.chain}`, {
-						address: this.address,
-						operator,
-						balance: numberStr(balance),
-						log,
-						time,
-						blockNumber: Number(e.blockNumber) || 0,
-						txHash,
-					});
-					await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
-				}
+				await db.insert(`ledger_release_log_${this.chain}`, {
+					address: this.address,
+					operator,
+					balance: numberStr(balance),
+					log,
+					time,
+					blockNumber: Number(e.blockNumber) || 0,
+					txHash,
+					erc20,
+				});
+				// await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
 			},
 		},
 
@@ -96,70 +130,83 @@ export class Ledger extends ModuleScaner {
 				let {from,balance,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
-					await db.insert(`ledger_${this.chain}`, {
-						host: await this.host(),
-						address: this.address,
-						txHash: txHash,
-						type: type,
-						target: from,
-						ref: from,
-						balance: numberStr(balance),
-						name: name,
-						description: description,
-						time,
-						blockNumber: Number(e.blockNumber) || 0,
-					});
-				}
+
+				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) 
+					return;
+
+				await db.insert(`ledger_${this.chain}`, {
+					host: await this.host(),
+					address: this.address,
+					txHash: txHash,
+					type: type,
+					target: from,
+					ref: from,
+					balance: numberStr(balance),
+					name: name,
+					description: description,
+					time,
+					blockNumber: Number(e.blockNumber) || 0,
+				});
 			},
 		},
 
 		AssetIncome: {
 			// event AssetIncome(
 			// 	address indexed token, uint256 indexed tokenId,
-			// 	address indexed source, address from, address to, uint256 balance, 
-			//  uint256 price, uint256 count, IAssetShell.SaleType saleType
+			// 	address indexed source, address from, address to, uint256 amount, 
+			//  uint256 price, uint256 count, IAssetShell.SaleType saleType, address erc20
 			// );
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
-				let {token,source,from,to,saleType} = e.returnValues;
+				let {token,source,from,to,saleType,erc20} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.AssetIncome;
-				if ( !await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
-					let blockNumber = Number(e.blockNumber) || 0;
-					let balance = numberStr(e.returnValues.balance);
-					let price = numberStr(e.returnValues.price);
-					let count = numberStr(e.returnValues.count);
-					let host = await this.host();
 
-					let ledger_id = await db.insert(`ledger_${this.chain}`, {
-						host,
-						address: this.address,
-						txHash: txHash,
-						type: type,
-						ref: from,
-						target: source,
-						balance,
-						name: '',
-						description: '',
-						time,
-						blockNumber,
-					});
+				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) )
+					return;
 
-					let tokenId = formatHex(e.returnValues.tokenId);
-					let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
-					let assetIncome_id = await db.insert(`ledger_asset_income_${this.chain}`, {
-						host,
-						ledger_id,
-						asset_id: asset ? asset.id: 0,
-						token, tokenId,
-						source, balance, price,
-						fromAddress: from, toAddress: to, count, saleType, blockNumber, time
-					});
+				let blockNumber = Number(e.blockNumber) || 0;
+				let amount = numberStr(e.returnValues.amount);
+				let price = numberStr(e.returnValues.price);
+				let count = numberStr(e.returnValues.count);
+				let host = await this.host();
 
-					await db.update(`ledger_${this.chain}`, {assetIncome_id}, {id: ledger_id});
-					// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
-				}
+				let id = await db.insert(`ledger_${this.chain}`, {
+					host,
+					address: this.address,
+					txHash: txHash,
+					type: type,
+					ref: from,
+					target: source,
+					amount,
+					name: '',
+					description: '',
+					time,
+					blockNumber,
+					erc20,
+				});
+
+				let tokenId = formatHex(e.returnValues.tokenId);
+				let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
+
+				await db.insert(`ledger_asset_income_${this.chain}`, {
+					id,
+					host,
+					asset_id: asset ? asset.id: 0,
+					token, tokenId,
+					source,
+					amount,
+					price,
+					fromAddress: from,
+					toAddress: to,
+					count,
+					saleType,
+					blockNumber,
+					time,
+					erc20,
+				});
+
+				// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
 			},
 		},
 
@@ -169,49 +216,24 @@ export class Ledger extends ModuleScaner {
 				let {target,balance,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
-					await db.insert(`ledger_${this.chain}`, {
-						host: await this.host(),
-						address: this.address,
-						txHash: txHash,
-						type: type,
-						balance: numberStr(balance),
-						ref: target,
-						target: target,
-						description: description,
-						time,
-						blockNumber: Number(e.blockNumber) || 0,
-					});
-				}
+				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) 
+					return;
+
+				await db.insert(`ledger_${this.chain}`, {
+					host: await this.host(),
+					address: this.address,
+					txHash: txHash,
+					type: type,
+					balance: numberStr(balance),
+					ref: target,
+					target: target,
+					description: description,
+					time,
+					blockNumber: Number(e.blockNumber) || 0,
+				});
 			},
 		},
 
-		Release: {
-			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
-				let db = this.db;
-				let {member,to,balance} = e.returnValues;
-				let txHash = e.transactionHash;
-				let type = LedgerType.Release;
-				let member_id = formatHex(member);
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) ) {
-					let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
-
-					await db.insert(`ledger_${this.chain}`, {
-						host: await this.host(),
-						address: this.address,
-						txHash: txHash,
-						type: type,
-						ref: to,
-						target: to,
-						balance: numberStr(balance),
-						description: log?.log || '',
-						member_id,
-						time,
-						blockNumber: Number(e.blockNumber) || 0,
-					});
-				}
-			},
-		},
 	};
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {

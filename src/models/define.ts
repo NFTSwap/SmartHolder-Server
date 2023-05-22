@@ -173,24 +173,23 @@ export interface Ledger {
 	description: string;//     varchar (1024)  default ('') not null, -- 详细
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
-	ref: string;//          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人
+	ref: string;//          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人target
 	balance: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
-	assetIncome_id: number;
 	assetIncome?: LedgerAssetIncome;
+	erc20: string;
 }
 
 export interface LedgerAssetIncome {
-	id: number;//           int primary key auto_increment,
+	id: number;//           int primary key,
 	host: string; //
-	ledger_id: number;//    int                          not null, -- ledger_id
 	asset_id: number;
 	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
 	tokenId: string;//      char    (66)                 not null, -- 原始资产id
 	source: string;//       varchar (64)                 not null, -- 进账来源打款源地址
-	balance: string;//      varchar (72)                 not null, -- 实际收到的分成金额
+	amount: string;//       varchar (72)                 not null, -- 实际收到的分成金额
 	price: string;//        varchar (72)                 not null, -- 预估成交价格
 	fromAddress: string;//  varchar (64)                 not null, -- 资产转移from地址
 	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
@@ -198,6 +197,7 @@ export interface LedgerAssetIncome {
 	saleType: SaleType;//   int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
+	erc20: string;
 	ledger?: Ledger;
 	asset?: Asset;
 }
@@ -208,9 +208,20 @@ export interface LedgerReleaseLog {
 	operator: string;//     varchar (64)                 not null,
 	txHash: string;//       varchar (72)                 not null, -- tx hash
 	log: string;//          varchar (1024)               not null,
-	balance: string;//      varchar (72)                 not null, -- 金额
+	amount: string;//       varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null,
 	blockNumber: number;//  int                          not null
+}
+
+export interface LedgerBalance {
+	id: number;//           int primary key auto_increment,
+	ledger_id: number;//    int                          not null,
+	host: string;//         varchar (42)                 not null, -- dao host
+	erc20: string;//        varchar (42)                 not null, -- erc20 token address
+	balance: string;//      varchar (78)                 not null, -- 余额
+	symbol: string;//       varchar (32)                 not null, -- erc20 symbol
+	name: string;//         varchar (32)                 not null, -- erc20 name
+	time: number;//         bigint                       not null  -- 更新时间
 }
 
 export interface VoteProposal {

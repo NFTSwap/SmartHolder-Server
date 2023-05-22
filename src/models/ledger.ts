@@ -46,8 +46,8 @@ export const getLedgerFrom = newQuery(async ({
 		return ls;
 
 	if (!noJoin && ls.length) {
-		joinTable(ls, 'assetIncome', 'assetIncome_id', 'id',
-			await getLedgerAssetIncomeFrom.query({chain,ids:ls.map(e=>e.assetIncome_id)},{noJoin:true},3e4)
+		joinTable(ls, 'assetIncome', 'id', 'id',
+			await getLedgerAssetIncomeFrom.query({chain,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
 		);
 	}
 	return ls;
@@ -91,8 +91,8 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 
 	if (ls.length) {
 		if (!noJoin)
-			joinTable(ls, 'ledger', 'ledger_id', 'id',
-				await getLedgerFrom.query({chain,ids:ls.map(e=>e.ledger_id)},{noJoin:true},3e4)
+			joinTable(ls, 'ledger', 'id', 'id',
+				await getLedgerFrom.query({chain,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
 			);
 		joinTable(ls, 'asset', 'asset_id', 'id',
 			await getAssetFrom.query({chain,ids:ls.map(e=>e.asset_id)},{noDAO:true,noBeautiful:true},3e4)
