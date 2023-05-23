@@ -64,38 +64,40 @@ export class Ledger extends ModuleScaner {
 			},
 		},
 
-		// TODO ...
-		// Release: {
-		// 	handle: async ({event:e,blockTime: time}: HandleEventData)=>{
-		// 		let db = this.db;
-		// 		let {member,to,balance} = e.returnValues;
-		// 		let txHash = e.transactionHash;
-		// 		let type = LedgerType.Release;
-		// 		let member_id = formatHex(member);
-		// 		if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) ) {
-		// 			let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
+		Release: {
+			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+				let db = this.db;
+				let {member,to,amount,erc20} = e.returnValues;
+				let txHash = e.transactionHash;
+				let type = LedgerType.Release;
+				let member_id = formatHex(member);
 
-		// 			await db.insert(`ledger_${this.chain}`, {
-		// 				host: await this.host(),
-		// 				address: this.address,
-		// 				txHash: txHash,
-		// 				type: type,
-		// 				ref: to,
-		// 				target: to,
-		// 				balance: numberStr(balance),
-		// 				description: log?.log || '',
-		// 				member_id,
-		// 				time,
-		// 				blockNumber: Number(e.blockNumber) || 0,
-		// 			});
-		// 		}
-		// 	},
-		// },
+				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id}) )
+					return;
+
+				let log = await db.selectOne<LedgerReleaseLog>(`ledger_release_log_${this.chain}`, { address: this.address, txHash });
+
+				await db.insert(`ledger_${this.chain}`, {
+					host: await this.host(),
+					address: this.address,
+					txHash: txHash,
+					type: type,
+					ref: to,
+					target: to,
+					amount: numberStr(amount),
+					description: log?.log || '',
+					member_id,
+					time,
+					blockNumber: Number(e.blockNumber) || 0,
+					erc20,
+				});
+			},
+		},
 
 		ReleaseLog: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
-				let {operator,balance,log,erc20} = e.returnValues;
+				let {operator,amount,log,erc20} = e.returnValues;
 				let txHash = e.transactionHash;
 
 				if ( await db.selectCount(`ledger_release_log_${this.chain}`, { address: this.address, txHash }) )
@@ -113,14 +115,15 @@ export class Ledger extends ModuleScaner {
 				await db.insert(`ledger_release_log_${this.chain}`, {
 					address: this.address,
 					operator,
-					balance: numberStr(balance),
+					balance: numberStr(amount),
 					log,
 					time,
 					blockNumber: Number(e.blockNumber) || 0,
 					txHash,
 					erc20,
 				});
-				// await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
+
+				await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
 			},
 		},
 
