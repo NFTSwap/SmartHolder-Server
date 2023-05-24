@@ -3,7 +3,7 @@
  * @date 2023-05-10
  */
 
-import db, { AssetUnlock, ChainType,State } from '../db';
+import db, { AssetUnlock, ChainType,ContractType,State } from '../db';
 import _hash from 'somes/hash';
 import {WatchCat} from 'bclib/watch';
 import {web3s, MvpWeb3} from '../web3+';
@@ -13,6 +13,7 @@ import buffer, {IBuffer} from 'somes/buffer';
 import * as cryptoTx from 'crypto-tx';
 import * as aes from 'crypto-tx/aes';
 import * as cfg from '../../config';
+import {getAbiByType} from '../web3+';
 
 export class AssetUnlockWatch implements WatchCat {
 	readonly cattime = 10; // 60 seconds cat()
@@ -43,6 +44,10 @@ export class AssetUnlockWatch implements WatchCat {
 			throw err;
 		}
 	}
+	private async call(addr: string, method: string, ...args: any[]) {
+		let c = await this.web3.contract(addr);
+		return await c.methods[method](...args).call(); // get locked item
+	}
 
 	private async getAssetUnlockData(DAOsAddress: string) {
 		let disable = async (id: number)=>{
@@ -55,51 +60,57 @@ export class AssetUnlockWatch implements WatchCat {
 			order: 'blockNumber', limit: 100,
 		});
 
+		let [from] = this.ownerForDAOs;
+
 		interface Data {
-			token: string, value: string,
+			token: string,
+			r: string, s: string, v: number,
 			data: {
 				id: number,
-				lock: {tokenId: string,owner: string,previous: string},
-				payType: number, payValue: string,payBank: string,payer: string
+				tokenId: string; // LockedID
+				from: string; //
+				to: string; //
+				source: string;  // payer source, opensea contract => sender
+				erc20: string;   // erc20 token contract address, weth
+				amount: string;  // amount value of erc20 token
+				eth: string;     // erc20 exchange to eth amount value
 			}[];
 		}
 		let dict: Dict<Data> = {};
 		let length = 0;
+		const addressZero = '0x0000000000000000000000000000000000000000';
 
 		for (let {
-			id,host,token,tokenId,owner,previous,payType,payValue,payBank,payer,blockNumber} of ls)
+			id,host,token,tokenId,toAddress,fromAddress,amount,erc20,source,blockNumber} of ls)
 		{
-			let it = dict[token];
-			if (!dict[token]) {
-				it = { token, value: '0', data: [] };
+			let it = dict[token] || { r:'',s:'',v:0,token, data: [] };
+
+			let item = await this.call(token, 'lockedOf', tokenId,toAddress,fromAddress); // get locked item
+			if (item.blockNumber != blockNumber) {
+				await disable(id); continue;
+			}
+			if (from != await this.call(host, 'unlockOperator')) {
+				await disable(id); continue;
 			}
 
-			let item = await this.tryCall(token, 'lockedOf', tokenId,owner,previous); // get locked item
-			if (!item || item.blockNumber != blockNumber) {
-				await disable(id); continue;
-			}
-			let unlockOperator = await this.tryCall(host, 'unlockOperator');
-			if (!unlockOperator || DAOsAddress != unlockOperator) {
-				await disable(id); continue;
+			let eth = amount;
+			if (addressZero != erc20) { // no eth
+				// TODO ... querying exchange rates from unswap
 			}
 
 			let c = await this.web3.contract(token);
 			let seller_fee_basis_points = await c.methods.seller_fee_basis_points().call();
-			let price = BigInt(payValue) * BigInt(10_000) / BigInt(seller_fee_basis_points); // transfer price
+			let price_eth = BigInt(eth) * BigInt(10_000) / BigInt(seller_fee_basis_points); // transfer price
 			let min_price = BigInt(await c.methods.minimumPrice(tokenId).call()) * BigInt(item.count);
-			if (price < min_price) {
+			if (price_eth < min_price) {
 				// revert PayableInsufficientAmount();
 				await disable(id); continue;
 			}
 
 			length++;
-
-			it.value = BigInt(it.value) + BigInt(payValue) + '';
-			it.data.push({
-				id,lock: {tokenId,owner,previous}, payType,payValue,payBank,payer
-			});
-
 			dict[token] = it;
+
+			it.data.push({ id,tokenId,to:toAddress,from:fromAddress,amount,erc20,source, eth });
 		}
 
 		return {data: Object.values(dict), length};
@@ -113,13 +124,28 @@ export class AssetUnlockWatch implements WatchCat {
 		let [from] = this.ownerForDAOs;
 		let [key] = this._secretKey;
 
-		let {data,length} = await this.getAssetUnlockData(DAOsAddress);
-
-		if (length < 100) {
+		let unlock = await this.getAssetUnlockData(DAOsAddress);
+		if (unlock.length < 100) {
 			if (length == 0 || Date.now() - this._prevExec < 1e3*3600/**24*/) { // 1 days
 				return true; // skip
 			}
 		}
+
+		let abi = (await getAbiByType(ContractType.AssetShell))!;
+		let unlockForOperator = abi.abi.find(e=>e.name=='unlockForOperator')!;
+		let arg0_t = unlockForOperator.inputs![0];
+
+		// sign tx
+		let data = unlock.data.map(e=>{
+			let hash = cryptoTx.keccak(this.web3.eth.abi.encodeParameter(arg0_t, e.data)).data;
+			let {recovery, signature} = cryptoTx.sign(buffer.from(hash), key);
+			return {
+				...e,
+				r: '0x'+signature.slice(0,32).toString('hex'),
+				s: '0x'+signature.slice(32,64),
+				v: recovery +27,
+			};
+		});
 
 		// send data to block chain
 		let DAOs = await this.web3.contract(DAOsAddress);

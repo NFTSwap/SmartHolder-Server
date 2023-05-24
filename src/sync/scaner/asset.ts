@@ -3,7 +3,7 @@
  * @date 2021-09-26
  */
 
-import { Asset, ContractType, ChainType, SaleType,AssetType,AssetOwner} from '../../models/define';
+import { Asset, ContractType, ChainType, SaleType,AssetType,AssetOwner,DAO} from '../../models/define';
 import {ContractScaner, IAssetScaner, numberStr,formatHex,HandleEventData} from '.';
 import * as utils from '../../utils';
 import _hash from 'somes/hash';
@@ -12,7 +12,10 @@ import * as constants from './../constants';
 import sync from './../index';
 import somes from 'somes';
 import * as contract from '../../models/contract';
-import {isExecutionRevreted} from '../../web3+';
+import {isExecutionRevreted,getAbiByType} from '../../web3+';
+import {Ledger} from './ledger';
+
+const addressZero = '0x0000000000000000000000000000000000000000';
 
 export abstract class ModuleScaner extends ContractScaner {
 	protected async onDescription(data: HandleEventData, desc: string) {}
@@ -291,7 +294,136 @@ export class AssetERC1155 extends AssetModuleScaner {
 				console.log('#AssetERC1155.events.URI.handle', this.address);
 			},
 		},
+
+		Unlock: {
+			// event Unlock(
+			// 	uint256 indexed tokenId,
+			// 	address indexed source, address indexed erc20,
+			// 	address from, address to, uint256 amount, uint256 eth, uint256 price, uint256 count
+			// );
+			handle: async ({event:e}: HandleEventData)=>{
+				let {tokenId,source,erc20,from,to,amount,price,count} = e.returnValues;
+				let host = await this.host();
+				let dao = (await this.db.selectOne<DAO>(`dao_${this.chain}`, {address: host}))!;
+				let saleType = dao.first.toLowerCase() == this.address.toLowerCase() ? SaleType.kFirst: SaleType.kSecond;
+
+				await (new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db)).addAssetIncome({
+					host,
+					saleType,
+					blockNumber: e.blockNumber,
+					token: this.address,
+					tokenId,
+					source,
+					from,
+					to,
+					erc20,
+					amount,
+					price,
+					count: count,
+					txHash: e.transactionHash,
+				});
+			},
+		},
+
+		Receive: { // Receive ETH
+			// event Receive(address indexed sender, uint256 amount);
+			handle: async ({event:e,blockNumber}: HandleEventData)=>{
+				let {sender,amount} = e.returnValues;
+				let host = await this.host();
+				let dao = await this.db.selectOne<DAO>(`dao_${this.chain}`, {address: host});
+				await this.onReceiveERC20({
+					blockNumber, dao: dao!, amount: BigInt(amount),
+					source: sender, erc20: addressZero, txHash: e.transactionHash,
+				});
+			},
+		}
 	};
+
+	// receive erc20 or eth, unlock asset shell
+	async onReceiveERC20(e: {blockNumber: number, dao: DAO, amount: bigint, source: string, erc20: string, txHash: string}) {
+		let {dao,blockNumber,source,erc20,txHash} = e;
+		let {blocks:[block]} = await sync.watchBlocks[this.chain] // search logs by address and block number
+			.getTransactionLogsFrom(blockNumber, blockNumber, [{address: this.address, state: 0}]);
+		if (!block) return; // No logs ignored Transfer
+
+		// erc1155 events
+		// 0xd713904ca4dede24d8ccd2773f9ce5ad16d546d39ab1bb0f7039c3cf790f8377 0xd713904c
+		// event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)
+		let c = await this.contract();
+		let abiI = (await getAbiByType(ContractType.AssetShell))!;
+		let TransferSingle = abiI.abi.find(e=>e.name=='TransferSingle')!;
+		let signature = this.web3.eth.abi.encodeEventSignature(TransferSingle);
+
+		let logs = await Promise.all(block.logs[0].logs.filter(e=>{
+			// check getTransactionLogsFrom query
+			somes.assert(e.blockNumber == blockNumber, '#AssetERC1155.onReceiveERC20 log blockNumber no match');
+			somes.assert(e.address == this.address, '#AssetERC1155.onReceiveERC20 log address no match');
+			return e.transactionHash==e.transactionHash && e.topic[0]==signature // match TransferSingle log and tx hash
+		})
+		.map(async e=>{
+			let {from,to,id,value} = this.web3.eth.abi.decodeLog(TransferSingle.inputs!, e.data, e.topic.slice(1));
+			let item = await c.methods.lockedOf(id,to,from).call(); // get locked item
+			let minimumPrice = BigInt(await c.methods.minimumPrice(id).call());
+			return {
+				address: e.address,
+				from,
+				to,
+				tokenId: formatHex(id),
+				value,
+				locked: item as {blockNumber: number, count: string},
+				minimumPrice,
+			};
+		}));
+
+		if (logs.length == 0) return; // no logs
+
+		let minimumPriceTotal = logs.reduce((p,c)=>p + c.minimumPrice, BigInt(0)); // total min price
+		let seller_fee_basis_points = BigInt(await c.methods.seller_fee_basis_points().call());
+
+		for (let log of logs) {
+			let {from,to,tokenId,value,locked,minimumPrice} = log;
+			let amount = e.amount * minimumPrice / minimumPriceTotal + ''; // uniform distribution
+
+			if (locked.blockNumber == blockNumber) { // if is locked then need to god the unlock it
+				somes.assert(locked.count == value, '#AssetERC1155.onReceiveERC20 item count no match');
+				somes.assert(erc20 != addressZero, '#AssetERC1155.onReceiveERC20 erc20 != addressZero');
+
+				await this.db.insert(`asset_unlock_${this.chain}`, {
+					host: dao.address, // get host address,
+					token: log.address, // ref asset token address
+					tokenId: tokenId, // ref asset token id
+					fromAddress: from,
+					toAddress: to,
+					erc20: erc20,
+					amount, // uniform distribution
+					source: source, // use start call contract address
+					blockNumber: blockNumber,
+					time: Date.now(),
+					txHash: txHash,
+				});
+			} else { // add ledger
+				let isLock = await c.methods.isEnableLock().call(blockNumber);
+				somes.assert(!isLock, '#AssetERC1155.onReceiveERC20 Locking must be disable'); // check state
+				let saleType = dao.first.toLowerCase() == log.address.toLowerCase() ? SaleType.kFirst: SaleType.kSecond;
+
+				await new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db).addAssetIncome({
+					host: dao.address,
+					saleType,
+					blockNumber,
+					token: log.address,
+					tokenId,
+					source: source,
+					from,
+					to,
+					erc20: erc20,
+					amount,
+					price: BigInt(amount) * BigInt(10_000) / seller_fee_basis_points,
+					count: value,
+					txHash: txHash,
+				});
+			}
+		} // for (let log of logs)
+	}
 
 	protected async assetType(id: string): Promise<AssetType> {
 		if (ContractType.Asset == this.type) {

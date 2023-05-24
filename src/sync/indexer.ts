@@ -280,7 +280,7 @@ export class IndexerPool implements WatchCat {
 			}
 			for (let {address,blockNumber} of weth[network] || []) {
 				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
-					address, type: ContractType.WETH, blockNumber
+					address, type: ContractType.ERC20, blockNumber
 				}]);
 				watch.impl.addWatch(this.asset_unlock); // add to watch
 			}

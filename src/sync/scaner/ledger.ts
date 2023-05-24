@@ -3,7 +3,7 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog} from '../../db';
+import {LedgerType,LedgerReleaseLog, SaleType} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './asset';
 // import * as order from '../../models/order';
@@ -153,66 +153,6 @@ export class Ledger extends ModuleScaner {
 			},
 		},
 
-		AssetIncome: {
-			// event AssetIncome(
-			// 	address indexed token, uint256 indexed tokenId,
-			// 	address indexed source, address from, address to, uint256 amount, 
-			//  uint256 price, uint256 count, IAssetShell.SaleType saleType, address erc20
-			// );
-			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
-				let db = this.db;
-				let {token,source,from,to,saleType,erc20} = e.returnValues;
-				let txHash = e.transactionHash;
-				let type = LedgerType.AssetIncome;
-
-				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) )
-					return;
-
-				let blockNumber = Number(e.blockNumber) || 0;
-				let amount = numberStr(e.returnValues.amount);
-				let price = numberStr(e.returnValues.price);
-				let count = numberStr(e.returnValues.count);
-				let host = await this.host();
-
-				let id = await db.insert(`ledger_${this.chain}`, {
-					host,
-					address: this.address,
-					txHash: txHash,
-					type: type,
-					ref: from,
-					target: source,
-					amount,
-					name: '',
-					description: '',
-					time,
-					blockNumber,
-					erc20,
-				});
-
-				let tokenId = formatHex(e.returnValues.tokenId);
-				let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
-
-				await db.insert(`ledger_asset_income_${this.chain}`, {
-					id,
-					host,
-					asset_id: asset ? asset.id: 0,
-					token, tokenId,
-					source,
-					amount,
-					price,
-					fromAddress: from,
-					toAddress: to,
-					count,
-					saleType,
-					blockNumber,
-					time,
-					erc20,
-				});
-
-				// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
-			},
-		},
-
 		Withdraw: {
 			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
 				let db = this.db;
@@ -238,6 +178,66 @@ export class Ledger extends ModuleScaner {
 		},
 
 	};
+
+	async addAssetIncome(e: {
+		host: string, saleType: SaleType, blockNumber: number,
+		token: string, tokenId: string, source: string, erc20: string,
+		from: string, to: string, amount: string, price: bigint, count: string, txHash: string
+	}) {
+		let db = this.db;
+		let {token,source,from,to,saleType,erc20} = e;
+		let txHash = e.txHash;
+		let type = LedgerType.AssetIncome;
+
+		if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) )
+			return;
+
+		let blockNumber = Number(e.blockNumber) || 0;
+		let amount = numberStr(e.amount);
+		let price = numberStr(e.price);
+		let count = numberStr(e.count);
+		let host = await this.host();
+		let time = Date.now();
+
+		let id = await db.insert(`ledger_${this.chain}`, {
+			host,
+			address: this.address,
+			txHash: txHash,
+			type: type,
+			ref: from,
+			target: source,
+			amount,
+			name: '',
+			description: '',
+			time,
+			blockNumber,
+			erc20,
+		});
+
+		let tokenId = formatHex(e.tokenId);
+		let asset = await db.selectOne(`asset_${this.chain}`, {token, tokenId});
+		if (!asset)
+			console.warn(`#Ledger.addAssetIncome asset asset ${token},${tokenId} a not found`);
+
+		await db.insert(`ledger_asset_income_${this.chain}`, {
+			id,
+			host,
+			asset_id: asset ? asset.id: 0,
+			token, tokenId,
+			source,
+			amount,
+			price,
+			fromAddress: from,
+			toAddress: to,
+			count,
+			saleType,
+			blockNumber,
+			time,
+			erc20,
+		});
+
+		// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
+	}
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {
 		//await db.update(`dao_${this.chain}`, { description: desc, modify }, { address: this.address });

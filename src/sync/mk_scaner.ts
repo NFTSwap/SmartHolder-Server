@@ -14,7 +14,7 @@ import {VotePool} from './scaner/vote_pool';
 import {DAOs} from './scaner/daos';
 import {DatabaseCRUD} from 'somes/db';
 import {Share} from './scaner/share';
-import {ERC20,WETH} from './scaner/erc20';
+import {ERC20} from './scaner/erc20';
 import {MvpWeb3} from '../web3+';
 
 export * from './scaner';
@@ -31,9 +31,8 @@ export default function make(address: string, type: ContractType, chain: ChainTy
 		case ContractType.DAO:
 			cs = new DAO(address, type, chain, db); break;
 		case ContractType.ERC20:
-			cs = new ERC20(address, type, chain, db); break;
 		case ContractType.WETH:
-			cs = new WETH(address, type, chain, db); break;
+			cs = new ERC20(address, type, chain, db); break;
 		case ContractType.ERC721:
 			cs = new AssetERC721(address, type, chain, db); break;
 		case ContractType.Asset:

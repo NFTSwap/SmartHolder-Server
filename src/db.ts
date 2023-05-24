@@ -148,15 +148,15 @@ async function load_main_db() {
 				host         varchar (42)                      not null,  -- dao host
 				token        char    (42)                      not null,  -- asset contract address
 				tokenId      char    (66)                      not null,  -- hash
-				owner        char    (42)                      not null,  -- owner
-				previous     char    (42)                      not null,  -- previous
-				payType      int                               not null,  -- 0:ETH,1:WETH
-				payValue     varchar (78)                      not null,
-				payBank      char    (42)                      not null,
-				payer        char    (42)                      not null,
+				toAddress    char    (42)                      not null,  -- owner
+				fromAddress  char    (42)                      not null,  -- previous
+				erc20        char    (42)                      not null,
+				amount       varchar (78)                      not null,
+				source       char    (42)                      not null,
 				blockNumber  int                               not null,
 				state        int            default (0)        not null,
-				time         bigint         default (0)        not null
+				time         bigint         default (0)        not null,
+				txHash       char (66)                         not null
 			);
 
 			create table if not exists ledger_${chain} ( -- 财务记录
@@ -419,7 +419,7 @@ async function load_main_db() {
 			`create         index asset_order_${chain}_idx10     on asset_order_${chain}            (host,tokenId)`,
 			`create         index asset_order_${chain}_idx11     on asset_order_${chain}            (host,fromAddres)`,
 			// asset unlock
-			`create unique  index asset_unlock_${chain}_idx0     on asset_unlock_${chain}           (token,tokenId,owner,previous,blockNumber)`,
+			`create unique  index asset_unlock_${chain}_idx0     on asset_unlock_${chain}           (token,tokenId,toAddress,fromAddress,blockNumber)`,
 			`create         index asset_unlock_${chain}_idx1     on asset_unlock_${chain}           (state)`,
 			// ledger
 			`create         index ledger_${chain}_idx0           on ledger_${chain}                 (host)`,

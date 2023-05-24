@@ -143,12 +143,11 @@ export interface AssetUnlock {
 	host: string;
 	token: string;//        char    (42)                      not null,  -- asset contract address
 	tokenId: string;//      char    (66)                      not null,  -- hash
-	owner: string;//        char    (42)                      not null,  -- owner
-	previous: string;//     char    (42)                      not null,  -- previous
-	payType: number;//      int                               not null,  -- 0:ETH,1:WETH
-	payValue: string;//     varchar (78)                      not null,
-	payBank: string;//      char    (42)                      not null,
-	payer: string;//        char    (42)                      not null,
+	fromAddress: string;//  char    (42)                      not null,  -- owner
+	toAddress: string;//    char    (42)                      not null,  -- previous
+	erc20: string;  //      char    (42)                      not null,
+	amount: string;//       varchar (78)                      not null,
+	source: string;//       char    (42)                      not null,
 	blockNumber: number;//  int                               not null,
 	state: State;//         int            default (0)        not null,
 	time: number;//         bigint         default (0)        not null
@@ -428,6 +427,7 @@ export interface TransactionLog {
 	blockHash: string;//         binary (32)                  not null,
 	blockNumber: number;//       int unsigned                 not null,
 	addressHash: number;//       int unsigned                 not null
+	txHash: string;//            char (66)                         not null
 }
 
 export interface Indexer {
