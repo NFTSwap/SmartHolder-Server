@@ -5,6 +5,7 @@
 
 import db, {ChainType,State,Ledger,LedgerType,LedgerAssetIncome,SaleType,LedgerBalance} from '../db';
 import {escape} from 'somes/db';
+import somes from 'somes';
 import {getLimit,newCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
@@ -103,6 +104,8 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 
 export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 	after: async (e, [opts])=>{
+		const zero = BigInt(0);
+		const addressZero = '0x0000000000000000000000000000000000000000';
 		let balance = await getLedgerBalance.query(opts);
 		let summarys: Dict<{
 			items: number,
@@ -110,16 +113,28 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 			expenditure: bigint,
 			amount: bigint;
 			balance: LedgerBalance,
-		}> = {};
-		let zero = BigInt(0)
+		}> = {
+			[addressZero]: {
+				items: 0, income: zero, expenditure: zero, amount: zero,
+				balance: balance.find(e=>e.erc20==addressZero) || {
+					id: 0,
+					host: opts.host,
+					erc20: addressZero,
+					value: '0',
+					income: '0',
+					expenditure: '0',
+					items: 0,
+					symbol: 'ETH',
+					name: 'ETH',
+					time: 0,
+				},
+			},
+		};
 
 		for (let l of e) {
 			let b = summarys[l.erc20] || (summarys[l.erc20] = {
-				items: 0, income: zero,
-				expenditure: zero, amount: zero,
-				balance: balance.find(e=>e.erc20==l.erc20)!
+				...summarys[addressZero], balance: balance.find(e=>e.erc20==addressZero)!
 			});
-			b.items++;
 
 			switch(l.type) {
 				case LedgerType.Receive: // income
@@ -131,6 +146,8 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 					b.expenditure += BigInt(l.amount); break;
 				default: break; // Reserved
 			}
+
+			b.items++;
 		}
 
 		return Object.values(summarys).map(e=>{
