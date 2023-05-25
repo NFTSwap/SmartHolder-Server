@@ -271,18 +271,20 @@ export class AssetERC1155 extends AssetModuleScaner {
 			// event Unlock(
 			// 	uint256 indexed tokenId,
 			// 	address indexed source, address indexed erc20,
-			// 	address from, address to, uint256 amount, uint256 eth, uint256 price, uint256 count
+			// 	address from, address to, uint256 amount, uint256 eth, uint256 count
 			// );
-			handle: async ({event:e}: HandleEventData)=>{
-				let {tokenId,source,erc20,from,to,amount,price,count} = e.returnValues;
+			handle: async ({event:e, blockNumber}: HandleEventData)=>{
+				let {tokenId,source,erc20,from,to,amount,count} = e.returnValues;
 				let host = await this.host();
 				let dao = (await this.db.selectOne<DAO>(`dao_${this.chain}`, {address: host}))!;
 				let saleType = dao.first.toLowerCase() == this.address.toLowerCase() ? SaleType.kFirst: SaleType.kSecond;
+				let fee = await this.seller_fee_basis_points(blockNumber);
+				let price = BigInt(amount) * BigInt(10_000) / BigInt(fee);
 
-				await (new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db)).addAssetIncome({
+				await new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db).addAssetIncome({
 					host,
 					saleType,
-					blockNumber: e.blockNumber,
+					blockNumber,
 					token: this.address,
 					tokenId,
 					source,
@@ -350,7 +352,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 		if (logs.length == 0) return; // no logs
 
 		let minimumPriceTotal = logs.reduce((p,c)=>p + c.minimumPrice, BigInt(0)); // total min price
-		let seller_fee_basis_points = BigInt(await c.methods.seller_fee_basis_points().call(blockNumber));
+		let seller_fee_basis_points = await this.seller_fee_basis_points(blockNumber);
 
 		for (let log of logs) {
 			let {from,to,tokenId,count,locked,minimumPrice} = log;
@@ -433,5 +435,11 @@ export class AssetERC1155 extends AssetModuleScaner {
 		let m = await this.methods();
 		let balance = await m.balanceOf(owner, id).call(blockNumber || this.blockNumber) as string;
 		return BigInt(balance);
+	}
+
+	async seller_fee_basis_points(blockNumber?: number) {
+		let m = await this.methods();
+		let fee = await m.seller_fee_basis_points().call(blockNumber || this.blockNumber);
+		return BigInt(fee);
 	}
 }
