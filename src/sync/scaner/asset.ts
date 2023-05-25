@@ -334,14 +334,14 @@ export class AssetERC1155 extends AssetModuleScaner {
 		})
 		.map(async e=>{
 			let {from,to,id,value} = this.web3.eth.abi.decodeLog(TransferSingle.inputs!, e.data, e.topic.slice(1));
-			let item = await c.methods.lockedOf(id,to,from).call(); // get locked item
-			let minimumPrice = BigInt(await c.methods.minimumPrice(id).call());
+			let item = await c.methods.lockedOf(id,to,from).call(blockNumber); // get locked item
+			let minimumPrice = BigInt(await c.methods.minimumPrice(id).call(blockNumber));
 			return {
 				address: e.address,
 				from,
 				to,
 				tokenId: formatHex(id),
-				value,
+				count: value,
 				locked: item as {blockNumber: number, count: string},
 				minimumPrice,
 			};
@@ -350,14 +350,14 @@ export class AssetERC1155 extends AssetModuleScaner {
 		if (logs.length == 0) return; // no logs
 
 		let minimumPriceTotal = logs.reduce((p,c)=>p + c.minimumPrice, BigInt(0)); // total min price
-		let seller_fee_basis_points = BigInt(await c.methods.seller_fee_basis_points().call());
+		let seller_fee_basis_points = BigInt(await c.methods.seller_fee_basis_points().call(blockNumber));
 
 		for (let log of logs) {
-			let {from,to,tokenId,value,locked,minimumPrice} = log;
+			let {from,to,tokenId,count,locked,minimumPrice} = log;
 			let amount = e.amount * minimumPrice / minimumPriceTotal + ''; // uniform distribution
 
 			if (locked.blockNumber == blockNumber) { // if is locked then need to god the unlock it
-				somes.assert(locked.count == value, '#AssetERC1155.onReceiveERC20 item count no match');
+				somes.assert(locked.count == count, '#AssetERC1155.onReceiveERC20 item count no match');
 				somes.assert(erc20 != addressZero, '#AssetERC1155.onReceiveERC20 erc20 != addressZero');
 
 				await this.db.insert(`asset_unlock_${this.chain}`, {
@@ -390,7 +390,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 					erc20: erc20,
 					amount,
 					price: BigInt(amount) * BigInt(10_000) / seller_fee_basis_points,
-					count: value,
+					count: count,
 					txHash: txHash,
 				});
 			}
