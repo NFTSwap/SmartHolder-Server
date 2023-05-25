@@ -154,5 +154,5 @@ export const setLedgerState = async (chain: ChainType, id: number, state: State)
 export const getLedgerBalance = newQuery(({ chain,host }: {
 	chain: ChainType, host?: string,
 }, { limit,out })=>{
-	return db.select<LedgerBalance>(`ledger_nalance_${chain}`, {host}, {limit,out});
+	return db.select<LedgerBalance>(`ledger_balance_${chain}`, {host}, {limit,out});
 });
