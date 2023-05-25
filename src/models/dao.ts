@@ -163,7 +163,8 @@ export const getDAOSummarys = newCache(async ({chain,host}: {chain: ChainType, h
 		assetMinimumPriceTotal,// asset total amount value
 		assetOrderTotal: totalItems,// Asset order total
 		assetOrderAmountTotal: amount,// Asset order total amount value
-		assetLedgerIncomeTotal: ledgerSummarys[0].income,// Asset Ledger total Income value @Deprecated
+		// Asset Ledger total Income value @Deprecated
+		assetLedgerIncomeTotal: ledgerSummarys[0]?.income || '0',
 		ledgerSummarys, // ledger summarys
 	};
 

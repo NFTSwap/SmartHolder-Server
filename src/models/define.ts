@@ -338,27 +338,27 @@ export enum ChainType {
 // Symbol: BNB
 // Block Explorer URL: https://testnet.bscscan.com
 
-export class ChainTraits {
-	UNKNOWN = [ChainType.UNKNOWN, 0, 'UNK'];
-	ETHEREUM = [ChainType.ETHEREUM, 18, 'ETH'];
-	MATIC = [ChainType.MATIC, 18, 'MATIC'];
-	KLAYTN = [ChainType.KLAYTN, 18, 'KLAY'];
-	XDAI = [ChainType.XDAI, 18, 'XDAI'];
-	BSC = [ChainType.BSC, 18, 'BNB'];
-	ROPSTEN = [ChainType.ROPSTEN, 18, 'ROPSTEN'];
-	RINKEBY = [ChainType.RINKEBY, 18, 'RINKEBY'];
-	MUMBAI = [ChainType.MUMBAI, 18, 'MUMBAI'];
-	BAOBAB = [ChainType.BAOBAB, 18, 'BAOBAB'];
-	BSC_TESTNET = [ChainType.BSC_TESTNET, 18, 'BNB_TEST'];
-	GOERLI = [ChainType.GOERLI, 18, 'GOERLI'];
-	HCETH = [ChainType.HCETH, 18, 'ETH'];
-	BSN_TEST = [ChainType.BSN_TEST, 18, 'BSN_TEST'];
-	BSN = [ChainType.BSN, 18, 'BSN'];
-	HASHII_TEST = [ChainType.HASHII_TEST, 18, 'HASHII_TEST'];
-	HASHII = [ChainType.HASHII, 18, 'HASHII'];
-}
+export const ChainTraits: Dict<[ChainType, number, string]> = {
+	UNKNOWN: [ChainType.UNKNOWN, 0, 'UNK'],
+	ETHEREUM: [ChainType.ETHEREUM, 18, 'ETH'],
+	MATIC: [ChainType.MATIC, 18, 'MATIC'],
+	KLAYTN: [ChainType.KLAYTN, 18, 'KLAY'],
+	XDAI: [ChainType.XDAI, 18, 'XDAI'],
+	BSC: [ChainType.BSC, 18, 'BNB'],
+	ROPSTEN: [ChainType.ROPSTEN, 18, 'ROPSTEN'],
+	RINKEBY: [ChainType.RINKEBY, 18, 'RINKEBY'],
+	MUMBAI: [ChainType.MUMBAI, 18, 'MUMBAI'],
+	BAOBAB: [ChainType.BAOBAB, 18, 'BAOBAB'],
+	BSC_TESTNET: [ChainType.BSC_TESTNET, 18, 'BNB_TEST'],
+	GOERLI: [ChainType.GOERLI, 18, 'GOERLI'],
+	HCETH: [ChainType.HCETH, 18, 'ETH'],
+	BSN_TEST: [ChainType.BSN_TEST, 18, 'BSN_TEST'],
+	BSN: [ChainType.BSN, 18, 'BSN'],
+	HASHII_TEST: [ChainType.HASHII_TEST, 18, 'HASHII_TEST'],
+	HASHII: [ChainType.HASHII, 18, 'HASHII'],
+};
 
-export const chainTraits = new ChainTraits();
+export const chainTraits = ChainTraits;
 
 export interface EventsItem {
 	id: string;//                   int primary        key auto_increment, -- 主键id

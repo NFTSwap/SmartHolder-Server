@@ -3,7 +3,7 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog,ContractType,SaleType,LedgerBalance} from '../../db';
+import {LedgerType,LedgerReleaseLog,ContractType,SaleType,LedgerBalance,ChainType,chainTraits} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
 import {ModuleScaner} from './index';
 import {getAbiByType} from '../../web3+';
@@ -266,7 +266,7 @@ export class Ledger extends ModuleScaner {
 		let host = await this.host();
 		let summary = (await this.db.selectOne<LedgerBalance>(`ledger_balance_${this.chain}`, {host,erc20}))!;
 		if (!summary) {
-			let name = 'ETH', symbol = 'ETH';
+			let symbol = chainTraits[ChainType[this.chain]][2], name = ChainType[this.chain];
 			if (erc20 != addressZero) {
 				let abi = (await getAbiByType(ContractType.ERC20))!;
 				let c = this.web3.createContract(erc20, abi.abi);

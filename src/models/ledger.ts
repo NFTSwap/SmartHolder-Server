@@ -3,9 +3,9 @@
  * @date 2022-07-21
  */
 
-import db, {ChainType,State,Ledger,LedgerType,LedgerAssetIncome,SaleType,LedgerBalance} from '../db';
+import db, {ChainType,State,Ledger,LedgerType,
+	LedgerAssetIncome,SaleType,LedgerBalance} from '../db';
 import {escape} from 'somes/db';
-import somes from 'somes';
 import {getLimit,newCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
@@ -113,27 +113,11 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 			expenditure: bigint,
 			amount: bigint;
 			balance: LedgerBalance,
-		}> = {
-			[addressZero]: {
-				items: 0, income: zero, expenditure: zero, amount: zero,
-				balance: balance.find(e=>e.erc20==addressZero) || {
-					id: 0,
-					host: opts.host,
-					erc20: addressZero,
-					value: '0',
-					income: '0',
-					expenditure: '0',
-					items: 0,
-					symbol: 'ETH',
-					name: 'ETH',
-					time: 0,
-				},
-			},
-		};
+		}> = {};
 
 		for (let l of e) {
 			let b = summarys[l.erc20] || (summarys[l.erc20] = {
-				...summarys[addressZero], balance: balance.find(e=>e.erc20==addressZero)!
+				items: 0, income: zero, expenditure: zero, amount: zero,balance: balance.find(e=>e.erc20==addressZero)!
 			});
 
 			switch(l.type) {
