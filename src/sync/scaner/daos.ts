@@ -9,7 +9,6 @@ import {storage} from '../../db';
 import * as DAO from '../../../abi/DAO.json';
 import * as constants from './../constants';
 import {IndexerPool} from './../indexer';
-import buffer from 'somes/buffer';
 import * as crypto from 'crypto-tx';
 
 export class DAOs extends ContractScaner {

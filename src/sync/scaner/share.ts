@@ -3,8 +3,7 @@
  * @date 2023-04-21
  */
 
-import {HandleEventData} from '.';
-import {ModuleScaner} from './asset';
+import {HandleEventData,ModuleScaner} from '.';
 
 export class Share extends ModuleScaner {
 	events = {

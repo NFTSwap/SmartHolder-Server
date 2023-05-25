@@ -20,6 +20,7 @@ import * as cryptoTx from 'crypto-tx';
 import {DatabaseCRUD} from 'somes/db';
 import db from '../../db';
 import { EventNoticer } from 'somes/event';
+import * as constants from './../constants';
 
 export function formatHex(num: string | number | bigint, btyes: number = 32) {
 	let s = '';
@@ -232,6 +233,34 @@ export abstract class ContractScaner {
 		}
 	}
 
+}
+
+export abstract class ModuleScaner extends ContractScaner {
+	protected async onDescription(data: HandleEventData, desc: string) {}
+	protected async onOperator(data: HandleEventData, addr: string) {}
+	protected async onUpgrade(data: HandleEventData, addr: string) {}
+	protected async onChangePlus(data: HandleEventData, tag: number) {}
+
+	// module change handle
+	protected async onChange(data: HandleEventData) {
+		let tag = Number(data.event.returnValues.tag);
+		let methods = await this.methods();
+
+		switch (tag) {
+			case constants.Change_Tag_Description:
+				await this.onDescription(data, await methods.description().call());
+				break;
+			case constants.Change_Tag_Operator:
+				await this.onOperator(data, await methods.operator().call());
+				break;
+			case constants.Change_Tag_Upgrade:
+				await this.onUpgrade(data, await methods.impl().call());
+				break;
+			default:
+				await this.onChangePlus(data, tag);
+				break;
+		}
+	}
 }
 
 export class ContractUnknown extends ContractScaner {

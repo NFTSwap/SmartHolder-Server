@@ -173,7 +173,7 @@ export interface Ledger {
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
 	ref: string;//          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人target
-	balance: string;//      varchar (72)                 not null, -- 金额
+	amount: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
@@ -214,10 +214,12 @@ export interface LedgerReleaseLog {
 
 export interface LedgerBalance {
 	id: number;//           int primary key auto_increment,
-	ledger_id: number;//    int                          not null,
 	host: string;//         varchar (42)                 not null, -- dao host
 	erc20: string;//        varchar (42)                 not null, -- erc20 token address
-	balance: string;//      varchar (78)                 not null, -- 余额
+	value: string;//        varchar (78)                 not null, -- 余额
+	income: string;//       varchar (78)                 not null, -- 正向收益
+	expenditure: string;//  varchar (78)                 not null, -- 反向支出
+	items: number;//        int                          not null, -- 流通次数
 	symbol: string;//       varchar (32)                 not null, -- erc20 symbol
 	name: string;//         varchar (32)                 not null, -- erc20 name
 	time: number;//         bigint                       not null  -- 更新时间

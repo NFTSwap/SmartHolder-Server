@@ -114,7 +114,7 @@ export function newCache<Args extends any[], R, R2>(
 	handle: (...args: Args)=>Promise<R>|R,
 	opts: {
 		before?: (args: Args)=>void,
-		after?: (r: R)=>Promise<R2>|R2,
+		after?: (r: R, args: Args)=>Promise<R2>|R2,
 		cacheTime?: number,
 		name?: string,
 	} | number = {}
@@ -142,7 +142,7 @@ export function newCache<Args extends any[], R, R2>(
 				before(args1);
 			let r = await handle(...args1) as any;
 			if (after) {
-				r = await after(r);
+				r = await after(r,args1);
 			}
 			if (time)
 				await redis.set(key, [r], time);

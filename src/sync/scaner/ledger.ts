@@ -3,30 +3,28 @@
  * @date 2022-07-20
  */
 
-import {LedgerType,LedgerReleaseLog, SaleType} from '../../db';
+import {LedgerType,LedgerReleaseLog,ContractType,SaleType,LedgerBalance} from '../../db';
 import {formatHex,numberStr,HandleEventData} from '.';
-import {ModuleScaner} from './asset';
-// import * as order from '../../models/order';
+import {ModuleScaner} from './index';
+import {getAbiByType} from '../../web3+';
+
+const addressZero = '0x0000000000000000000000000000000000000000';
 
 export class Ledger extends ModuleScaner {
 	events = {
-		// event Receive(address indexed from, uint256 balance);
-		// event ReleaseLog(address indexed operator, uint256 balance, string log);
-		// event Deposit(address indexed from, uint256 balance, string name, string description);
-		// event Withdraw(address indexed target, uint256 balance, string description);
-		// event Release(uint256 indexed member, address indexed to, uint256 balance);
-		// event AssetIncome(
-		// 	address indexed token, uint256 indexed tokenId,
-		// 	address indexed source, address to, uint256 balance, uint256 price, IAssetShell.SaleType saleType
-		// );
+		// event Receive(address indexed from, uint256 amount);
+		// event Deposit(address indexed from, uint256 amount, string name, string description);
+		// event Withdraw(address indexed erc20, address indexed target, uint256 amount, string description);
+		// event Release(uint256 indexed member, address indexed to, address indexed erc20, uint256 amount);
+		// event ReleaseLog(address indexed operator, address indexed erc20, uint256 amount, string log);
 
 		Change: {
 			handle: (data: HandleEventData)=>this.onChange(data),
 		},
 		Receive: {
-			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+			handle: async ({event:e,blockTime: time,blockNumber}: HandleEventData)=>{
 				let db = this.db;
-				let {from,balance} = e.returnValues;
+				let {from,amount} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Receive;
 
@@ -34,33 +32,35 @@ export class Ledger extends ModuleScaner {
 					return;
 
 				// id           int primary key auto_increment,
-				// host         varchar (64)                 not null, -- dao host
-				// address      varchar (64)                 not null, -- 合约地址
-				// txHash       varchar (72)                 not null, -- tx hash
-				// target       varchar (42)                 not null, -- 转账目标:进账为打款人,出账为接收人
+				// host         varchar (42)                 not null, -- dao host
+				// address      varchar (42)                 not null, -- 合约地址
+				// txHash       varchar (66)                 not null, -- tx hash
+				// type         int             default (0)  not null, -- 0保留,1进账-无名接收存入,2进账-存入,3出账-取出,4出账-成员分成,5进账-资产销售收入
+				// name         varchar (42)    default ('') not null, -- 转账名目
+				// description  varchar (1024)  default ('') not null, -- 详细
+				// target       varchar (42)                 not null, -- 转账目标:进账为打款人,出账为接收人,资产销售收进账时为store地址,如opensea store
 				// ref          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人
-				// name         varchar (64)    default ('') not null, -- 转账名目
-				// description     varchar (1024)  default ('') not null, -- 详细
-				// source       varchar (64)                 not null, -- 入账来源
-				// target       varchar (64)                 not null, -- 出账目标,进账为打款人,出账为接收人
-				// member_id    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
-				// balance      varchar (72)                 not null, -- 金额
+				// member_id    varchar (66)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
+				// amount       varchar (78)                 not null, -- 金额 for eth
 				// time         bigint                       not null, -- 时间
-				// blockNumber  int                          not null  -- 区块
+				// blockNumber  int                          not null, -- 区块
+				// state        int             default (0)  not null,
+				// erc20        varchar (42)                 not null  -- erc20 token address
 
-				if ( ! await db.selectOne(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) {
-					await db.insert(`ledger_${this.chain}`, {
-						host: await this.host(),
-						address: this.address,
-						txHash: txHash,
-						type: type,
-						ref: from,
-						target: from,
-						balance: numberStr(balance),
-						time,
-						blockNumber: Number(e.blockNumber) || 0,
-					});
-				}
+				await db.insert(`ledger_${this.chain}`, {
+					host: await this.host(),
+					address: this.address,
+					txHash: txHash,
+					type: type,
+					ref: from,
+					target: from,
+					amount: numberStr(amount),
+					time: time,
+					blockNumber: blockNumber,
+					erc20: addressZero,
+				});
+
+				await this.addLedgerBalanceAmount(addressZero, amount);
 			},
 		},
 
@@ -85,7 +85,7 @@ export class Ledger extends ModuleScaner {
 					ref: to,
 					target: to,
 					amount: numberStr(amount),
-					description: log?.log || '',
+					description: log? log.log: '',
 					member_id,
 					time,
 					blockNumber: Number(e.blockNumber) || 0,
@@ -115,7 +115,7 @@ export class Ledger extends ModuleScaner {
 				await db.insert(`ledger_release_log_${this.chain}`, {
 					address: this.address,
 					operator,
-					balance: numberStr(amount),
+					amount: numberStr(amount),
 					log,
 					time,
 					blockNumber: Number(e.blockNumber) || 0,
@@ -124,13 +124,15 @@ export class Ledger extends ModuleScaner {
 				});
 
 				await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
+
+				await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
 			},
 		},
 
 		Deposit: {
-			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+			handle: async ({event:e,blockTime: time,blockNumber}: HandleEventData)=>{
 				let db = this.db;
-				let {from,balance,name,description} = e.returnValues;
+				let {from,amount,name,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Deposit;
 
@@ -144,21 +146,25 @@ export class Ledger extends ModuleScaner {
 					type: type,
 					target: from,
 					ref: from,
-					balance: numberStr(balance),
+					amount: numberStr(amount),
 					name: name,
 					description: description,
 					time,
-					blockNumber: Number(e.blockNumber) || 0,
+					blockNumber: blockNumber,
+					erc20: addressZero,
 				});
+
+				await this.addLedgerBalanceAmount(addressZero, BigInt(amount));
 			},
 		},
 
 		Withdraw: {
-			handle: async ({event:e,blockTime: time}: HandleEventData)=>{
+			handle: async ({event:e,blockTime: time,blockNumber}: HandleEventData)=>{
 				let db = this.db;
-				let {target,balance,description} = e.returnValues;
+				let {erc20,target,amount,description} = e.returnValues;
 				let txHash = e.transactionHash;
 				let type = LedgerType.Withdraw;
+
 				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) 
 					return;
 
@@ -167,13 +173,16 @@ export class Ledger extends ModuleScaner {
 					address: this.address,
 					txHash: txHash,
 					type: type,
-					balance: numberStr(balance),
+					amount: numberStr(amount),
 					ref: target,
 					target: target,
 					description: description,
-					time,
-					blockNumber: Number(e.blockNumber) || 0,
+					time: time,
+					blockNumber: blockNumber,
+					erc20: erc20,
 				});
+
+				await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
 			},
 		},
 
@@ -236,7 +245,44 @@ export class Ledger extends ModuleScaner {
 			erc20,
 		});
 
-		// await order.maskSellOrderSold(this.chain, token, tokenId, BigInt(0), '', this.db);
+		await this.addLedgerBalanceAmount(erc20, BigInt(amount));
+	}
+
+	async addLedgerBalanceAmount(erc20: string, amount: bigint) {
+		// create table if not exists ledger_balance_${chain} ( -- 财务记录余额汇总 balance total 
+		// 	id           int primary key auto_increment,
+		// 	host         varchar (42)                 not null, -- dao host
+		// 	erc20        varchar (42)                 not null, -- erc20 token address
+		// 	value        varchar (78)   default ('0') not null, -- 余额
+		// 	income       varchar (78)   default ('0') not null, -- 正向收益
+		// 	expenditure  varchar (78)   default ('0') not null, -- 反向支出
+		// 	items        int            default (0)   not null, -- 流通次数
+		// 	symbol       varchar (32)                 not null, -- erc20 symbol
+		// 	name         varchar (32)                 not null, -- erc20 name
+		// 	time         bigint                       not null  -- 更新时间
+		// );
+
+		let time = Date.now();
+		let host = await this.host();
+		let summary = (await this.db.selectOne<LedgerBalance>(`ledger_balance_${this.chain}`, {host,erc20}))!;
+		if (!summary) {
+			let name = 'ETH', symbol = 'ETH';
+			if (erc20 != addressZero) {
+				let abi = (await getAbiByType(ContractType.ERC20))!;
+				let c = this.web3.createContract(erc20, abi.abi);
+				symbol = await this.web3.tryCall(c, 'symbol') || '';
+				name = await this.web3.tryCall(c, 'name') || symbol || '';
+			}
+			let id = await this.db.insert(`ledger_balance_${this.chain}`, {host,erc20,name,symbol,time});
+			summary = (await this.db.selectOne(`ledger_balance_${this.chain}`, {id}))!;
+		}
+		let row: Dict = {time,value: BigInt(summary.value) + BigInt(amount) + '', items: summary.items+1};
+		if (amount < BigInt(0)) { // pay
+			row.expenditure = BigInt(summary.expenditure) - BigInt(amount) + '';
+		} else { // income
+			row.income = BigInt(summary.income) + BigInt(amount) + '';
+		}
+		await this.db.update(`ledger_balance_${this.chain}`, row, {id: summary.id});
 	}
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {

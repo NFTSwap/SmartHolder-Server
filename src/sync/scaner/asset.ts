@@ -4,7 +4,7 @@
  */
 
 import { Asset, ContractType, ChainType, SaleType,AssetType,AssetOwner,DAO} from '../../models/define';
-import {ContractScaner, IAssetScaner, numberStr,formatHex,HandleEventData} from '.';
+import {ModuleScaner, IAssetScaner, numberStr,formatHex,HandleEventData} from '.';
 import * as utils from '../../utils';
 import _hash from 'somes/hash';
 import * as order from '../../models/order';
@@ -16,34 +16,6 @@ import {isExecutionRevreted,getAbiByType} from '../../web3+';
 import {Ledger} from './ledger';
 
 const addressZero = '0x0000000000000000000000000000000000000000';
-
-export abstract class ModuleScaner extends ContractScaner {
-	protected async onDescription(data: HandleEventData, desc: string) {}
-	protected async onOperator(data: HandleEventData, addr: string) {}
-	protected async onUpgrade(data: HandleEventData, addr: string) {}
-	protected async onChangePlus(data: HandleEventData, tag: number) {}
-
-	// module change handle
-	protected async onChange(data: HandleEventData) {
-		let tag = Number(data.event.returnValues.tag);
-		let methods = await this.methods();
-
-		switch (tag) {
-			case constants.Change_Tag_Description:
-				await this.onDescription(data, await methods.description().call());
-				break;
-			case constants.Change_Tag_Operator:
-				await this.onOperator(data, await methods.operator().call());
-				break;
-			case constants.Change_Tag_Upgrade:
-				await this.onUpgrade(data, await methods.impl().call());
-				break;
-			default:
-				await this.onChangePlus(data, tag);
-				break;
-		}
-	}
-}
 
 export abstract class AssetModuleScaner extends ModuleScaner implements IAssetScaner {
 

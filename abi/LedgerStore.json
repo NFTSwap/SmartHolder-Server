@@ -1,32 +1,32 @@
 {
   "contractName": "LedgerStore",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"All contracts that need to implement upgrades should inherit this `LedgerStore` contract,  and it should be the first parent class inherited\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/gen/LedgerProxy.sol\":\"LedgerStore\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/gen/LedgerProxy.sol\":{\"keccak256\":\"0x20a8cae0ed20e85402823e85cb3ef4c42933f652d0a68d88e12fd96d8c854731\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://76c897cc196858114e8de9b189343f8a8d4b65c1e94bc6bb08f38ddbcc27192a\",\"dweb:/ipfs/QmQfGFzCKvcbDAD7Ns7P6KeRNhbawk1sLfxcXEaNVuskuc\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122099748a1668547104187a5fc52927c8a8ce7dabad650106f1b3a819e81eed290464736f6c63430008110033",
-  "deployedBytecode": "0x6080604052600080fdfea264697066735822122099748a1668547104187a5fc52927c8a8ce7dabad650106f1b3a819e81eed290464736f6c63430008110033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"All contracts that need to implement upgrades should inherit this `LedgerStore` contract,  and it should be the first parent class inherited\",\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/gen/LedgerProxy.sol\":\"LedgerStore\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/gen/LedgerProxy.sol\":{\"keccak256\":\"0xda1d584ac13a0c9c0672400783a9a4e0c5194e279ce90daebf93f507304eddf7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://2bc8ef471800eee21ddd60a0e2988b7a43f53c8ad9ec0bc916f9e6ca8e63192f\",\"dweb:/ipfs/QmNV9kiBTnGFexsao3pR1eZCGdMmw5pmF5GrUTpaPVZz6p\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122077387e950d48ac02a534c362df5fa1f78d6a733f0fba28679e05f1a63998ea8164736f6c63430008110033",
+  "deployedBytecode": "0x6080604052600080fdfea264697066735822122077387e950d48ac02a534c362df5fa1f78d6a733f0fba28679e05f1a63998ea8164736f6c63430008110033",
   "immutableReferences": {},
   "generatedSources": [],
   "deployedGeneratedSources": [],
-  "sourceMap": "217:240:14:-:0;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "217:240:14:-:0;;;;;",
-  "source": "// SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n/**\n\t*@dev All contracts that need to implement upgrades should inherit this `LedgerStore` contract, \n\t* and it should be the first parent class inherited\n\t*/\ncontract LedgerStore {\n\t\n\taddress _impl;\n\tuint8 _initialized;\n\tbool _initializing;\n\tmapping(bytes4 => bool) _supportedInterfaces;\n\taddress _host;\n\taddress _operator;\n\tstring _description;\n\tuint256[8] __;\n\tuint256[16] ___1; // impl address\n}\n\n/**\n * @dev The context here is that the externally exposed contract entities are only used to store data, \n * and the implemented business logic should be placed in the impl\n * Any method that calls this contract will be directed to `fallback()`, \n * and then use `delegatecall()` to call the actual implementation and pass the current data context to impl\n */\ncontract LedgerProxy is LedgerStore {\n\t// The size allocated by Layout Store should be specified by dynamic compilation, \n\t// and the storage size needs to be read from the original contract\n\n\tconstructor(address impl_) public {\n\t\t_impl = impl_;\n\t}\n\n\tfallback() external payable {\n\t\t(bool suc, bytes memory _data) = _impl.delegatecall(msg.data);\n\t\tassembly {\n\t\t\tlet len := mload(_data)\n\t\t\tlet data := add(_data, 0x20)\n\t\t\tswitch suc\n\t\t\tcase 0 { revert(data, len) }\n\t\t\tdefault { return(data, len) }\n\t\t}\n\t}\n}",
+  "sourceMap": "217:268:14:-:0;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "217:268:14:-:0;;;;;",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity ~0.8.17;\n\n/**\n\t*@dev All contracts that need to implement upgrades should inherit this `LedgerStore` contract, \n\t* and it should be the first parent class inherited\n\t*/\ncontract LedgerStore {\n\t\n\taddress _impl;\n\tuint8 _initialized;\n\tbool _initializing;\n\tmapping(bytes4 => bool) _supportedInterfaces;\n\taddress _host;\n\taddress _operator;\n\tstring _description;\n\tuint256[8] __;\n\tbool _IsDisableReceiveLog;\n\tuint256[16] ___1; // impl address\n}\n\n/**\n * @dev The context here is that the externally exposed contract entities are only used to store data, \n * and the implemented business logic should be placed in the impl\n * Any method that calls this contract will be directed to `fallback()`, \n * and then use `delegatecall()` to call the actual implementation and pass the current data context to impl\n */\ncontract LedgerProxy is LedgerStore {\n\t// The size allocated by Layout Store should be specified by dynamic compilation, \n\t// and the storage size needs to be read from the original contract\n\n\tconstructor(address impl_) public {\n\t\t_impl = impl_;\n\t}\n\n\tfallback() external payable {\n\t\t(bool suc, bytes memory _data) = _impl.delegatecall(msg.data);\n\t\tassembly {\n\t\t\tlet len := mload(_data)\n\t\t\tlet data := add(_data, 0x20)\n\t\t\tswitch suc\n\t\t\tcase 0 { revert(data, len) }\n\t\t\tdefault { return(data, len) }\n\t\t}\n\t}\n}",
   "sourcePath": "/Users/louis/Project/hc/NFTSwap/SmartHolder/contracts/gen/LedgerProxy.sol",
   "ast": {
     "absolutePath": "project:/contracts/gen/LedgerProxy.sol",
     "exportedSymbols": {
       "LedgerProxy": [
-        6594
+        6800
       ],
       "LedgerStore": [
-        6565
+        6771
       ]
     },
-    "id": 6595,
+    "id": 6801,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6539,
+        "id": 6743,
         "literals": [
           "solidity",
           "~",
@@ -43,15 +43,15 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 6540,
+          "id": 6744,
           "nodeType": "StructuredDocumentation",
           "src": "58:158:14",
           "text": "@dev All contracts that need to implement upgrades should inherit this `LedgerStore` contract, \n and it should be the first parent class inherited"
         },
         "fullyImplemented": true,
-        "id": 6565,
+        "id": 6771,
         "linearizedBaseContracts": [
-          6565
+          6771
         ],
         "name": "LedgerStore",
         "nameLocation": "226:11:14",
@@ -59,12 +59,12 @@
         "nodes": [
           {
             "constant": false,
-            "id": 6542,
+            "id": 6746,
             "mutability": "mutable",
             "name": "_impl",
             "nameLocation": "251:5:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "243:13:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -73,7 +73,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 6541,
+              "id": 6745,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "243:7:14",
@@ -87,12 +87,12 @@
           },
           {
             "constant": false,
-            "id": 6544,
+            "id": 6748,
             "mutability": "mutable",
             "name": "_initialized",
             "nameLocation": "265:12:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "259:18:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -101,7 +101,7 @@
               "typeString": "uint8"
             },
             "typeName": {
-              "id": 6543,
+              "id": 6747,
               "name": "uint8",
               "nodeType": "ElementaryTypeName",
               "src": "259:5:14",
@@ -114,12 +114,12 @@
           },
           {
             "constant": false,
-            "id": 6546,
+            "id": 6750,
             "mutability": "mutable",
             "name": "_initializing",
             "nameLocation": "285:13:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "280:18:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -128,7 +128,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 6545,
+              "id": 6749,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "280:4:14",
@@ -141,12 +141,12 @@
           },
           {
             "constant": false,
-            "id": 6550,
+            "id": 6754,
             "mutability": "mutable",
             "name": "_supportedInterfaces",
             "nameLocation": "325:20:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "301:44:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -155,9 +155,9 @@
               "typeString": "mapping(bytes4 => bool)"
             },
             "typeName": {
-              "id": 6549,
+              "id": 6753,
               "keyType": {
-                "id": 6547,
+                "id": 6751,
                 "name": "bytes4",
                 "nodeType": "ElementaryTypeName",
                 "src": "309:6:14",
@@ -173,7 +173,7 @@
                 "typeString": "mapping(bytes4 => bool)"
               },
               "valueType": {
-                "id": 6548,
+                "id": 6752,
                 "name": "bool",
                 "nodeType": "ElementaryTypeName",
                 "src": "319:4:14",
@@ -187,12 +187,12 @@
           },
           {
             "constant": false,
-            "id": 6552,
+            "id": 6756,
             "mutability": "mutable",
             "name": "_host",
             "nameLocation": "356:5:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "348:13:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -201,7 +201,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 6551,
+              "id": 6755,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "348:7:14",
@@ -215,12 +215,12 @@
           },
           {
             "constant": false,
-            "id": 6554,
+            "id": 6758,
             "mutability": "mutable",
             "name": "_operator",
             "nameLocation": "372:9:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "364:17:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -229,7 +229,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 6553,
+              "id": 6757,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "364:7:14",
@@ -243,12 +243,12 @@
           },
           {
             "constant": false,
-            "id": 6556,
+            "id": 6760,
             "mutability": "mutable",
             "name": "_description",
             "nameLocation": "391:12:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "384:19:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -257,7 +257,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 6555,
+              "id": 6759,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "384:6:14",
@@ -270,12 +270,12 @@
           },
           {
             "constant": false,
-            "id": 6560,
+            "id": 6764,
             "mutability": "mutable",
             "name": "__",
             "nameLocation": "417:2:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
+            "scope": 6771,
             "src": "406:13:14",
             "stateVariable": true,
             "storageLocation": "default",
@@ -285,7 +285,7 @@
             },
             "typeName": {
               "baseType": {
-                "id": 6557,
+                "id": 6761,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "406:7:14",
@@ -294,10 +294,10 @@
                   "typeString": "uint256"
                 }
               },
-              "id": 6559,
+              "id": 6763,
               "length": {
                 "hexValue": "38",
-                "id": 6558,
+                "id": 6762,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -322,13 +322,40 @@
           },
           {
             "constant": false,
-            "id": 6564,
+            "id": 6766,
+            "mutability": "mutable",
+            "name": "_IsDisableReceiveLog",
+            "nameLocation": "427:20:14",
+            "nodeType": "VariableDeclaration",
+            "scope": 6771,
+            "src": "422:25:14",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_bool",
+              "typeString": "bool"
+            },
+            "typeName": {
+              "id": 6765,
+              "name": "bool",
+              "nodeType": "ElementaryTypeName",
+              "src": "422:4:14",
+              "typeDescriptions": {
+                "typeIdentifier": "t_bool",
+                "typeString": "bool"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "constant": false,
+            "id": 6770,
             "mutability": "mutable",
             "name": "___1",
-            "nameLocation": "434:4:14",
+            "nameLocation": "462:4:14",
             "nodeType": "VariableDeclaration",
-            "scope": 6565,
-            "src": "422:16:14",
+            "scope": 6771,
+            "src": "450:16:14",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -337,26 +364,26 @@
             },
             "typeName": {
               "baseType": {
-                "id": 6561,
+                "id": 6767,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
-                "src": "422:7:14",
+                "src": "450:7:14",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
-              "id": 6563,
+              "id": 6769,
               "length": {
                 "hexValue": "3136",
-                "id": 6562,
+                "id": 6768,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
                 "kind": "number",
                 "lValueRequested": false,
                 "nodeType": "Literal",
-                "src": "430:2:14",
+                "src": "458:2:14",
                 "typeDescriptions": {
                   "typeIdentifier": "t_rational_16_by_1",
                   "typeString": "int_const 16"
@@ -364,7 +391,7 @@
                 "value": "16"
               },
               "nodeType": "ArrayTypeName",
-              "src": "422:11:14",
+              "src": "450:11:14",
               "typeDescriptions": {
                 "typeIdentifier": "t_array$_t_uint256_$16_storage_ptr",
                 "typeString": "uint256[16]"
@@ -373,8 +400,8 @@
             "visibility": "internal"
           }
         ],
-        "scope": 6595,
-        "src": "217:240:14",
+        "scope": 6801,
+        "src": "217:268:14",
         "usedErrors": []
       },
       {
@@ -382,59 +409,59 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 6567,
+              "id": 6773,
               "name": "LedgerStore",
               "nameLocations": [
-                "845:11:14"
+                "873:11:14"
               ],
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 6565,
-              "src": "845:11:14"
+              "referencedDeclaration": 6771,
+              "src": "873:11:14"
             },
-            "id": 6568,
+            "id": 6774,
             "nodeType": "InheritanceSpecifier",
-            "src": "845:11:14"
+            "src": "873:11:14"
           }
         ],
         "canonicalName": "LedgerProxy",
         "contractDependencies": [],
         "contractKind": "contract",
         "documentation": {
-          "id": 6566,
+          "id": 6772,
           "nodeType": "StructuredDocumentation",
-          "src": "459:361:14",
+          "src": "487:361:14",
           "text": " @dev The context here is that the externally exposed contract entities are only used to store data, \n and the implemented business logic should be placed in the impl\n Any method that calls this contract will be directed to `fallback()`, \n and then use `delegatecall()` to call the actual implementation and pass the current data context to impl"
         },
         "fullyImplemented": true,
-        "id": 6594,
+        "id": 6800,
         "linearizedBaseContracts": [
-          6594,
-          6565
+          6800,
+          6771
         ],
         "name": "LedgerProxy",
-        "nameLocation": "830:11:14",
+        "nameLocation": "858:11:14",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 6577,
+              "id": 6783,
               "nodeType": "Block",
-              "src": "1048:21:14",
+              "src": "1076:21:14",
               "statements": [
                 {
                   "expression": {
-                    "id": 6575,
+                    "id": 6781,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 6573,
+                      "id": 6779,
                       "name": "_impl",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6542,
-                      "src": "1052:5:14",
+                      "referencedDeclaration": 6746,
+                      "src": "1080:5:14",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
                         "typeString": "address"
@@ -443,30 +470,30 @@
                     "nodeType": "Assignment",
                     "operator": "=",
                     "rightHandSide": {
-                      "id": 6574,
+                      "id": 6780,
                       "name": "impl_",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6570,
-                      "src": "1060:5:14",
+                      "referencedDeclaration": 6776,
+                      "src": "1088:5:14",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
                         "typeString": "address"
                       }
                     },
-                    "src": "1052:13:14",
+                    "src": "1080:13:14",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
                     }
                   },
-                  "id": 6576,
+                  "id": 6782,
                   "nodeType": "ExpressionStatement",
-                  "src": "1052:13:14"
+                  "src": "1080:13:14"
                 }
               ]
             },
-            "id": 6578,
+            "id": 6784,
             "implemented": true,
             "kind": "constructor",
             "modifiers": [],
@@ -474,18 +501,18 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6571,
+              "id": 6777,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6570,
+                  "id": 6776,
                   "mutability": "mutable",
                   "name": "impl_",
-                  "nameLocation": "1034:5:14",
+                  "nameLocation": "1062:5:14",
                   "nodeType": "VariableDeclaration",
-                  "scope": 6578,
-                  "src": "1026:13:14",
+                  "scope": 6784,
+                  "src": "1054:13:14",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -493,10 +520,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 6569,
+                    "id": 6775,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1026:7:14",
+                    "src": "1054:7:14",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -506,41 +533,41 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1025:15:14"
+              "src": "1053:15:14"
             },
             "returnParameters": {
-              "id": 6572,
+              "id": 6778,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1048:0:14"
+              "src": "1076:0:14"
             },
-            "scope": 6594,
-            "src": "1014:55:14",
+            "scope": 6800,
+            "src": "1042:55:14",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           },
           {
             "body": {
-              "id": 6592,
+              "id": 6798,
               "nodeType": "Block",
-              "src": "1100:224:14",
+              "src": "1128:224:14",
               "statements": [
                 {
                   "assignments": [
-                    6582,
-                    6584
+                    6788,
+                    6790
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 6582,
+                      "id": 6788,
                       "mutability": "mutable",
                       "name": "suc",
-                      "nameLocation": "1110:3:14",
+                      "nameLocation": "1138:3:14",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6592,
-                      "src": "1105:8:14",
+                      "scope": 6798,
+                      "src": "1133:8:14",
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
@@ -548,10 +575,10 @@
                         "typeString": "bool"
                       },
                       "typeName": {
-                        "id": 6581,
+                        "id": 6787,
                         "name": "bool",
                         "nodeType": "ElementaryTypeName",
-                        "src": "1105:4:14",
+                        "src": "1133:4:14",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
@@ -561,13 +588,13 @@
                     },
                     {
                       "constant": false,
-                      "id": 6584,
+                      "id": 6790,
                       "mutability": "mutable",
                       "name": "_data",
-                      "nameLocation": "1128:5:14",
+                      "nameLocation": "1156:5:14",
                       "nodeType": "VariableDeclaration",
-                      "scope": 6592,
-                      "src": "1115:18:14",
+                      "scope": 6798,
+                      "src": "1143:18:14",
                       "stateVariable": false,
                       "storageLocation": "memory",
                       "typeDescriptions": {
@@ -575,10 +602,10 @@
                         "typeString": "bytes"
                       },
                       "typeName": {
-                        "id": 6583,
+                        "id": 6789,
                         "name": "bytes",
                         "nodeType": "ElementaryTypeName",
-                        "src": "1115:5:14",
+                        "src": "1143:5:14",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_storage_ptr",
                           "typeString": "bytes"
@@ -587,31 +614,31 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 6590,
+                  "id": 6796,
                   "initialValue": {
                     "arguments": [
                       {
                         "expression": {
-                          "id": 6587,
+                          "id": 6793,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
                           "referencedDeclaration": 4294967281,
-                          "src": "1156:3:14",
+                          "src": "1184:3:14",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 6588,
+                        "id": 6794,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
-                        "memberLocation": "1160:4:14",
+                        "memberLocation": "1188:4:14",
                         "memberName": "data",
                         "nodeType": "MemberAccess",
-                        "src": "1156:8:14",
+                        "src": "1184:8:14",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes_calldata_ptr",
                           "typeString": "bytes calldata"
@@ -626,32 +653,32 @@
                         }
                       ],
                       "expression": {
-                        "id": 6585,
+                        "id": 6791,
                         "name": "_impl",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6542,
-                        "src": "1137:5:14",
+                        "referencedDeclaration": 6746,
+                        "src": "1165:5:14",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         }
                       },
-                      "id": 6586,
+                      "id": 6792,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
                       "lValueRequested": false,
-                      "memberLocation": "1143:12:14",
+                      "memberLocation": "1171:12:14",
                       "memberName": "delegatecall",
                       "nodeType": "MemberAccess",
-                      "src": "1137:18:14",
+                      "src": "1165:18:14",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_baredelegatecall_nonpayable$_t_bytes_memory_ptr_$returns$_t_bool_$_t_bytes_memory_ptr_$",
                         "typeString": "function (bytes memory) returns (bool,bytes memory)"
                       }
                     },
-                    "id": 6589,
+                    "id": 6795,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -660,7 +687,7 @@
                     "nameLocations": [],
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1137:28:14",
+                    "src": "1165:28:14",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$_t_bool_$_t_bytes_memory_ptr_$",
@@ -668,55 +695,55 @@
                     }
                   },
                   "nodeType": "VariableDeclarationStatement",
-                  "src": "1104:61:14"
+                  "src": "1132:61:14"
                 },
                 {
                   "AST": {
                     "nodeType": "YulBlock",
-                    "src": "1178:143:14",
+                    "src": "1206:143:14",
                     "statements": [
                       {
                         "nodeType": "YulVariableDeclaration",
-                        "src": "1183:23:14",
+                        "src": "1211:23:14",
                         "value": {
                           "arguments": [
                             {
                               "name": "_data",
                               "nodeType": "YulIdentifier",
-                              "src": "1200:5:14"
+                              "src": "1228:5:14"
                             }
                           ],
                           "functionName": {
                             "name": "mload",
                             "nodeType": "YulIdentifier",
-                            "src": "1194:5:14"
+                            "src": "1222:5:14"
                           },
                           "nodeType": "YulFunctionCall",
-                          "src": "1194:12:14"
+                          "src": "1222:12:14"
                         },
                         "variables": [
                           {
                             "name": "len",
                             "nodeType": "YulTypedName",
-                            "src": "1187:3:14",
+                            "src": "1215:3:14",
                             "type": ""
                           }
                         ]
                       },
                       {
                         "nodeType": "YulVariableDeclaration",
-                        "src": "1210:28:14",
+                        "src": "1238:28:14",
                         "value": {
                           "arguments": [
                             {
                               "name": "_data",
                               "nodeType": "YulIdentifier",
-                              "src": "1226:5:14"
+                              "src": "1254:5:14"
                             },
                             {
                               "kind": "number",
                               "nodeType": "YulLiteral",
-                              "src": "1233:4:14",
+                              "src": "1261:4:14",
                               "type": "",
                               "value": "0x20"
                             }
@@ -724,16 +751,16 @@
                           "functionName": {
                             "name": "add",
                             "nodeType": "YulIdentifier",
-                            "src": "1222:3:14"
+                            "src": "1250:3:14"
                           },
                           "nodeType": "YulFunctionCall",
-                          "src": "1222:16:14"
+                          "src": "1250:16:14"
                         },
                         "variables": [
                           {
                             "name": "data",
                             "nodeType": "YulTypedName",
-                            "src": "1214:4:14",
+                            "src": "1242:4:14",
                             "type": ""
                           }
                         ]
@@ -743,7 +770,7 @@
                           {
                             "body": {
                               "nodeType": "YulBlock",
-                              "src": "1263:21:14",
+                              "src": "1291:21:14",
                               "statements": [
                                 {
                                   "expression": {
@@ -751,33 +778,33 @@
                                       {
                                         "name": "data",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1272:4:14"
+                                        "src": "1300:4:14"
                                       },
                                       {
                                         "name": "len",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1278:3:14"
+                                        "src": "1306:3:14"
                                       }
                                     ],
                                     "functionName": {
                                       "name": "revert",
                                       "nodeType": "YulIdentifier",
-                                      "src": "1265:6:14"
+                                      "src": "1293:6:14"
                                     },
                                     "nodeType": "YulFunctionCall",
-                                    "src": "1265:17:14"
+                                    "src": "1293:17:14"
                                   },
                                   "nodeType": "YulExpressionStatement",
-                                  "src": "1265:17:14"
+                                  "src": "1293:17:14"
                                 }
                               ]
                             },
                             "nodeType": "YulCase",
-                            "src": "1256:28:14",
+                            "src": "1284:28:14",
                             "value": {
                               "kind": "number",
                               "nodeType": "YulLiteral",
-                              "src": "1261:1:14",
+                              "src": "1289:1:14",
                               "type": "",
                               "value": "0"
                             }
@@ -785,7 +812,7 @@
                           {
                             "body": {
                               "nodeType": "YulBlock",
-                              "src": "1296:21:14",
+                              "src": "1324:21:14",
                               "statements": [
                                 {
                                   "expression": {
@@ -793,73 +820,73 @@
                                       {
                                         "name": "data",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1305:4:14"
+                                        "src": "1333:4:14"
                                       },
                                       {
                                         "name": "len",
                                         "nodeType": "YulIdentifier",
-                                        "src": "1311:3:14"
+                                        "src": "1339:3:14"
                                       }
                                     ],
                                     "functionName": {
                                       "name": "return",
                                       "nodeType": "YulIdentifier",
-                                      "src": "1298:6:14"
+                                      "src": "1326:6:14"
                                     },
                                     "nodeType": "YulFunctionCall",
-                                    "src": "1298:17:14"
+                                    "src": "1326:17:14"
                                   },
                                   "nodeType": "YulExpressionStatement",
-                                  "src": "1298:17:14"
+                                  "src": "1326:17:14"
                                 }
                               ]
                             },
                             "nodeType": "YulCase",
-                            "src": "1288:29:14",
+                            "src": "1316:29:14",
                             "value": "default"
                           }
                         ],
                         "expression": {
                           "name": "suc",
                           "nodeType": "YulIdentifier",
-                          "src": "1249:3:14"
+                          "src": "1277:3:14"
                         },
                         "nodeType": "YulSwitch",
-                        "src": "1242:75:14"
+                        "src": "1270:75:14"
                       }
                     ]
                   },
                   "evmVersion": "petersburg",
                   "externalReferences": [
                     {
-                      "declaration": 6584,
+                      "declaration": 6790,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1200:5:14",
+                      "src": "1228:5:14",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 6584,
+                      "declaration": 6790,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1226:5:14",
+                      "src": "1254:5:14",
                       "valueSize": 1
                     },
                     {
-                      "declaration": 6582,
+                      "declaration": 6788,
                       "isOffset": false,
                       "isSlot": false,
-                      "src": "1249:3:14",
+                      "src": "1277:3:14",
                       "valueSize": 1
                     }
                   ],
-                  "id": 6591,
+                  "id": 6797,
                   "nodeType": "InlineAssembly",
-                  "src": "1169:152:14"
+                  "src": "1197:152:14"
                 }
               ]
             },
-            "id": 6593,
+            "id": 6799,
             "implemented": true,
             "kind": "fallback",
             "modifiers": [],
@@ -867,30 +894,30 @@
             "nameLocation": "-1:-1:-1",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 6579,
+              "id": 6785,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1080:2:14"
+              "src": "1108:2:14"
             },
             "returnParameters": {
-              "id": 6580,
+              "id": 6786,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1100:0:14"
+              "src": "1128:0:14"
             },
-            "scope": 6594,
-            "src": "1072:252:14",
+            "scope": 6800,
+            "src": "1100:252:14",
             "stateMutability": "payable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6595,
-        "src": "821:505:14",
+        "scope": 6801,
+        "src": "849:505:14",
         "usedErrors": []
       }
     ],
-    "src": "32:1294:14"
+    "src": "32:1322:14"
   },
   "compiler": {
     "name": "solc",
@@ -898,7 +925,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.11",
-  "updatedAt": "2023-05-17T05:33:38.017Z",
+  "updatedAt": "2023-05-25T08:10:25.569Z",
   "devdoc": {
     "details": "All contracts that need to implement upgrades should inherit this `LedgerStore` contract,  and it should be the first parent class inherited",
     "kind": "dev",

@@ -34,16 +34,6 @@ export class AssetUnlockWatch implements WatchCat {
 		});
 	}
 
-	private async tryCall(addr: string, method: string, ...args: any[]) {
-		let c = await this.web3.contract(addr);
-		try {
-			return await c.methods[method](...args).call(); // get locked item
-		} catch(err) {
-			if (this.web3.isExecutionRevreted(err))
-				return false;
-			throw err;
-		}
-	}
 	private async call(addr: string, method: string, ...args: any[]) {
 		let c = await this.web3.contract(addr);
 		return await c.methods[method](...args).call(); // get locked item
@@ -126,7 +116,7 @@ export class AssetUnlockWatch implements WatchCat {
 
 		let unlock = await this.getAssetUnlockData(DAOsAddress);
 		if (unlock.length < 100) {
-			if (length == 0 || Date.now() - this._prevExec < 1e3*3600/**24*/) { // 1 days
+			if (unlock.length == 0 || Date.now() - this._prevExec < 1e3*3600/**24*/) { // 1 days
 				return true; // skip
 			}
 		}
@@ -156,6 +146,7 @@ export class AssetUnlockWatch implements WatchCat {
 			sign: async (message)=>cryptoTx.sign(message, key),
 		});
 		let receipt = await this.web3.sendSignedTransaction(tx.data);
+
 		somes.assert(receipt.status, '#AssetUnlockWatch.cat() sendSignedTransaction fail, receipt.status==0');
 
 		await db.transaction(async db=>{

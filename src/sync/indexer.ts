@@ -18,7 +18,7 @@ import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 import {Event} from 'somes/event';
 import somes from 'somes';
-import * as weth from '../../cfg/util/weth';
+import * as erc20 from '../../cfg/util/erc20';
 import {AssetUnlockWatch} from './asset_unlock';
 import {web3s, web3s_2} from '../web3+';
 
@@ -277,12 +277,13 @@ export class IndexerPool implements WatchCat {
 				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
 					address, type: ContractType.DAOs, blockNumber
 				}]);
-			}
-			for (let {address,blockNumber} of weth[network] || []) {
-				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
-					address, type: ContractType.ERC20, blockNumber
-				}]);
-				watch.impl.addWatch(this.asset_unlock); // add to watch
+
+				for (let address of erc20[network] || []) {
+					await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
+						address, type: ContractType.ERC20, blockNumber
+					}]);
+					watch.impl.addWatch(this.asset_unlock); // add to watch
+				}
 			}
 		}
 

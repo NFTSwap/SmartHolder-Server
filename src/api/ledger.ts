@@ -41,4 +41,8 @@ export default class extends ApiController {
 		return ledger.getLedgerSummarys({chain,host,type,time,state});
 	}
 
+	getLedgerBalance(opts: { chain: ChainType, host: string}) {
+		return ledger.getLedgerBalance.query(opts);
+	}
+
 }

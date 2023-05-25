@@ -194,6 +194,16 @@ export class MvpWeb3 extends BcWeb3 {
 		}), 3e4); // 10s
 	}
 
+	async tryCall(c: Contract, method: string, ...args: any[]) {
+		try {
+			return await c.methods[method](...args).call(); // get locked item
+		} catch(err) {
+			if (this.isExecutionRevreted(err))
+				return null;
+			throw err;
+		}
+	}
+
 	async cat() {
 		super.cat();
 		if (this.provider.size < 2)

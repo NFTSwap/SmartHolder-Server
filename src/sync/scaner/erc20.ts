@@ -15,7 +15,7 @@ export class ERC20 extends ContractScaner {
 	// event Deposit(address indexed dst, uint256 amount);
 	// event Withdraw(address indexed src, uint256 amount);
 	events = {
-		Approval: { // WETH.Approval
+		Approval: { // ERC20.Approval
 			handle: async ({event}: HandleEventData)=>{
 				console.log('#ERC20.Approval event', event.returnValues);
 			}

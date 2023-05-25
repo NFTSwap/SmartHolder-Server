@@ -3,13 +3,13 @@
  * @date 2022-07-20
  */
 
-import {HandleEventData} from '.';
-import {ModuleScaner} from './asset';
+import {HandleEventData,ModuleScaner} from '.';
 import * as constants from '../constants';
 import {DAO as IDAO,ContractType} from '../../db';
 import sync from '../index';
 import {Indexer} from '../indexer';
 import * as crypto from 'crypto-tx';
+import somes from 'somes';
 
 export class DAO extends ModuleScaner {
 
@@ -36,6 +36,8 @@ export class DAO extends ModuleScaner {
 				let {address,chain} = this;
 				let dao = (await db.selectOne<IDAO>(`dao_${chain}`, { address }))!;
 				let indexer = sync.getIndexerFromHash(chain, this.address);
+
+				somes.assert(dao, `#DAO.SetModule.handle is dao empty`);
 
 				switch (id) {
 					case constants.Module_MEMBER_ID:

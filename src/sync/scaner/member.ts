@@ -3,8 +3,7 @@
  * @date 2022-07-20
  */
 
-import {formatHex,HandleEventData} from '.';
-import {ModuleScaner} from './asset';
+import {formatHex,HandleEventData,ModuleScaner} from '.';
 import {storage,MemberInfo,Member as MemberDef} from '../../db';
 import * as constants from './../constants';
 

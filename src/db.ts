@@ -207,12 +207,14 @@ async function load_main_db() {
 				blockNumber  int                          not null
 			);
 
-			create table if not exists ledger_balance_${chain} ( -- 财务记录 balance total
+			create table if not exists ledger_balance_${chain} ( -- 财务记录余额汇总 balance total 
 				id           int primary key auto_increment,
-				ledger_id    int                          not null,
 				host         varchar (42)                 not null, -- dao host
 				erc20        varchar (42)                 not null, -- erc20 token address
-				balance      varchar (78)                 not null, -- 余额
+				value        varchar (78)   default ('0') not null, -- 余额
+				income       varchar (78)   default ('0') not null, -- 正向收益
+				expenditure  varchar (78)   default ('0') not null, -- 反向支出
+				items        int            default (0)   not null, -- 流通次数
 				symbol       varchar (32)                 not null, -- erc20 symbol
 				name         varchar (32)                 not null, -- erc20 name
 				time         bigint                       not null  -- 更新时间
@@ -330,35 +332,8 @@ async function load_main_db() {
 
 		`, [
 			// dao
-			`alter table dao_${chain}  add assetIssuanceTax      int          default (0)  not null`,
-			`alter table dao_${chain}  add assetCirculationTax   int          default (0)  not null`,
-			`alter table dao_${chain}  add defaultVoteTime       bigint       default (0)  not null`,
-			`alter table dao_${chain}  add memberBaseName        varchar (32) default ('') not null`,
-			`alter table dao_${chain}  add first                 varchar (42) default ('')  not null`,
-			`alter table dao_${chain}  add second                varchar (42) default ('')  not null`,
-			`alter table dao_${chain}  add share                 varchar (42) default ('')  not null`,
-			`alter table dao_${chain}  add executor              varchar (66) default ('')  not null`,
-			`alter table dao_${chain}  add likes                 int          default (0)   not null`,
-			`alter table dao_${chain}  add members               int          default (0)   not null`,
-			`alter table dao_${chain}  add createdBy             varchar (42) default ('')  not null`,
-			`alter table dao_${chain}  add image                 varchar (512) default ('') not null`,
-			`alter table dao_${chain}  add state                 int          default (0)   not null`,
 			`alter table dao_${chain}  add extend                blob                       not null`,
 			// asset
-			`alter table asset_${chain} add name                 varchar (256)  default ('') not null`, //  -- 名称
-			`alter table asset_${chain} add imageOrigin          varchar (512)  default ('') not null`, //  -- origin image uri
-			`alter table asset_${chain} add mediaOrigin          varchar (512)  default ('') not null`, //  -- origin media uri
-			`alter table asset_${chain} add description          varchar (2048) default ('') not null`, //  -- 详细信息
-			`alter table asset_${chain} add externalLink         varchar (512)  default ('') not null`, //  -- 外部链接
-			`alter table asset_${chain} add properties           json                            null`, //  -- 附加信息
-			`alter table asset_${chain} add blockNumber          int            default (0)  not null`, //  -- 创建区块号
-			`alter table asset_${chain} add backgroundColor      varchar (32)   default ('') not null`, //  -- 背景
-			`alter table asset_${chain} add categorie            int            default (0)  not null`, //  -- 类别
-			`alter table asset_${chain} add retry                int            default (0)  not null`, //  -- 抓取数据重试次数, sync uri data retry count
-			`alter table asset_${chain} add retryTime            bigint         default (0)  not null`, //  -- 抓取数据最后重试时间
-			`alter table asset_${chain} add minimumPrice         varchar (78)   default ('') not null`, //  -- 最小销售价格
-			`alter table asset_${chain} add sellingTime          bigint         default (0)  not null`, //  -- 最后上架销售时间
-			`alter table asset_${chain} add soldTime             bigint         default (0)  not null`, //  -- 最后售出时间
 			`alter table asset_${chain} add totalSupply          varchar (78)   default ('') not null`, //  -- asset total supply
 			`alter table asset_${chain} add assetType            int            default (0)  not null`, //  -- asset total supply
 			// ledger
@@ -368,6 +343,7 @@ async function load_main_db() {
 			`alter table ledger_${chain} add erc20               varchar (42)   default ('') not null`,
 			// ledger_asset_income
 			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
+			`alter table ledger_asset_income_${chain} add toAddress   varchar (64) default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add count  varchar (78)   default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add amount varchar (78)   default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add erc20  varchar (42)   default ('')  not null`,
@@ -429,7 +405,6 @@ async function load_main_db() {
 			`create         index ledger_${chain}_idx4           on ledger_${chain}                 (host,txHash,type,member_id)`,
 			`create         index ledger_${chain}_idx5           on ledger_${chain}                 (host,ref)`,
 			// ledger_asset_income
-			`create unique  index ledger_asset_income_${chain}_idx0   on ledger_asset_income_${chain}  (ledger_id)`,
 			`create         index ledger_asset_income_${chain}_idx1   on ledger_asset_income_${chain}  (token)`,
 			`create         index ledger_asset_income_${chain}_idx2   on ledger_asset_income_${chain}  (token,tokenId)`,
 			`create         index ledger_asset_income_${chain}_idx3   on ledger_asset_income_${chain}  (source)`,
@@ -437,6 +412,8 @@ async function load_main_db() {
 			`create         index ledger_asset_income_${chain}_idx5   on ledger_asset_income_${chain}  (token,toAddress)`,
 			`create         index ledger_asset_income_${chain}_idx6   on ledger_asset_income_${chain}  (asset_id)`,
 			`create         index ledger_asset_income_${chain}_idx7   on ledger_asset_income_${chain}  (host)`,
+			// ledger_balance
+			`create         index ledger_balance_${chain}_idx0       on ledger_balance_${chain}       (host,erc20)`,
 			// ledger_release_log
 			`create unique  index ledger_release_log_${chain}_idx0  on ledger_release_log_${chain}  (address,txHash)`,
 			// vote_proposl

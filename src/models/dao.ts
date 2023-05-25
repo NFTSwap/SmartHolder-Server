@@ -8,7 +8,7 @@ import db, { DAO, ChainType, Member, UserLikeDAO,LedgerType} from '../db';
 import errno from '../errno';
 import {escape} from 'somes/db';
 import {getLimit,newQuery,newCache} from './utils';
-import { DAOExtend, DAOSummarys } from './define_ext';
+import { DAOExtend } from './define_ext';
 import {getVoteProposalFrom} from './vote_pool';
 import * as asset from './asset';
 import * as order from './order';
@@ -152,18 +152,19 @@ export const getDAOSummarys = newCache(async ({chain,host}: {chain: ChainType, h
 	let {totalItems,amount} = await order.getOrderSummarys({chain, host});
 	let ledgerSummarys = await getLedgerSummarys({chain, host,type:LedgerType.AssetIncome});
 
-	let summarys: DAOSummarys =  {
-		membersTotal: dao.members,
-		voteProposalTotal,
-		voteProposalPendingTotal,
-		voteProposalExecutedTotal,
-		voteProposalResolveTotal,
-		voteProposalRejectTotal,
-		assetTotal,
-		assetMinimumPriceTotal,
-		assetOrderTotal: totalItems,
-		assetOrderAmountTotal: amount,
-		assetLedgerIncomeTotal: ledgerSummarys.income,
+	let summarys = {
+		membersTotal: dao.members, // members total
+		voteProposalTotal, // all proposals total
+		voteProposalPendingTotal,// ongoing proposals
+		voteProposalExecutedTotal,// resolutions complete executed
+		voteProposalResolveTotal,// resolve total
+		voteProposalRejectTotal,// reject total
+		assetTotal,// asset total
+		assetMinimumPriceTotal,// asset total amount value
+		assetOrderTotal: totalItems,// Asset order total
+		assetOrderAmountTotal: amount,// Asset order total amount value
+		assetLedgerIncomeTotal: ledgerSummarys[0].income,// Asset Ledger total Income value @Deprecated
+		ledgerSummarys, // ledger summarys
 	};
 
 	(summarys as any).assetAmountTotal = assetMinimumPriceTotal; // @Deprecated

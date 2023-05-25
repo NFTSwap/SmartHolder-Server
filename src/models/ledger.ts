@@ -3,16 +3,16 @@
  * @date 2022-07-21
  */
 
-import db, {ChainType, State,Ledger, LedgerType, LedgerAssetIncome,SaleType} from '../db';
+import db, {ChainType,State,Ledger,LedgerType,LedgerAssetIncome,SaleType,LedgerBalance} from '../db';
 import {escape} from 'somes/db';
 import {getLimit,newCache,newQuery,joinTable} from './utils';
 import {getAssetFrom} from './asset';
 
 export const getLedgerFrom = newQuery(async ({
-	chain, host,type,time,state=State.Enable,ids,target,target_not,ref
+	chain,host,type,time,state=State.Enable,ids,target,target_not,ref
 }: {
 	chain: ChainType,
-	host?: string,
+	host: string,
 	type?: LedgerType,
 	time?: [number,number],
 	ids?: number[],
@@ -47,7 +47,7 @@ export const getLedgerFrom = newQuery(async ({
 
 	if (!noJoin && ls.length) {
 		joinTable(ls, 'assetIncome', 'id', 'id',
-			await getLedgerAssetIncomeFrom.query({chain,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
+			await getLedgerAssetIncomeFrom.query({chain,host,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
 		);
 	}
 	return ls;
@@ -56,7 +56,7 @@ export const getLedgerFrom = newQuery(async ({
 export const getLedgerAssetIncomeFrom = newQuery(async ({
 	chain,host,fromAddress,fromAddress_not,toAddress,toAddress_not,type,time,ids
 }: {
-	chain: ChainType, host?: string,
+	chain: ChainType, host: string,
 	fromAddress?: string, toAddress?: string,
 	fromAddress_not?: string, toAddress_not?: string,
 	type?: SaleType,time?: [number,number],
@@ -92,7 +92,7 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 	if (ls.length) {
 		if (!noJoin)
 			joinTable(ls, 'ledger', 'id', 'id',
-				await getLedgerFrom.query({chain,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
+				await getLedgerFrom.query({chain,host,ids:ls.map(e=>e.id)},{noJoin:true},3e4)
 			);
 		joinTable(ls, 'asset', 'asset_id', 'id',
 			await getAssetFrom.query({chain,ids:ls.map(e=>e.asset_id)},{noDAO:true,noBeautiful:true},3e4)
@@ -102,28 +102,47 @@ export const getLedgerAssetIncomeFrom = newQuery(async ({
 });
 
 export const getLedgerSummarys = newCache(getLedgerFrom.query, {
-	after: (e)=>{
-		let income = BigInt(0);
-		let expenditure = BigInt(0);
-		for (let it of e) {
-			switch(it.type) {
+	after: async (e, [opts])=>{
+		let balance = await getLedgerBalance.query(opts);
+		let summarys: Dict<{
+			items: number,
+			income: bigint,
+			expenditure: bigint,
+			amount: bigint;
+			balance: LedgerBalance,
+		}> = {};
+		let zero = BigInt(0)
+
+		for (let l of e) {
+			let b = summarys[l.erc20] || (summarys[l.erc20] = {
+				items: 0, income: zero,
+				expenditure: zero, amount: zero,
+				balance: balance.find(e=>e.erc20==l.erc20)!
+			});
+			b.items++;
+
+			switch(l.type) {
 				case LedgerType.Receive: // income
 				case LedgerType.Deposit:// income
 				case LedgerType.AssetIncome:// income
-					income += BigInt(it.balance); break;
+					b.income += BigInt(l.amount); break;
 				case LedgerType.Withdraw: // expenditure
 				case LedgerType.Release: // expenditure
-					expenditure += BigInt(it.balance); break;
+					b.expenditure += BigInt(l.amount); break;
 				default: break; // Reserved
 			}
 		}
-		return {
-			total: e.length,
-			totalItems: e.length,
-			income: income.toString(),
-			expenditure: expenditure.toString(),
-			amount: (income + expenditure).toString(),
-		};
+
+		return Object.values(summarys).map(e=>{
+			return {
+				items: e.items,
+				value: e.income - e.expenditure + '',
+				income: e.income + '',
+				expenditure: e.expenditure + '',
+				amount: e.income + e.expenditure + '',
+				balance: e.balance,
+			};
+		});
 	},
 	name: 'getLedgerSummarys',
 });
@@ -131,3 +150,9 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 export const setLedgerState = async (chain: ChainType, id: number, state: State)=>{
 	await db.update(`ledger_${chain}`, {state}, {id});
 };
+
+export const getLedgerBalance = newQuery(({ chain,host }: {
+	chain: ChainType, host?: string,
+}, { limit,out })=>{
+	return db.select<LedgerBalance>(`ledger_nalance_${chain}`, {host}, {limit,out});
+});
