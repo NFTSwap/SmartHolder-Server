@@ -331,7 +331,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 		let logs = await Promise.all(block.logs[0].logs.filter(e=>{
 			// check getTransactionLogsFrom query
 			somes.assert(e.blockNumber == blockNumber, '#AssetERC1155.onReceiveERC20 log blockNumber no match');
-			somes.assert(e.address == this.address, '#AssetERC1155.onReceiveERC20 log address no match');
+			somes.assert(e.address.toLowerCase() == this.address.toLowerCase(), '#AssetERC1155.onReceiveERC20 log address no match');
 			return e.transactionHash==e.transactionHash && e.topic[0]==signature // match TransferSingle log and tx hash
 		})
 		.map(async e=>{
@@ -348,6 +348,8 @@ export class AssetERC1155 extends AssetModuleScaner {
 				minimumPrice,
 			};
 		}));
+
+		logs = logs.filter(e=>e.to != addressZero);
 
 		if (logs.length == 0) return; // no logs
 
