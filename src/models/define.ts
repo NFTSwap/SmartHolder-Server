@@ -150,7 +150,8 @@ export interface AssetUnlock {
 	source: string;//       char    (42)                      not null,
 	blockNumber: number;//  int                               not null,
 	state: State;//         int            default (0)        not null,
-	time: number;//         bigint         default (0)        not null
+	time: number;//         bigint         default (0)        not null,
+	message: string;//      varchar (64)   default ('')       not null
 }
 
 export enum LedgerType {
