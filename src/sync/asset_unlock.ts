@@ -78,7 +78,7 @@ export class AssetUnlockWatch implements WatchCat {
 
 			let item = await this.call(token, 'lockedOf', tokenId,toAddress,fromAddress); // get locked item
 			if (item.blockNumber != blockNumber) {
-				await disable(id, 'lockedOf => item.blockNumber != blockNumber'); continue;
+				await disable(id, 'lockedOf => no locked or blockNumber no match'); continue;
 			}
 			if (from != await this.call(host, 'unlockOperator')) {
 				await disable(id, 'unlockOperator no match'); continue;
