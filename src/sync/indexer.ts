@@ -161,7 +161,8 @@ export class Indexer implements WatchCat {
 		};
 
 		let network = ChainType[this.chain].toLowerCase() as 'goerli';
-		let preCheck = !!this._dsList.find(e=>erc20_cfg[network].includes(e.address));
+		let erc20 = erc20_cfg[network].map(e=>e.toLowerCase());
+		let preCheck = !!this._dsList.find(e=>erc20.includes(e.address.toLowerCase()));
 		let DAOs = deployInfo[network].DAOsProxy;
 
 		while (blockNumber < curBlockNumber) {
