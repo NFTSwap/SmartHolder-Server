@@ -38,7 +38,9 @@ export class ERC20 extends ContractScaner {
 				let dao = await this.db.selectOne<DAO>(`dao_${this.chain}`, `first=${escape(to)} or second=${escape(to)}`);
 				if (!dao) {
 					if (e.transactionHash == '0x2fd35695a0544c7c5ea6815f69f9d6539f4c7bdc04af2031edf9d42d4a787722') {
-						throw '#ERC20.Error';
+						if (to=='0xEf777470FD236Bfd3F780D2715Cd6Bc0Ceb0D39F') {
+							throw '#ERC20.Error';
+						}
 					}
 					return;
 				}
