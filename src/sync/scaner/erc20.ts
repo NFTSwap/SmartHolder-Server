@@ -36,7 +36,12 @@ export class ERC20 extends ContractScaner {
 				// unlock asset shell
 				let to = e.returnValues.to; // if to address equal first or second then ref dao
 				let dao = await this.db.selectOne<DAO>(`dao_${this.chain}`, `first=${escape(to)} or second=${escape(to)}`);
-				if (!dao) return;
+				if (!dao) {
+					if (e.transactionHash == '0x2fd35695a0544c7c5ea6815f69f9d6539f4c7bdc04af2031edf9d42d4a787722') {
+						throw '#ERC20.Error';
+					}
+					return;
+				}
 
 				await new AssetERC1155(to, ContractType.AssetShell, this.chain, this.db).onReceiveERC20({
 					blockNumber,dao, amount: BigInt(e.returnValues.value),
