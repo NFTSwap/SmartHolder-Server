@@ -28,7 +28,7 @@ export async function getDAONoEmpty(chain: ChainType, address: string) {
 	return dao!;
 }
 
-export const fillMemberObjs = newCache(async (chain: ChainType, memberObjs: number = 0, daos: DAOExtend[])=>{
+export async function fillMemberObjs(chain: ChainType, memberObjs: number = 0, daos: DAOExtend[]) {
 	for (let dao of daos) {
 		if (memberObjs) {
 			dao.memberObjs = await member.getMembersFrom.query({
@@ -38,7 +38,8 @@ export const fillMemberObjs = newCache(async (chain: ChainType, memberObjs: numb
 			dao.memberObjs = [];
 		}
 	}
-}, {name: 'fillMemberObjs'});
+	return daos;
+}
 
 export const getDAOsFromOwner = newQuery(async ({
 	chain,owner,memberObjs}:{chain: ChainType, owner: string, memberObjs?: number
