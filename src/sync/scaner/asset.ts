@@ -328,11 +328,12 @@ export class AssetERC1155 extends AssetModuleScaner {
 		let TransferSingle = abiI.abi.find(e=>e.name=='TransferSingle')!;
 		let signature = this.web3.eth.abi.encodeEventSignature(TransferSingle);
 
-		let logs = await Promise.all(block.logs[0].logs.filter(e=>{
+		let logs = await Promise.all(block.logs[0].logs.filter(E=>{
 			// check getTransactionLogsFrom query
-			somes.assert(e.blockNumber == blockNumber, '#AssetERC1155.onReceiveERC20 log blockNumber no match');
-			somes.assert(e.address.toLowerCase() == this.address.toLowerCase(), '#AssetERC1155.onReceiveERC20 log address no match');
-			return e.transactionHash==e.transactionHash && e.topic[0]==signature // match TransferSingle log and tx hash
+			somes.assert(E.blockNumber == blockNumber, '#AssetERC1155.onReceiveERC20 log blockNumber no match');
+			somes.assert(E.address.toLowerCase() == this.address.toLowerCase(), '#AssetERC1155.onReceiveERC20 log address no match');
+			if (E.topic[3] != '0x0000000000000000000000000000000000000000000000000000000000000000')
+				return E.transactionHash==e.txHash && E.topic[0]==signature // match TransferSingle log and tx hash
 		})
 		.map(async e=>{
 			let {from,to,id,value} = this.web3.eth.abi.decodeLog(TransferSingle.inputs!, e.data, e.topic.slice(1));

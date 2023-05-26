@@ -18,7 +18,7 @@ import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
 import {Event} from 'somes/event';
 import somes from 'somes';
-import * as erc20 from '../../cfg/util/erc20';
+import * as erc20_cfg from '../../cfg/util/erc20';
 import {AssetUnlockWatch} from './asset_unlock';
 import {web3s, web3s_2} from '../web3+';
 
@@ -160,8 +160,20 @@ export class Indexer implements WatchCat {
 			this.data.watchHeight = blockNumber;
 		};
 
+		let network = ChainType[this.chain].toLowerCase() as 'goerli';
+		let preCheck = !!this._dsList.find(e=>erc20_cfg[network].includes(e.address));
+		let DAOs = deployInfo[network].DAOsProxy;
+
 		while (blockNumber < curBlockNumber) {
 			let end = Math.min(blockNumber + 100, curBlockNumber);
+
+			if (preCheck) { // check daos indexer block number
+				let watchHeight = await Indexer.getWatchHeightFromHash(this.chain, DAOs.address);
+				if (watchHeight < end) {
+					break; // wait watchHeight >= end
+				}
+			}
+
 			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber+1, end, this._dsList);
 
 			for (let block of logsAll.blocks) {
@@ -278,7 +290,7 @@ export class IndexerPool implements WatchCat {
 					address, type: ContractType.DAOs, blockNumber
 				}]);
 
-				for (let address of erc20[network] || []) {
+				for (let address of erc20_cfg[network] || []) {
 					await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
 						address, type: ContractType.ERC20, blockNumber
 					}]);
