@@ -156,7 +156,8 @@ async function load_main_db() {
 				blockNumber  int                               not null,
 				state        int            default (0)        not null,
 				time         bigint         default (0)        not null,
-				txHash       char (66)                         not null
+				txHash       char (66)                         not null,
+				message      varchar (64)   default ('')       not null
 			);
 
 			create table if not exists ledger_${chain} ( -- 财务记录
@@ -174,7 +175,8 @@ async function load_main_db() {
 				time         bigint                       not null, -- 时间
 				blockNumber  int                          not null, -- 区块
 				state        int             default (0)  not null,
-				erc20        varchar (42)                 not null  -- erc20 token address
+				erc20        varchar (42)                 not null,  -- erc20 token address
+				symbol       varchar (32)                 not null -- erc20 symbol
 			);
 
 			create table if not exists ledger_asset_income_${chain} ( -- 财务记录->资产销售收, ledger extend table
@@ -192,7 +194,8 @@ async function load_main_db() {
 				saleType     int             default (0)  not null,
 				blockNumber  int                          not null, -- 区块
 				erc20        varchar (42)                 not null, -- erc20 token address
-				time         bigint                       not null  -- 时间
+				time         bigint                       not null, -- 时间
+				symbol       varchar (32)                 not null -- erc20 symbol
 			);
 
 			create table if not exists ledger_release_log_${chain} ( -- 成员分成日志
@@ -204,7 +207,8 @@ async function load_main_db() {
 				amount       varchar (78)                 not null, -- 金额
 				time         bigint                       not null,
 				erc20        varchar (42)                 not null,
-				blockNumber  int                          not null
+				blockNumber  int                          not null,
+				symbol       varchar (32)                 not null -- erc20 symbol
 			);
 
 			create table if not exists ledger_balance_${chain} ( -- 财务记录余额汇总 balance total 
@@ -341,20 +345,25 @@ async function load_main_db() {
 			`alter table ledger_${chain} add ref                 varchar (42)   default ('') not null`,
 			`alter table ledger_${chain} add amount              varchar (78)   default ('') not null`,
 			`alter table ledger_${chain} add erc20               varchar (42)   default ('') not null`,
+			`alter table ledger_${chain} add symbol              varchar (32)   default ('') not null`,
 			// ledger_asset_income
 			`alter table ledger_asset_income_${chain} add fromAddress varchar (64) default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add toAddress   varchar (64) default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add count  varchar (78)   default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add amount varchar (78)   default ('')  not null`,
 			`alter table ledger_asset_income_${chain} add erc20  varchar (42)   default ('')  not null`,
+			`alter table ledger_asset_income_${chain} add symbol varchar (32)   default ('')  not null`,
 			// ledger_release_log
 			`alter table ledger_release_log_${chain} add amount  varchar (78)   default ('') not null`,
 			`alter table ledger_release_log_${chain} add erc20   varchar (42)   default ('') not null`,
+			`alter table ledger_release_log_${chain} add symbol  varchar (32)   default ('') not null`,
 			// contract_info
 			`alter table contract_info_${chain} add indexer_id   int            default (0)  not null`,
 			// asset_order
 			`alter table asset_order_${chain} add count          varchar (78)   default ('') not null`,
 			`alter table asset_order_${chain} add logIndex       int                         not null`,
+			// asset unlock
+			`alter table asset_unlock_${chain} add message       varchar (64)   default ('') not null`,
 		], [
 			// dao
 			`create  unique index dao_${chain}_idx0              on dao_${chain}                    (address)`,

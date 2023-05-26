@@ -179,6 +179,7 @@ export interface Ledger {
 	state: State;
 	assetIncome?: LedgerAssetIncome;
 	erc20: string;
+	symbol: string;
 }
 
 export interface LedgerAssetIncome {
@@ -199,6 +200,7 @@ export interface LedgerAssetIncome {
 	erc20: string;
 	ledger?: Ledger;
 	asset?: Asset;
+	symbol: string;
 }
 
 export interface LedgerReleaseLog {
@@ -210,6 +212,7 @@ export interface LedgerReleaseLog {
 	amount: string;//       varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null,
 	blockNumber: number;//  int                          not null
+	symbol: string;
 }
 
 export interface LedgerBalance {

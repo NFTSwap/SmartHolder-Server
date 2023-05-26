@@ -31,6 +31,8 @@ export class Ledger extends ModuleScaner {
 				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) )
 					return;
 
+				let balance = await this.addLedgerBalanceAmount(addressZero, amount);
+
 				// id           int primary key auto_increment,
 				// host         varchar (42)                 not null, -- dao host
 				// address      varchar (42)                 not null, -- 合约地址
@@ -58,9 +60,8 @@ export class Ledger extends ModuleScaner {
 					time: time,
 					blockNumber: blockNumber,
 					erc20: addressZero,
+					symbol: balance.symbol,
 				});
-
-				await this.addLedgerBalanceAmount(addressZero, amount);
 			},
 		},
 
@@ -90,6 +91,7 @@ export class Ledger extends ModuleScaner {
 					time,
 					blockNumber: Number(e.blockNumber) || 0,
 					erc20,
+					symbol: log? log.symbol: '',
 				});
 			},
 		},
@@ -102,6 +104,8 @@ export class Ledger extends ModuleScaner {
 
 				if ( await db.selectCount(`ledger_release_log_${this.chain}`, { address: this.address, txHash }) )
 					return;
+				
+				let balance = await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
 
 				// id           int primary key auto_increment,
 				// address      varchar (64)                 not null, -- 合约地址
@@ -112,6 +116,8 @@ export class Ledger extends ModuleScaner {
 				// erc20        varchar (42)                 not null,
 				// blockNumber  int                          not null
 
+				let symbol = balance.symbol;
+
 				await db.insert(`ledger_release_log_${this.chain}`, {
 					address: this.address,
 					operator,
@@ -121,11 +127,10 @@ export class Ledger extends ModuleScaner {
 					blockNumber: Number(e.blockNumber) || 0,
 					txHash,
 					erc20,
+					symbol,
 				});
 
-				await db.update(`ledger_${this.chain}`, { description: log }, { address: this.address, txHash, });
-
-				await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
+				await db.update(`ledger_${this.chain}`, { description: log, symbol }, { address: this.address, txHash, });
 			},
 		},
 
@@ -138,6 +143,8 @@ export class Ledger extends ModuleScaner {
 
 				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) 
 					return;
+
+				let balance = await this.addLedgerBalanceAmount(addressZero, BigInt(amount));
 
 				await db.insert(`ledger_${this.chain}`, {
 					host: await this.host(),
@@ -152,9 +159,8 @@ export class Ledger extends ModuleScaner {
 					time,
 					blockNumber: blockNumber,
 					erc20: addressZero,
+					symbol: balance.symbol,
 				});
-
-				await this.addLedgerBalanceAmount(addressZero, BigInt(amount));
 			},
 		},
 
@@ -168,6 +174,8 @@ export class Ledger extends ModuleScaner {
 				if ( await db.selectCount(`ledger_${this.chain}`, { address: this.address, txHash, type, member_id: ''}) ) 
 					return;
 
+				let balance = await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
+
 				await db.insert(`ledger_${this.chain}`, {
 					host: await this.host(),
 					address: this.address,
@@ -180,9 +188,9 @@ export class Ledger extends ModuleScaner {
 					time: time,
 					blockNumber: blockNumber,
 					erc20: erc20,
+					symbol: balance.symbol,
 				});
 
-				await this.addLedgerBalanceAmount(erc20, -BigInt(amount));
 			},
 		},
 
@@ -208,6 +216,8 @@ export class Ledger extends ModuleScaner {
 		let host = await this.host();
 		let time = Date.now();
 
+		let balance = await this.addLedgerBalanceAmount(erc20, BigInt(amount));
+
 		let id = await db.insert(`ledger_${this.chain}`, {
 			host,
 			address: this.address,
@@ -221,6 +231,7 @@ export class Ledger extends ModuleScaner {
 			time,
 			blockNumber,
 			erc20,
+			symbol: balance.symbol,
 		});
 
 		let tokenId = formatHex(e.tokenId);
@@ -243,9 +254,8 @@ export class Ledger extends ModuleScaner {
 			blockNumber,
 			time,
 			erc20,
+			symbol: balance.symbol,
 		});
-
-		await this.addLedgerBalanceAmount(erc20, BigInt(amount));
 	}
 
 	async addLedgerBalanceAmount(erc20: string, amount: bigint) {
@@ -283,6 +293,8 @@ export class Ledger extends ModuleScaner {
 			row.income = BigInt(summary.income) + BigInt(amount) + '';
 		}
 		await this.db.update(`ledger_balance_${this.chain}`, row, {id: summary.id});
+
+		return { ...summary, ...row } as LedgerBalance;
 	}
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {

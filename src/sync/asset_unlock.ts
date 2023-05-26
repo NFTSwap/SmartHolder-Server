@@ -9,6 +9,7 @@ import {WatchCat} from 'bclib/watch';
 import {web3s, MvpWeb3} from '../web3+';
 import somes from 'somes';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
+import * as erc20_cfg from '../../cfg/util/erc20';
 import buffer, {IBuffer} from 'somes/buffer';
 import * as cryptoTx from 'crypto-tx';
 import * as aes from 'crypto-tx/aes';
@@ -40,8 +41,8 @@ export class AssetUnlockWatch implements WatchCat {
 	}
 
 	private async getAssetUnlockData(DAOsAddress: string) {
-		let disable = async (id: number)=>{
-			let affectedRows = await db.update(`asset_unlock_${this.chain}`, {state: State.Disable}, {id});
+		let disable = async (id: number, message = '', state = State.Disable)=>{
+			let affectedRows = await db.update(`asset_unlock_${this.chain}`, {state,message}, {id});
 			somes.assert(affectedRows == 1, '#AssetUnlockWatch.cat disable fail');
 			console.log('#AssetUnlockWatch.getAssetUnlockData.disable()', DAOsAddress, id);
 		};
@@ -77,24 +78,36 @@ export class AssetUnlockWatch implements WatchCat {
 
 			let item = await this.call(token, 'lockedOf', tokenId,toAddress,fromAddress); // get locked item
 			if (item.blockNumber != blockNumber) {
-				await disable(id); continue;
+				await disable(id, 'lockedOf => item.blockNumber != blockNumber'); continue;
 			}
 			if (from != await this.call(host, 'unlockOperator')) {
-				await disable(id); continue;
+				await disable(id, 'unlockOperator no match'); continue;
 			}
 
 			let eth = amount;
+
 			if (addressZero != erc20) { // no eth
-				// TODO ... querying exchange rates from unswap
+				// querying exchange rates from unswap
+				if (this.chain == ChainType.GOERLI) {
+					if (erc20.toLowerCase() != erc20_cfg.goerli_weth.toLowerCase()) { // no WETH
+						// TODO ... querying exchange rates
+					}
+				} else if (this.chain == ChainType.ETHEREUM) {
+					// TODO ...
+				} else if (this.chain == ChainType.MATIC) {
+					if (erc20.toLowerCase() == erc20_cfg.matic_weth.toLowerCase()) { // no MaticWETH
+						// TODO ... querying exchange rates, matic => ETH
+					}
+				}
 			}
 
 			let c = await this.web3.contract(token);
 			let seller_fee_basis_points = await c.methods.seller_fee_basis_points().call();
-			let price_eth = BigInt(eth) * BigInt(10_000) / BigInt(seller_fee_basis_points); // transfer price
+			let price = BigInt(eth) * BigInt(10_000) / BigInt(seller_fee_basis_points); // transfer price
 			let min_price = BigInt(await c.methods.minimumPrice(tokenId).call()) * BigInt(item.count);
-			if (price_eth < min_price) {
+			if (price < min_price) {
 				// revert PayableInsufficientAmount();
-				await disable(id); continue;
+				await disable(id, `price < min_price`); continue;
 			}
 
 			length++;
@@ -132,7 +145,7 @@ export class AssetUnlockWatch implements WatchCat {
 			return {
 				...e,
 				r: '0x'+signature.slice(0,32).toString('hex'),
-				s: '0x'+signature.slice(32,64),
+				s: '0x'+signature.slice(32,64).toString('hex'),
 				v: recovery +27,
 			};
 		});
