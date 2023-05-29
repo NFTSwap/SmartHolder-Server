@@ -21,6 +21,7 @@ import {DatabaseCRUD} from 'somes/db';
 import db from '../../db';
 import { EventNoticer } from 'somes/event';
 import * as constants from './../constants';
+import * as env from '../../env';
 
 export function formatHex(num: string | number | bigint, btyes: number = 32) {
 	let s = '';
@@ -184,7 +185,8 @@ export abstract class ContractScaner {
 				}
 			}
 		}
-		console.warn('#ContractScaner.solveReceiptLog Non handle ignore Log', log);
+		if (env.env == 'dev')
+			console.warn('#ContractScaner.solveReceiptLog Non handle ignore Log', log);
 	}
 
 	private async solveReceiptLogFrom(

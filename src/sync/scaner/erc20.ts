@@ -18,17 +18,17 @@ export class ERC20 extends ContractScaner {
 	events = {
 		Approval: { // ERC20.Approval
 			handle: async ({event}: HandleEventData)=>{
-				console.log('#ERC20.Approval event', event.returnValues);
+				// console.log('#ERC20.Approval event', event.returnValues);
 			}
 		},
 		Deposit: { // WETH.Deposit
 			handle: async ({event}: HandleEventData)=>{
-				console.log('#ERC20.Deposit event', event.returnValues);
+				// console.log('#ERC20.Deposit event', event.returnValues);
 			}
 		},
 		Withdraw: { // WETH.Withdraw
 			handle: async ({event}: HandleEventData)=>{
-				console.log('#ERC20.Withdraw event', event.returnValues);
+				// console.log('#ERC20.Withdraw event', event.returnValues);
 			}
 		},
 		Transfer: {
