@@ -249,13 +249,13 @@ export class WatchBlock implements WatchCat {
 
 		// ----------------------- Compatibility Mode -----------------------
 
-		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', txs.length);
-
 		let logs = await web3.eth.getPastLogs({
 			toBlock: blockNumber,
 			fromBlock: blockNumber,
 		});
 		let receipts: TransactionReceipt[] = [];
+
+		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', txs.length, 'logs', logs.length);
 
 		for (let tx of txs) {
 			let idx = receipts.length;
