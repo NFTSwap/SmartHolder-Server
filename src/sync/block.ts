@@ -237,7 +237,8 @@ export class WatchBlock implements WatchCat {
 			}
 
 			if (receipts) {
-				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', receipts.length);
+				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 
+					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0));
 				for (let item of receipts) {
 					let _idx = idx++;
 					await this.solveReceipt(blockNumber, item, _idx, txs[_idx]);
