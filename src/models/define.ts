@@ -312,6 +312,10 @@ export enum ChainType {
 	BSN = 5555,
 	HASHII_TEST = 6666,
 	HASHII = 6667,
+	ARBITRUM = 42161, // ARB
+	ARBITRUM_GOERLI = 421613, // ARB TEST
+	AVALANCHE = 43114, // avax
+	AVALANCHE_FUJI = 43113, // avax fuji
 }
 
 // Network Name: Klaytn Cypress
@@ -360,6 +364,10 @@ export const ChainTraits: Dict<[ChainType, number, string]> = {
 	BSN: [ChainType.BSN, 18, 'BSN'],
 	HASHII_TEST: [ChainType.HASHII_TEST, 18, 'HASHII_TEST'],
 	HASHII: [ChainType.HASHII, 18, 'HASHII'],
+	ARBITRUM: [ChainType.ARBITRUM, 18, 'ETH'],
+	ARBITRUM_GOERLI: [ChainType.ARBITRUM_GOERLI, 18, 'GOERLI'],
+	AVALANCHE: [ChainType.AVALANCHE, 18, 'AVAX'],
+	AVALANCHE_FUJI: [ChainType.AVALANCHE_FUJI, 18, 'AVAX_FUJI'],
 };
 
 export const chainTraits = ChainTraits;

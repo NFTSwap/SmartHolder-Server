@@ -11,7 +11,7 @@ import db_, { storage as storage_, ChainType,
 	Transaction as ITransaction,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
 import mk_scaner from './mk_scaner';
-import {Transaction, TransactionReceipt} from 'web3-core';
+import {Transaction, TransactionReceipt,Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import * as contract from '../models/contract';
 import {postWatchBlock} from '../message';
@@ -152,7 +152,7 @@ export class WatchBlock implements WatchCat {
 		} // else if (receipt.to) {
 	}
 
-	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, getTx: ()=>Promise<Transaction>) {
+	private async solveReceipt(blockNumber: number, receipt: TransactionReceipt, transactionIndex: number, tx: Transaction) {
 		let chain = this.web3.chain;
 		somes.assert(receipt, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 		somes.assert(transactionIndex == receipt.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
@@ -164,7 +164,6 @@ export class WatchBlock implements WatchCat {
 			`select id from transaction_bin_${chain} where txHash=${txHash}`));
 
 		if ( !tx_ ) {
-			let tx = await getTx();
 			let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
 			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 
@@ -226,36 +225,7 @@ export class WatchBlock implements WatchCat {
 	private async solveBlock(blockNumber: number) {
 		let web3 = this.web3;
 		let chain = web3.chain;
-
-		//if (blockNumber % 100 === this._worker)
-
-		let txs: Transaction[] | null = null;
-		// let txs_2: Transaction[] | null = null;
-
-		// async function getTransaction2(idx: number) {
-		// 	if (!txs_2) {
-		// 		let web3 = web3s_2[chain];
-		// 		if (web3)
-		// 			txs_2 = (await web3.eth.getBlock(blockNumber, true)).transactions;
-		// 	}
-		// 	return txs_2 ? txs_2[idx]: null;
-		// }
-
-		async function getTransaction(idx: number) {
-			if (!txs)
-				txs = (await web3.eth.getBlock(blockNumber, true)).transactions;
-
-			let tx = txs[idx];
-			// if (tx) { // check data error
-			// 	if (tx.from == addressZero) { // fix from address is equal zero error
-			// 		tx = await getTransaction2(idx) || tx;
-			// 		somes.assert(tx.from != addressZero, '#WatchBlock.solveBlock.getTransaction from is equal zero');
-			// 	}
-			// }
-			return tx;
-		}
-
-		// let lastBlockNumber = await web3.getBlockNumber();
+		let txs = (await web3.eth.getBlock(blockNumber, true)).transactions;
 		let idx = 0;
 
 		if (await web3.hasSupportGetTransactionReceiptsByBlock()) {
@@ -270,7 +240,7 @@ export class WatchBlock implements WatchCat {
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', receipts.length);
 				for (let item of receipts) {
 					let _idx = idx++;
-					await this.solveReceipt(blockNumber, item, _idx, ()=>getTransaction(_idx));
+					await this.solveReceipt(blockNumber, item, _idx, txs[_idx]);
 				}
 				return;
 			}
@@ -278,15 +248,49 @@ export class WatchBlock implements WatchCat {
 
 		// ----------------------- Compatibility Mode -----------------------
 
-		let block = await web3.eth.getBlock(blockNumber);
+		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', txs.length);
 
-		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', block.transactions.length);
+		let logs = await web3.eth.getPastLogs({
+			toBlock: blockNumber,
+			fromBlock: blockNumber,
+		});
+		let receipts: TransactionReceipt[] = [];
 
-		for (let txHash of block.transactions) {
-			let _idx = idx++;
-			let receipt = await web3.eth.getTransactionReceipt(txHash);
-			await this.solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
+		for (let tx of txs) {
+			let idx = receipts.length;
+			somes.assert(tx.transactionIndex === idx, '#WatchBlock.solveBlock transactionIndex !== idx');
+			somes.assert(tx.blockHash !== null, '#WatchBlock.solveBlock blockHash !== null');
+			somes.assert(tx.blockNumber == blockNumber, '#WatchBlock.solveBlock blockNumber == blockNumber');
+
+			let contractAddress = tx.to ?
+				undefined: (await web3.eth.getTransactionReceipt(tx.hash)).contractAddress;
+
+			receipts[idx] = {
+				status: true,
+				transactionHash: tx.hash,
+				transactionIndex: tx.transactionIndex!,
+				blockHash: tx.blockHash!,
+				blockNumber: tx.blockNumber!,
+				from: tx.from,
+				to: tx.to || '0x0000000000000000000000000000000000000000',
+				contractAddress,
+				cumulativeGasUsed: 0,
+				gasUsed: 0,
+				effectiveGasPrice: 0,
+				logs: logs.filter(e=>e.transactionHash==tx.hash),
+				logsBloom: '0x',
+			};
 		}
+
+		for (let receipt of receipts) {
+			await this.solveReceipt(blockNumber, receipt, receipt.transactionIndex, txs[receipt.transactionIndex]);
+		}
+
+		// for (let txHash of block.transactions) {
+		// 	let _idx = idx++;
+		// 	let receipt = await web3.eth.getTransactionReceipt(txHash);
+		// 	await this.solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
+		// }
 	}
 
 	async getBlockSyncHeight(worker = 0) {

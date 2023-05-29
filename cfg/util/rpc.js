@@ -47,6 +47,14 @@ module.exports = {
 		// -----------------------------------------------------------
 		// 'https://goerli.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 	],
+	ARBITRUM_GOERLI: [
+		'https://arbitrum-goerli.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
+		'https://arbitrum-goerli.infura.io/v3/6b4f3897597e41d1adc12b7447c84767' // louis.tru@gmail.com
+	],
+	ARBITRUM: [
+		'https://arbitrum-mainnet.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
+		'https://arbitrum-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767' // louis.tru@gmail.com
+	],
 	MATIC: [
 		'https://rpc-mainnet.maticvigil.com/v1/2db5bb18b8b1b3f1b47a080e4c9ce6d2c7a5128c', // louistru@live.com
 		'https://rpc-mainnet.maticvigil.com/v1/a20a1a70e42a8e7a1e20dbec5bce46adcd36cdab', // louis.tru@gmail.com

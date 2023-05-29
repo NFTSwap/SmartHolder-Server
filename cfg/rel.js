@@ -8,6 +8,7 @@ module.exports = {
 		GOERLI: rpc.GOERLI,
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
+		ARBITRUM_GOERLI: rpc.ARBITRUM_GOERLI,
 	},
 	autoIndex: false,
 	root: '/data/apps/smart-dao/smart-dao-new/out',
