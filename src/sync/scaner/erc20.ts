@@ -44,7 +44,7 @@ export class ERC20 extends ContractScaner {
 					return;
 				}
 
-				await new AssetERC1155(to, ContractType.AssetShell, this.chain, this.db).onReceiveERC20({
+				await new AssetERC1155(to, ContractType.AssetShell, this.web3, this.db).onReceiveERC20({
 					blockNumber,dao, amount: BigInt(e.returnValues.value),
 					source: tx.to!, erc20: this.address, txHash: e.transactionHash
 				});

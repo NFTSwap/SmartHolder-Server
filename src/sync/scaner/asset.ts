@@ -281,7 +281,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 				let fee = await this.seller_fee_basis_points(blockNumber);
 				let price = BigInt(amount) * BigInt(10_000) / BigInt(fee);
 
-				await new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db).addAssetIncome({
+				await new Ledger(dao.ledger, ContractType.Ledger, this.web3, this.db).addAssetIncome({
 					host,
 					saleType,
 					blockNumber,
@@ -383,7 +383,7 @@ export class AssetERC1155 extends AssetModuleScaner {
 				somes.assert(!isLock, '#AssetERC1155.onReceiveERC20 Locking must be disable'); // check state
 				let saleType = dao.first.toLowerCase() == log.address.toLowerCase() ? SaleType.kFirst: SaleType.kSecond;
 
-				await new Ledger(dao.ledger, ContractType.Ledger, this.chain, this.db).addAssetIncome({
+				await new Ledger(dao.ledger, ContractType.Ledger, this.web3, this.db).addAssetIncome({
 					host: dao.address,
 					saleType,
 					blockNumber,
