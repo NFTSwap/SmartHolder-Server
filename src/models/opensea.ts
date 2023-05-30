@@ -54,10 +54,14 @@ function getPrefix(chain: ChainType) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum', test: false };
 	} else if (chain == ChainType.MATIC) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'matic', test: false };
+	} else if (chain == ChainType.ARBITRUM) {
+		return { prefix: 'https://api.opensea.io/v2', network: 'arbitrum', test: false };
 	} else if (chain == ChainType.GOERLI) {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli', test: true };
 	} else if (chain == ChainType.RINKEBY) {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby', test: true };
+	} else if (chain == ChainType.ARBITRUM_GOERLI) {
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'arbitrum', test: true };
 	} else {
 		throw Error.new(`unsupported network chain=${chain}`);
 	}
