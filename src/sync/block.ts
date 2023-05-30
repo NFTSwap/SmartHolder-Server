@@ -518,17 +518,13 @@ export class WatchBlock implements WatchCat {
 		let logs = all.reduce((a,b)=>(a.push(...b),a), []).sort((a,b)=>a.blockNumber-b.blockNumber);
 		let txs: Dict<ITransaction> = {};
 
-		// filter repeat logs
-		logs = logs.reduce((a,b)=>{
-			if (!a.k.has(b.transactionHash+b.logIndex))
-				a.v.push(b), a.k.add(b.transactionHash+b.logIndex);
-			return a;
-		}, {k:new Set,v: [] as Log[]}).v;
-
 		if (logs.length) {
 			for (let tx of await this.getTransactions(logs.map(e=>({id:e.tx_id,blockNumber: e.blockNumber}))))
 				txs[tx.id] = tx;
 		}
+
+		// if (chain == ChainType.ARBITRUM_GOERLI && startBlockNumber <= 22982999 && 22982999 <= endBlockNumber)
+		// 	debugger
 
 		// -------------------------------------------------------------------
 
@@ -571,8 +567,8 @@ export class WatchBlock implements WatchCat {
 			info.forEach((e,idx)=>{
 				let logs = logsDict[e.address];
 				if (logs) {
-					// let logsSet = {} as Dict;
-					// logs = logs.filter(e=>logsSet[e.logIndex] ? 0: logsSet[e.logIndex]=1); // exclude duplicates
+					let logsSet = new Set();
+					logs = logs.filter(e=>logsSet.has(e.logIndex) ? 0: logsSet.add(e.logIndex)); // exclude duplicates
 					logs = logs.sort((a,b)=>a.logIndex-b.logIndex); // sort
 					block.logs.push({ idx, logs });
 				}
