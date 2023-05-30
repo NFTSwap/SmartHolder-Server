@@ -62,7 +62,7 @@ module.exports = {
 		// 'https://rpc-mainnet.maticvigil.com/v1/b706532e6bd03d1b5c93ba66d91a50aebf212dde', // louistru2@tom.com
 		// 'https://rpc-mainnet.maticvigil.com/v1/368d0a19a1108e223d0dca757a342716f403dbb6', // moqi.reg@gmail.com
 		// -----------
-		'optimize:https://polygon-mainnet.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
+		'https://polygon-mainnet.infura.io/v3/b39e21d67b324543a5718f9a8ebf1dd2', // reloft0716@gmail.com
 		// 'optimize:https://polygon-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767', // louis.tru@gmail.com
 	],
 	MUMBAI: [
