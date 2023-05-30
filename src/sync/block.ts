@@ -520,7 +520,7 @@ export class WatchBlock implements WatchCat {
 
 		// filter repeat logs
 		logs = logs.reduce((a,b)=>{
-			if (a.k.has(b.transactionHash+b.logIndex))
+			if (!a.k.has(b.transactionHash+b.logIndex))
 				a.v.push(b), a.k.add(b.transactionHash+b.logIndex);
 			return a;
 		}, {k:new Set,v: [] as Log[]}).v;
