@@ -146,7 +146,7 @@ export class WatchBlock implements WatchCat {
 				let log = await this._db.selectOne<TransactionLog>(`transaction_log_bin_${chain}`, {}, {order: 'blockNumber desc'});
 				if (tx || log) {
 					let blockNumber = Math.min(tx?.blockNumber || Infinity, log?.blockNumber || Infinity);
-					this._IsCompatibleMode = [Math.floor(blockNumber / 1e5)];
+					this._IsCompatibleMode = [blockNumber];
 				}
 			}
 			if (!this._IsCompatibleMode)
@@ -248,7 +248,7 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (compatibleMode) {
-			let number = this._IsCompatibleMode![0] * 1e5;
+			let number = this._IsCompatibleMode![0];
 			r.push({
 				db: this._db,
 				part: chain+'',
