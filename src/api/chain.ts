@@ -35,11 +35,11 @@ export default class extends ApiController {
 		return sync.watchBlocks[this._chain].getTransactionLogsFrom(startBlockNumber,endBlockNumber,info);
 	}
 
-	getTransaction({transactionHash}:{transactionHash: string}) {
-		return sync.watchBlocks[this._chain].getTransaction(transactionHash);
+	getTransaction({transactionHash,blockNumber}:{transactionHash: string, blockNumber: number}) {
+		return sync.watchBlocks[this._chain].getTransaction(transactionHash,blockNumber);
 	}
 
-	getTransactions({ids}:{ids: number[]}) {
+	getTransactions(ids: {id: number, blockNumber:number}[]) {
 		return sync.watchBlocks[this._chain].getTransactions(ids);
 	}
 

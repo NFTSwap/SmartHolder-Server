@@ -57,10 +57,10 @@ export class Sync {
 		await this.assetMetaDataSync.initialize();
 
 		for (var [k,v] of Object.entries(web3s)) {
-			let useRpc = cfg.useRpc && !env.watch_main;
+			let use_shs_rpc = cfg.use_shs_rpc && !env.watch_main;
 			_sync.watchBlocks[k] = env.workers ?
-				new WatchBlock(v, env.workers.id, env.workers.workers, useRpc):
-				new WatchBlock(v, 0, 1, useRpc);
+				new WatchBlock(v, env.workers.id, env.workers.workers, use_shs_rpc):
+				new WatchBlock(v, 0, 1, use_shs_rpc);
 			if (env.watch_main) // watch block
 				addWatch(_sync.watchBlocks[k]);
 			await _sync.watchBlocks[k].initialize();

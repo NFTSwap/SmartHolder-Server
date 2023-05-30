@@ -441,7 +441,7 @@ export interface TransactionLog {
 	blockHash: string;//         binary (32)                  not null,
 	blockNumber: number;//       int unsigned                 not null,
 	addressHash: number;//       int unsigned                 not null
-	txHash: string;//            char (66)                         not null
+	txHash: string;//            char (66)                    not null
 }
 
 export interface Indexer {

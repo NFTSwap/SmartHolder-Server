@@ -64,7 +64,7 @@ module.exports = {
 		mysql: { host: '', port: 0, user: '', password: '', database: '' },
 		redis: '', // redis cfg
 	},
-	useRpc: false,
+	use_shs_rpc: false, // use shs rpc for web3 block logs
 	secretKey: [], // private key For DAOs owner 
 	salt: '',
 };
