@@ -50,18 +50,24 @@ export interface OrderParametersAll {
 }
 
 function getPrefix(chain: ChainType) {
+	// Specify the chain you would like to post listings on. 
+	// The options are "arbitrum", "avalanche", "ethereum", "klaytn", "matic" and "optimism".
 	if (chain == ChainType.ETHEREUM) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum', test: false };
 	} else if (chain == ChainType.MATIC) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'matic', test: false };
 	} else if (chain == ChainType.ARBITRUM) {
 		return { prefix: 'https://api.opensea.io/v2', network: 'arbitrum', test: false };
-	} else if (chain == ChainType.GOERLI) {
+	}
+	// tests
+	// Specify the chain you would like to retrieve listings on. 
+	// The options are "goerli", "mumbai", "baobab", "bsctestnet", "arbitrum_goerli", "optimism_goerli" and "avalanche_fuji".
+	else if (chain == ChainType.GOERLI) {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli', test: true };
 	} else if (chain == ChainType.RINKEBY) {
 		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby', test: true };
 	} else if (chain == ChainType.ARBITRUM_GOERLI) {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'arbitrum', test: true };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'arbitrum_goerli', test: true };
 	} else {
 		throw Error.new(`unsupported network chain=${chain}`);
 	}
