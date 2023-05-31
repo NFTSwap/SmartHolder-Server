@@ -1,6 +1,6 @@
 
 var base = require('./util/base');
-var rpc = require('./util/rpc');
+var rpc = require('./util/rpc2');
 
 module.exports = {
 	...base,
@@ -10,6 +10,7 @@ module.exports = {
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
 		GOERLI: rpc.GOERLI,
+		ARBITRUM_GOERLI: rpc.ARBITRUM_GOERLI,
 	},
 	autoIndex: false,
 	root: '/var/smart-dao/public',
