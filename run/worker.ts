@@ -19,7 +19,7 @@ export default async function runWorker() {
 	var env = await import('../src/env');
 	var db = await import('../src/db');
 	var msg = (await import('../src/message')).default;
-	await (await import('bclib/init')).initialize(db.main_db, db.local_db); console.timeLog('bclib init');
+	await (await import('bclib/init')).initialize(db.main_db, db.main_db); console.timeLog('bclib init');
 	await (await import('../src/db')).initialize(); console.timeLog('SmartHolder-Server db');
 	await (await import('../src/keys')).default.initialize(); console.timeLog('keys');
 	await (await import('bclib/redis')).default.initialize(true); console.timeLog('redis');
