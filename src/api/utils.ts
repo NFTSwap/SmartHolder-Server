@@ -205,6 +205,7 @@ export default class extends ApiController {
 			zone: qiniu.zone,
 			prefix: qiniu.prefix, // 'https://smart-dao-res-us.stars-mine.com'
 			token: qn.uploadToken().token,
+			config: qn.config().zone!,
 		};
 	}
 
