@@ -137,8 +137,10 @@ export const getAssetSummarys = newCache(getAssetFrom.query, {
 		let minimumPriceTotal = BigInt(0);
 
 		for (let it of ls) {
-			assetTotal++;
-			minimumPriceTotal += BigInt(it.minimumPrice || 0);
+			if (BigInt(it.totalSupply)) {
+				assetTotal++;
+				minimumPriceTotal += BigInt(it.minimumPrice || 0);
+			}
 		}
 		return {
 			assetTotal,
