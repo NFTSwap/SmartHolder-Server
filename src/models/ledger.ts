@@ -111,24 +111,31 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 			items: number,
 			income: bigint,
 			expenditure: bigint,
-			amount: bigint;
 			balance: LedgerBalance,
+			assetSaleAmount: bigint,
 		}> = {};
 
 		for (let l of e) {
 			let b = summarys[l.erc20] || (summarys[l.erc20] = {
-				items: 0, income: zero, expenditure: zero, amount: zero,balance: balance.find(e=>e.erc20==l.erc20)!
+				items: 0, income: zero, expenditure: zero,
+				assetSaleAmount: zero,
+				balance: balance.find(e=>e.erc20==l.erc20)!
 			});
 
 			switch(l.type) {
 				case LedgerType.Receive: // income
 				case LedgerType.Deposit:// income
 				case LedgerType.AssetIncome:// income
-					b.income += BigInt(l.amount); break;
+					b.income += BigInt(l.amount);
+					break;
 				case LedgerType.Withdraw: // expenditure
 				case LedgerType.Release: // expenditure
 					b.expenditure += BigInt(l.amount); break;
 				default: break; // Reserved
+			}
+
+			if (l.type == LedgerType.AssetIncome) {
+				b.assetSaleAmount += BigInt(l.assetIncome!.price);
 			}
 
 			b.items++;
@@ -137,10 +144,11 @@ export const getLedgerSummarys = newCache(getLedgerFrom.query, {
 		return Object.values(summarys).map(e=>{
 			return {
 				items: e.items,
-				value: e.income - e.expenditure + '',
+				value: e.income - e.expenditure + '', // 当前金额
 				income: e.income + '',
-				expenditure: e.expenditure + '',
-				amount: e.income + e.expenditure + '',
+				expenditure: e.expenditure + '', // 
+				amount: e.income + e.expenditure + '', // 流水金额
+				assetSaleAmount: e.assetSaleAmount + '',
 				balance: e.balance,
 			};
 		});

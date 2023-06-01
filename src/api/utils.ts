@@ -125,7 +125,8 @@ export default class extends ApiController {
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
 		return order.getOrderSummarys({chain,host,fromAddres, toAddress,
-			fromAddres_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
+			fromAddres_not: '0x0000000000000000000000000000000000000000',
+			toAddress_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 
 	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not,selling,selling_not}: {
