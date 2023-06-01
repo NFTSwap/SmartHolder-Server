@@ -46,7 +46,7 @@ module.exports = {
 		// scope: 'smart-dao', // 华北-河北桶域名
 		// zone: 'huabei', // 华北
 		prefix: 'https://smart-dao-res-us.stars-mine.com', // 北美-洛杉矶桶域名
-		scope: 'nft-mvp',
+		scope: 'smart-dao-us',
 		zone: 'beimei', // 北美
 		all_prefix: [
 			'https://smart-dao-res.stars-mine.com', // 华北-河北桶域名
