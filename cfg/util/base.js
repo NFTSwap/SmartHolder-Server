@@ -42,13 +42,16 @@ module.exports = {
 	],
 	opensea_api_key: '2f6f419a083c46de9d83ce3dbe7db601',
 	qiniu: {
-		prefix: 'https://smart-dao-res.stars-mine.com',
+		// prefix: 'https://smart-dao-res.stars-mine.com',
+		// scope: 'smart-dao', // 华北-河北桶域名
+		// zone: 'huabei', // 华北
+		prefix: 'https://smart-dao-res-us.stars-mine.com', // 北美-洛杉矶桶域名
+		scope: 'nft-mvp',
+		zone: 'beimei', // 北美
 		all_prefix: [
 			'https://smart-dao-res.stars-mine.com', // 华北-河北桶域名
 			'https://smart-dao-res-us.stars-mine.com', // 北美-洛杉矶桶域名
 		],
-		scope: 'smart-dao', // 华北-河北桶域名
-		zone: 'huabei', // 华北
 		accessKey: 'iiMyOZsCAMpDbj2t-JLnLvyEbGMGfRO78NTIUdrO',
 		secretKey: 'HkaFTPPG8zdoUB-xxyYfGXZth2PCNX75oKPFJeL5',
 	},

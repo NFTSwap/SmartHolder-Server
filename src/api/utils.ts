@@ -15,6 +15,7 @@ import * as ledger from '../models/ledger';
 import * as vp from '../models/vote_pool';
 import * as qn from 'bclib/qn';
 import { RuleResult } from 'somes/router';
+import {qiniu} from '../../config';
 
 const non_auth_apis = ['printJSON'];
 
@@ -193,6 +194,18 @@ export default class extends ApiController {
 	 * */ 
 	qiniuToken() {
 		return qn.uploadToken().token;
+	}
+
+	/**
+	 * @method qiniuToken() 获取当前使用的七牛配置
+	 * */ 
+	qiniuConfig() {
+		return {
+			scope: qiniu.scope,
+			zone: qiniu.zone,
+			prefix: qiniu.prefix, // 'https://smart-dao-res-us.stars-mine.com'
+			token: qn.uploadToken().token,
+		};
 	}
 
 	/**
