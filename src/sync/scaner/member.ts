@@ -108,54 +108,12 @@ export class Member extends ModuleScaner {
 				let {from,to} = data.event.returnValues;
 				let methods = await this.methods();
 
-				for (let [id] of [from, to]) {
-					if (id != '0' && await methods.exists(id).call()) {
-						let info = await this.getMemberInfo(id);
+				for (let id of [from, to]) {
+					if (id != '0') {
+						let info = await methods.getMemberInfo(id).call(data.blockNumber) as MemberInfo;
 						await db.update(`member_${this.chain}`, {
 							votes: info.votes,
 						}, { token: this.address, tokenId: formatHex(id) });
-					}
-				}
-			},
-		},
-		AddPermissions: { // May be inaccurate
-			handle: async ({event}: HandleEventData)=>{
-				let db = this.db;
-				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
-				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
-				for (let tokenId of tokenIds) {
-					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
-					if ( mbr ) {
-						let permissions = mbr.permissions || [];
-						let len = permissions.length;
-						for (let action of actions) {
-							if (permissions.indexOf(action) == -1)
-								permissions.push(action);
-						}
-						if (len != permissions.length) {
-							await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
-						}
-					}
-				}
-			},
-		},
-		RemovePermissions: { // May be inaccurate
-			handle: async ({event}: HandleEventData)=>{
-				let db = this.db;
-				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
-				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
-				for (let tokenId of tokenIds) {
-					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
-					if ( mbr ) {
-						let permissions = mbr.permissions || [];
-						let len = permissions.length;
-						for (let per of permissions) {
-							if (actions.indexOf(per) != -1)
-								permissions.deleteOf(per);
-						}
-						if (len != permissions.length) {
-							await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
-						}
 					}
 				}
 			},
