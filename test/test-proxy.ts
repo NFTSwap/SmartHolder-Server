@@ -1,15 +1,18 @@
 
 import req from 'somes/request';
+import buffer from 'somes/buffer';
 
 export default async function() {
 
-	let rr = await req.get('https://dao-rel.smartholder.jp/service-api/descriptors/descriptors', {
+	let url = 'https://dao-rel.smartholder.jp/service-api/descriptors/descriptors';
+
+	let pathname = buffer.from(url).toString('base58');
+
+	let rr = await req.get(`https://dao-rel.smartholder.jp/service-api/files/http?pathname=${pathname}`,{
 		dataType: 'json',
-		// proxy: 'http://127.0.0.1:10871',
-		proxy: 'http://127.0.0.1:1087/'
-	})
+	});
 
-	// let data = JSON.parse(rr.data.toString('utf-8'));
+	let data = JSON.parse(rr.data.toString('utf-8'));
 
-	return rr.data+'';
+	return data.data;
 }

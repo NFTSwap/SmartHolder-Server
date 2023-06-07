@@ -32,8 +32,8 @@ function httpProxy(url: string, noCrypt?: boolean) {
 	var index = somes.fixRandom(a, ...b);
 	var proxy = httpProxyCfg[index];
 	var url = `${proxy}/files/security/${buffer.from(url).toString('base58')}?`;
-	if (noCrypt) {
-		url += 'noCrypt=1&';
+	if (!noCrypt) {
+		url += 'crypto=1&';
 	}
 	return {url, index};
 }
