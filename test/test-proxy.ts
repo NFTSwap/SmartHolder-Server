@@ -8,7 +8,7 @@ export default async function() {
 
 	let pathname = buffer.from(url).toString('base58');
 
-	let rr = await req.get(`https://dao-rel.smartholder.jp/service-api/files/http?pathname=${pathname}`,{
+	let rr = await req.get(`https://dao-rel.smartholder.jp/service-api/files/security?pathname=${pathname}`,{
 		dataType: 'json',
 	});
 
