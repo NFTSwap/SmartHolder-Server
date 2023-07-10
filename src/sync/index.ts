@@ -15,7 +15,7 @@ import msg, {EventIndexerNextBlock} from '../message';
 import {WatchBlock} from './block';
 import {QiniuSync} from './qiniu';
 import {AssetMetaDataSync,AssetMetaDataUpdate} from './asset_meta';
-import {RunIndexer,Indexer} from './indexer';
+import {IndexerPool,Indexer} from './indexer';
 
 interface WaitPromiseCallback {
 	timeout: number;
@@ -38,7 +38,7 @@ export class Sync {
 	readonly assetMetaDataSync = new AssetMetaDataSync();
 	readonly assetMetaDataUpdate = new AssetMetaDataUpdate();
 	readonly watchBlocks: Dict<WatchBlock> = {};   // chain => WatchBlock
-	readonly watchIndexers: Dict<RunIndexer> = {}; // chain => RunIndexer
+	readonly watchIndexers: Dict<IndexerPool> = {}; // chain => RunIndexer
 
 	getIndexer(chain: ChainType, indexer_id: number) {
 		return this.watchIndexers[chain].indexers[indexer_id];
@@ -57,16 +57,16 @@ export class Sync {
 		await this.assetMetaDataSync.initialize();
 
 		for (var [k,v] of Object.entries(web3s)) {
-			let useRpc = cfg.useRpc && !env.watch_main;
+			let use_shs_rpc = cfg.use_shs_rpc && !env.watch_main;
 			_sync.watchBlocks[k] = env.workers ?
-				new WatchBlock(v, env.workers.id, env.workers.workers, useRpc):
-				new WatchBlock(v, 0, 1, useRpc);
-			if (env.watch_main)
+				new WatchBlock(v, env.workers.id, env.workers.workers, use_shs_rpc):
+				new WatchBlock(v, 0, 1, use_shs_rpc);
+			if (env.watch_main) // watch block
 				addWatch(_sync.watchBlocks[k]);
 			await _sync.watchBlocks[k].initialize();
 		}
 
-		if (env.watch_main) {
+		if ( env[cfg.watch_meta as 'watch_main' | 'watch_indexer']/* cfg.watch_meta == 'watch_main' && env.watch_main*/) {
 			if (isMainWorker) {
 				addWatch(this.qiniuSync);
 				addWatch(this.assetMetaDataUpdate);
@@ -77,7 +77,7 @@ export class Sync {
 		if (env.watch_indexer) {
 			for (var [k,v] of Object.entries(web3s)) {
 				let run = env.workers ?
-					new RunIndexer(v.chain, env.workers.id, env.workers.workers): new RunIndexer(v.chain, 0, 1);
+					new IndexerPool(v.chain, env.workers.id, env.workers.workers): new IndexerPool(v.chain, 0, 1);
 				addWatch(_sync.watchIndexers[k] = run);
 				await run.initialize();
 			}

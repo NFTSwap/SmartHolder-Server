@@ -5,10 +5,12 @@
 
 import somes from 'somes';
 import web3s from '../web3+';
-import db, { ChainType, Selling, DAO,SaleType } from "../db";
-import { Seaport } from "seaport-smart";
-import { OrderComponents } from "seaport-smart/types";
-import { ItemType, OrderType, CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS } from 'seaport-smart/constants';
+import db, { ChainType, Selling, DAO,SaleType,AssetType } from "../db";
+import {
+	Seaport,ItemType, OrderType,
+	OPENSEA_CONDUIT_ADDRESS, OPENSEA_CONDUIT_KEY,OrderComponents,
+	CROSS_CHAIN_SEAPORT_ADDRESS, orderTypes,
+ } from './opensea_type';
 import { providers, VoidSigner, BigNumberish } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import * as abi from '../../abi/Asset.json';
@@ -21,128 +23,9 @@ import {SeaportABI} from '../../abi/Seaport';
 import * as cfg from '../../config';
 import {scopeLock} from 'bclib/atomic_lock';
 import redis from 'bclib/redis';
-import {formatHex} from '../sync/scaner';
-import {DatabaseCRUD} from 'somes/db';
-
-export {OrderComponents};
+import * as orderApi from './order';
 
 const seaports: Map<ChainType, Seaport> = new Map();
-export {CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS};
-
-const orderTypes = {
-	"EIP712Domain": [
-		{
-			"name": "name",
-			"type": "string"
-		},
-		{
-			"name": "version",
-			"type": "string"
-		},
-		{
-			"name": "chainId",
-			"type": "uint256"
-		},
-		{
-			"name": "verifyingContract",
-			"type": "address"
-		}
-	],
-	"OrderComponents": [
-		{
-			"name": "offerer",
-			"type": "address"
-		},
-		{
-			"name": "zone",
-			"type": "address"
-		},
-		{
-			"name": "offer",
-			"type": "OfferItem[]"
-		},
-		{
-			"name": "consideration",
-			"type": "ConsiderationItem[]"
-		},
-		{
-			"name": "orderType",
-			"type": "uint8"
-		},
-		{
-			"name": "startTime",
-			"type": "uint256"
-		},
-		{
-			"name": "endTime",
-			"type": "uint256"
-		},
-		{
-			"name": "zoneHash",
-			"type": "bytes32"
-		},
-		{
-			"name": "salt",
-			"type": "uint256"
-		},
-		{
-			"name": "conduitKey",
-			"type": "bytes32"
-		},
-		{
-			"name": "counter",
-			"type": "uint256"
-		}
-	],
-	"OfferItem": [
-			{
-					"name": "itemType",
-					"type": "uint8"
-			},
-			{
-					"name": "token",
-					"type": "address"
-			},
-			{
-					"name": "identifierOrCriteria",
-					"type": "uint256"
-			},
-			{
-					"name": "startAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "endAmount",
-					"type": "uint256"
-			}
-	],
-	"ConsiderationItem": [
-			{
-					"name": "itemType",
-					"type": "uint8"
-			},
-			{
-					"name": "token",
-					"type": "address"
-			},
-			{
-					"name": "identifierOrCriteria",
-					"type": "uint256"
-			},
-			{
-					"name": "startAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "endAmount",
-					"type": "uint256"
-			},
-			{
-					"name": "recipient",
-					"type": "address"
-			}
-	]
-};
 
 export type TypedDataDomain = {
 	name?: string;
@@ -166,24 +49,31 @@ export interface OrderParametersAll {
 	OPENSEA_CONDUIT_ADDRESS: string;
 }
 
-function getPrefix(chain: ChainType, isGet?: boolean) {
-	// let prefix = isGet ? 'https://opensea13.p.rapidapi.com/v2': 'https://opensea15.p.rapidapi.com/v2';
+function getPrefix(chain: ChainType) {
+	// Specify the chain you would like to post listings on. 
+	// The options are "arbitrum", "avalanche", "ethereum", "klaytn", "matic" and "optimism".
 	if (chain == ChainType.ETHEREUM) {
-		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum' };
-		// return { prefix: 'https://element-api.eossql.com/bridge/opensea/v2', network: 'ethereum' };
-		// https://opensea15.p.rapidapi.com
-		// return { prefix, network: 'ethereum' };
-	} else if (chain == ChainType.GOERLI) {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli' };
-		// return { prefix: isGet ? 'https://testnets-api.opensea.io/v2': 'https://element-api-test.eossql.com/bridge/opensea/v2', network: 'rinkeby' };
+		return { prefix: 'https://api.opensea.io/v2', network: 'ethereum', test: false };
+	} else if (chain == ChainType.MATIC) {
+		return { prefix: 'https://api.opensea.io/v2', network: 'matic', test: false };
+	} else if (chain == ChainType.ARBITRUM) {
+		return { prefix: 'https://api.opensea.io/v2', network: 'arbitrum', test: false };
+	}
+	// tests
+	// Specify the chain you would like to retrieve listings on. 
+	// The options are "goerli", "mumbai", "baobab", "bsctestnet", "arbitrum_goerli", "optimism_goerli" and "avalanche_fuji".
+	else if (chain == ChainType.GOERLI) {
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'goerli', test: true };
 	} else if (chain == ChainType.RINKEBY) {
-		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby' };
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'rinkeby', test: true };
+	} else if (chain == ChainType.ARBITRUM_GOERLI) {
+		return { prefix: 'https://testnets-api.opensea.io/v2', network: 'arbitrum_goerli', test: true };
 	} else {
 		throw Error.new(`unsupported network chain=${chain}`);
 	}
 }
 
-function _handleStatusCode(r: Result) {
+function handleStatusCode(r: Result) {
 	r.data = r.data.toString('utf8');
 	if (r.statusCode != 200) {
 		if (r.statusCode == 404) {
@@ -206,35 +96,22 @@ function _handleStatusCode(r: Result) {
 }
 
 async function get<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
-	let {prefix, network} = getPrefix(chain, true);
+	let {prefix, network,test} = getPrefix(chain);
 	let url = new URL(`${prefix}/${String.format(path, network)}`);
 	if (params)
 		url.params = params;
 	let href = url.href;
-	let isOpensea = href.indexOf('opensea') != -1;
 	let r = await get_(href, {
-		handleStatusCode: _handleStatusCode,
-		headers: {
-			// 'X-API-KEY': cfg.opensea_api_key,
-			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			// 'X-RapidAPI-Host': 'opensea13.p.rapidapi.com'
-		},
-	}, isOpensea, 2);
+		handleStatusCode, headers: test ? {}:{ 'X-API-KEY': cfg.opensea_api_key },
+	}, false, 2);
 	return r.data as any as T;
 }
 
 async function post<T = any>(chain: ChainType, path: string, params?: Params): Promise<T> {
-	let {prefix, network} = getPrefix(chain);
-	let href = `${prefix}/${String.format(path, network)}`;
-	let isOpensea = href.indexOf('opensea') != -1;
+	let {prefix, network,test} = getPrefix(chain);
 	let r = await post_(`${prefix}/${String.format(path, network)}`, params, {
-		handleStatusCode: _handleStatusCode,
-		headers: {
-			// 'X-API-KEY': cfg.opensea_api_key,
-			// 'X-RapidAPI-Key': 'bf5f9d772dmsh92fb1d5988061efp153c15jsnb8b4c3cff86f',
-			// 'X-RapidAPI-Host': 'opensea15.p.rapidapi.com'
-		},
-	}, isOpensea, 2);
+		handleStatusCode, headers: test ? {}:{ 'X-API-KEY': cfg.opensea_api_key },
+	}, false, 2);
 	return r.data as any as T;
 }
 
@@ -256,66 +133,80 @@ export function getSeaport(chain: ChainType) {
 	return sea;
 }
 
-export async function getOrderParameters(chain: ChainType, token: string, tokenId: string, amount: string, time?: number): Promise<OrderParametersAll> {
+export async function getOrderParameters(
+	chain: ChainType,
+	token: string, tokenId: string,
+	unitPrice: string, owner: string, count: number, type: AssetType, time?: number
+): Promise<OrderParametersAll> {
+	somes.assert(count, 'Bad argument for count');
+	somes.assert(type, 'Bad argument for asset type');
+
 	let web3 = web3s(chain);
 	let now = Math.floor(Date.now() / 1e3);
-	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600);
+	let lastTime = now + (time ? time / 1e3 : 30 * 24 * 3600); /* 30 days default time*/
 	let methods = web3.createContract(token, abi.abi as any).methods;
-	let owner = await methods.ownerOf(tokenId).call() as string;
-	// let owner = '0x4ab17f69d1225eD66DE25A6C3c69f3F83766CBea';
 	let id = BigInt(tokenId).toString(10);
 	let isApprovedForAll = await methods.isApprovedForAll(owner, OPENSEA_CONDUIT_ADDRESS).call();
 	// let sea = getSeaport(chain);
 
-	let taxs: [[string,number]] = [
-		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 70, // element 7%
-		['0x0000a26b00c1F0DF003000390027140000fAa719', 25], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
+	let taxs: [string,number][] = [
+		// '0xabb7635910c4d7e8a02bd9ad5b036a089974bf88': 700, // element 7%
+		['0x0000a26b00c1F0DF003000390027140000fAa719', 250], // opensea 2.5% 0x8De9C5A032463C561423387a9648c5C7BCC5BC90
 	];
 
 	let json = await getOpenseaContractJSONFromToken(token, chain);
-	if (json) {
-		// seller_fee_basis_points: Number(dao.assetCirculationTax) || 100,// 100 # Indicates a 1% seller fee.
-		// fee_recipient: dao.ledger, // "0xA97F337c39cccE66adfeCB2BF99C1DdC54C2D721" // # Where seller fees will be paid to.
-		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points / 10]);
+	if (json && json.seller_fee_basis_points) {
+		taxs.unshift([json.fee_recipient, json.seller_fee_basis_points]);
 	}
 
-	let amount_ = BigInt(amount);
-	let amountMy = amount_;
+	let amount = BigInt(unitPrice);
+	let amountMy = amount;
 	let recipients: {amount: bigint; recipient: string; }[] = [
 		...taxs.map(([recipient,tax])=>{
-			let amount = amount_ * BigInt(tax) / BigInt(1000);
-			amountMy -= amount;
-			return { recipient, amount };
+			let amount_ = amount * BigInt(tax) / BigInt(10000);
+			amountMy -= amount_;
+			return { recipient, amount:amount_ };
 		}),
 		{ recipient: owner, amount: amountMy },
 	];
+
+	let zone = chain == ChainType.ETHEREUM ? {
+		zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00',
+		zoneHash: '0x3000000000000000000000000000000000000000000000000000000000000000',
+	}: {
+		zone: '0x0000000000000000000000000000000000000000',
+		zoneHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+	};
+
+	let itemType: ItemType;
+	switch (type) {
+		case AssetType.ERC1155_Single:
+		case AssetType.ERC1155:
+			itemType = ItemType.ERC1155; break;
+		case AssetType.ERC721:
+			itemType = ItemType.ERC721; break;
+		default:
+			itemType = ItemType.ERC20; break;
+	}
 
 	let data = {
 		primaryType: 'OrderComponents',
 		domain: {
 			chainId: chain,
-			name: "Seaport",
-			verifyingContract: "0x00000000006c3852cbEf3e08E8dF289169EdE581",
-			version: "1.1"
+			name: 'Seaport',
+			verifyingContract: CROSS_CHAIN_SEAPORT_ADDRESS,
+			version: '1.5'
 		},
 		types: orderTypes,
 		value: {
 			offerer: owner,
-			zone: "0x0000000000000000000000000000000000000000", // opensea
-			// zone: "0x00000000E88FE2628EbC5DA81d2b3CeaD633E89e", // opensea
-			// zone: '0x004c00500000ad104d7dbd00e3ae0a5c00560c00', // element
-			zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-			startTime: String(now),
-			endTime: String(lastTime),
-			// orderType: OrderType.PARTIAL_RESTRICTED,
-			orderType: OrderType.FULL_OPEN,
 			offer: [
 				{
-					itemType: ItemType.ERC721,
+					itemType: itemType,
 					token: token,
 					identifierOrCriteria: id,
-					startAmount: "1",
-					endAmount: "1"
+					startAmount: String(count),
+					endAmount: String(count),
 				}
 			],
 			consideration: [
@@ -329,9 +220,16 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 				})),
 			],
 			totalOriginalConsiderationItems: recipients.length + '',
-			salt: BigInt('0x' + rng(16).toString('hex')).toString(10),// "36980727087255389",
-			conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-			counter: 0
+
+			startTime: String(now),
+			endTime: String(lastTime),
+			// orderType: OrderType.PARTIAL_RESTRICTED,
+			orderType: OrderType.FULL_OPEN,
+			zone: zone.zone,
+			zoneHash: zone.zoneHash,
+			salt: BigInt('0x' + rng(32).toString('hex')).toString(10),// "36980727087255389",
+			conduitKey: OPENSEA_CONDUIT_KEY,
+			counter: 0,
 		},
 		isApprovedForAll,
 		OPENSEA_CONDUIT_ADDRESS,
@@ -341,7 +239,6 @@ export async function getOrderParameters(chain: ChainType, token: string, tokenI
 }
 
 export async function createOrder(chain: ChainType, order: OrderComponents, signature: string): Promise<void> {
-
 	/*
 		curl 'https://element-api.eossql.com/bridge/opensea/v2/orders/ethereum/seaport/listings' \
 		-H 'authority: element-api.eossql.com' \
@@ -363,15 +260,15 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 		--compressed
 	*/
 
-	let token = order.offer[0].token;
-	let tokenId = order.offer[0].identifierOrCriteria;
-	let order0 = await getOrder(chain, token, tokenId);
+	let {token,identifierOrCriteria:tokenId,startAmount} = order.offer[0];
+	let order1 = await getOrder(chain, token, tokenId);
 
-	somes.assert(!order0, errno.ERR_OPENSEA_ORDER_EXIST);
+	somes.assert(!order1, errno.ERR_OPENSEA_ORDER_EXIST);
 
 	await post(chain, 'orders/{0}/seaport/listings', {
 		parameters: order,
 		signature,
+		protocol_address: CROSS_CHAIN_SEAPORT_ADDRESS,
 	});
 
 	let sellPrice = BigInt(0);
@@ -379,32 +276,7 @@ export async function createOrder(chain: ChainType, order: OrderComponents, sign
 		sellPrice += BigInt(c.startAmount);
 	}
 
-	await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
-}
-
-export async function maskOrderSelling(
-	chain: ChainType, token: string, tokenId: string,
-	selling: Selling, sellPrice = '', sold = false, db_?: DatabaseCRUD
-) {
-	let id = formatHex(tokenId, 32);
-	let data: Dict = {selling};
-	if (selling !== Selling.UnsellOrUnknown) {
-		data.sellingTime = Date.now();
-		if (sellPrice)
-			data.sellPrice = sellPrice;
-	}
-	else if (selling === Selling.UnsellOrUnknown && sold)
-		data.soldTime = Date.now();
-	await (db_||db).update(`asset_${chain}`, data, { token, tokenId: id });
-	// console.log('maskOrderSelling', num, token, id);
-}
-
-export async function maskOrderClose(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', false, db_);
-}
-
-export async function maskOrderSold(chain: ChainType, token: string, tokenId: string, db_?: DatabaseCRUD) {
-	await maskOrderSelling(chain, token, tokenId, Selling.UnsellOrUnknown, '', true, db_);
+	await orderApi.maskSellOrder(chain, token, tokenId, BigInt(startAmount), order.offerer, Selling.Opensea, sellPrice+'');
 }
 
 export async function getOrder(chain: ChainType, token: string, tokenId: string) {
@@ -433,19 +305,9 @@ export async function getOrders(chain: ChainType, token: string, tokenIds: strin
 
 		orders = Array.isArray(orders) ? orders: [];
 
-		// maskOrderSelling close
-		for (let it of tokenIds) 
-			await maskOrderSelling(chain, token, it, Selling.UnsellOrUnknown, '');
-
 		for (let it of orders) {
 			let order = it?.protocol_data?.parameters as OrderComponents;
 			if (order) {
-				let tokenId = formatHex(order.offer[0].identifierOrCriteria, 32);
-				let sellPrice = BigInt(0);
-				for (let c of order.consideration) {
-					sellPrice += BigInt(c.startAmount);
-				}
-				await maskOrderSelling(chain, token, tokenId, Selling.Opensea, sellPrice.toString());
 				ls.push(order);
 			}
 		}
@@ -478,7 +340,7 @@ export function get_CROSS_CHAIN_SEAPORT_ABI() {
 	return SeaportABI;
 }
 
-export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea
+export function get_OPENSEA_CONDUIT_ADDRESS() { // 调用合约授权资产权限给opensea,exchange
 	return OPENSEA_CONDUIT_ADDRESS;
 }
 
@@ -492,7 +354,7 @@ function getOpenseaContractJSONFromDAO(dao?: DAO | null, type?: SaleType, addres
 		external_link: cfg.publicURL, // "external-link-url",
 		seller_fee_basis_points: Number(type == 1 ? dao.assetIssuanceTax: dao.assetCirculationTax) || 1000,// 1000 # Indicates a 10% seller fee.
 		fee_recipient: address ? address: // # Where seller fees will be paid to.
-			type == 1 ? dao.first: 
+			type == 1 ? dao.first:
 			type == 2 ? dao.second: dao.ledger,
 	};
 }
@@ -511,12 +373,25 @@ export async function getOpenseaContractJSON(host: string, chain?: ChainType, ty
 }
 
 export async function getOpenseaContractJSONFromToken(asset: string, chain: ChainType) {
-	let dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaFirst: asset });
+	let get_seller_fee_basis_points = async ()=>{
+		let methods = (await web3s(chain).contract(asset)).methods;
+		let seller_fee_basis_points = await methods.seller_fee_basis_points().call() as number;
+		return seller_fee_basis_points;//dao.assetIssuanceTax = seller_fee_basis_points;
+	};
+
+	//let contractURI = await (await web3s(chain).contract(asset)).methods.contractURI().call();
+	//console.log(`${asset}.contractURI()`, contractURI);
+
+	let dao = await db.selectOne<DAO>(`dao_${chain}`, { first: asset });
 	if (dao) {
+		if (!dao.assetIssuanceTax)
+			dao.assetIssuanceTax = await get_seller_fee_basis_points();
 		return getOpenseaContractJSONFromDAO(dao, SaleType.kFirst);
 	}
-	dao = await db.selectOne<DAO>(`dao_${chain}`, { openseaSecond: asset });
+	dao = await db.selectOne<DAO>(`dao_${chain}`, { second: asset });
 	if (dao) {
+		if (!dao.assetCirculationTax)
+			dao.assetCirculationTax = await get_seller_fee_basis_points();
 		return getOpenseaContractJSONFromDAO(dao, SaleType.kSecond);
 	}
 	return null;

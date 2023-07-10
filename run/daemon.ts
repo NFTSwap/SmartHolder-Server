@@ -3,18 +3,19 @@
  * @date 2022-07-18
  */
 
-import uncaught from '../src/uncaught';
 import somes from 'somes';
+somes.config = __dirname + '/..'; // set config dir
+
+import uncaught from '../src/uncaught';
 import local_storage from 'bclib/storage';
 import * as db from '../src/db';
 import {Daemon} from 'bclib/daemon';
 import * as cfg from '../config';
+
 import * as net from 'net';
 
 const ENV   = process.env;
 const debug = 'DEUBG' in ENV ? !!(Number(ENV.DEUBG) || 0): !!cfg.debug;
-
-somes.config = __dirname + '/..'; // set config dir
 
 var daemons: Daemon[] = [];
 

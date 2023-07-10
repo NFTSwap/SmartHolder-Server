@@ -3,8 +3,8 @@
  * @date 2022-07-20
  */
 
-import {ContractScaner, formatHex,HandleEventData} from './scaner';
-import db, {VoteProposal, storage} from '../db';
+import {ContractScaner, formatHex,HandleEventData} from '.';
+import {VoteProposal, storage} from '../../db';
 
 export class VotePool extends ContractScaner {
 

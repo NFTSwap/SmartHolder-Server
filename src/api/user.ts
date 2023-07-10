@@ -38,7 +38,11 @@ export default class extends ApiController {
 	
 	async getUser() {
 		let auth = await this.userNotErr();
-		return await user.getUser(auth?.id);
+		return await user.getUser({id:auth?.id});
+	}
+
+	getUserFrom(opts: {id?: number, address?: string}) {
+		return user.getUser(opts);
 	}
 
 	async setUser(opts: Partial<User>) {
@@ -46,19 +50,19 @@ export default class extends ApiController {
 		await user.setUser(auth.id, opts);
 	}
 
-	async addLikeDAO({dao,chain}:{dao: number, chain: ChainType}) {
+	async addLikeDAO({dao/*primary key*/,chain, host}:{dao?: number, host?: string, chain: ChainType}) {
 		let auth = await this.user();
-		await user.addLikeDAO(auth.id, dao, chain);
+		await user.addLikeDAO(chain, auth.id, dao, host);
 	}
 
-	async deleteLikeDAO({dao,chain}:{dao: number, chain: ChainType}) {
+	async deleteLikeDAO({dao/*primary key*/,host,chain}:{dao?: number, host?: string, chain: ChainType}) {
 		let auth = await this.user();
-		await user.deleteLikeDAO(auth.id, dao, chain);
+		await user.deleteLikeDAO(chain, auth.id, dao, host);
 	}
 
-	async getUserLikeDAOs({chain}: {chain?: ChainType}) {
+	async getUserLikeDAOs({chain,memberObjs}: {chain?: ChainType, memberObjs?: number}) {
 		let auth = await this.user();
-		return await user.getUserLikeDAOs(auth.id, chain);
+		return await user.getUserLikeDAOs(auth.id, chain, memberObjs);
 	}
 
 }

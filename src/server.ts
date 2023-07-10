@@ -5,7 +5,8 @@ import * as config from '../config';
 
 if (config.root) {
 	cfg.root = [config.root, cfg.root] as any;
-	(cfg as any).tryFiles = '/index.html';
+	cfg.tryFiles = '/index.html';
+	cfg.trySuffixs = '.html';
 }
 
 var impl = new Server(cfg);

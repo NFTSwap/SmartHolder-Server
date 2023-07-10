@@ -3,17 +3,17 @@
  * @date 2022-07-20
  */
 
-import {formatHex,HandleEventData} from './scaner';
-import {ModuleScaner} from './asset';
-import db, {storage,MemberInfo,Member as MemberDef} from '../db';
-import * as constants from './constants';
+import {formatHex,HandleEventData,ModuleScaner} from '.';
+import {storage,MemberInfo,Member as MemberDef} from '../../db';
+import * as constants from './../constants';
 
 export class Member extends ModuleScaner {
 	events = {
 		// event Update(uint256 indexed id); // update info
-		// event TransferVotes(uint256 indexed from, uint256 indexed to, uint32 votes);
+		// event TransferVotes(uint256 indexed from, uint256 indexed ModuleScaner, uint32 votes);
 		// event AddPermissions(uint256[] ids, uint256[] actions);
 		// event RemovePermissions(uint256[] ids, uint256[] actions);
+		// event SetPermissions(uint256 indexed id, uint256[] addActions, uint256[] removeActions);
 
 		Change: {
 			handle: (data: HandleEventData)=>this.onChange(data),
@@ -35,7 +35,8 @@ export class Member extends ModuleScaner {
 				// votes        int           default (0)  not null, -- default > 0
 				// time         bigint                     not null,
 				// modify       bigint                     not null
-				this.web3.eth.call({}, 100);
+
+				// this.web3.eth.call({}, 100);
 
 				let methods = await this.methods();
 				let isRemove = ! await methods.exists(tokenId).call(); // (to == '0x0000000000000000000000000000000000000000');
@@ -107,9 +108,9 @@ export class Member extends ModuleScaner {
 				let {from,to} = data.event.returnValues;
 				let methods = await this.methods();
 
-				for (let [id] of [from, to]) {
-					if (id != '0' && await methods.exists(id).call()) {
-						let info = await this.getMemberInfo(id);
+				for (let id of [from, to]) {
+					if (id != '0') {
+						let info = await methods.getMemberInfo(id).call(data.blockNumber) as MemberInfo;
 						await db.update(`member_${this.chain}`, {
 							votes: info.votes,
 						}, { token: this.address, tokenId: formatHex(id) });
@@ -117,48 +118,27 @@ export class Member extends ModuleScaner {
 				}
 			},
 		},
-		AddPermissions: { // May be inaccurate
+		SetPermissions: {
 			handle: async ({event}: HandleEventData)=>{
 				let db = this.db;
-				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
-				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
-				for (let tokenId of tokenIds) {
-					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
-					if ( mbr ) {
-						let permissions = mbr.permissions || [];
-						let len = permissions.length;
-						for (let action of actions) {
-							if (permissions.indexOf(action) == -1)
-								permissions.push(action);
-						}
-						if (len != permissions.length) {
-							await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
-						}
+				let tokenId = formatHex(event.returnValues.id);
+				let addActions = (event.returnValues.addActions as []).map(e=>Number(e));
+				let removeActions = (event.returnValues.removeActions as []).map(e=>Number(e));
+				let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
+				if ( mbr ) {
+					let permissions = mbr.permissions || [];
+					for (let action of addActions) {
+						if (permissions.indexOf(action) == -1)
+							permissions.push(action);
 					}
+					for (let per of permissions) {
+						if (removeActions.indexOf(per) != -1)
+							permissions.deleteOf(per);
+					}
+					await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
 				}
 			},
-		},
-		RemovePermissions: { // May be inaccurate
-			handle: async ({event}: HandleEventData)=>{
-				let db = this.db;
-				let tokenIds = (event.returnValues.ids as string[]).map(e=>formatHex(e, 32));
-				let actions = (event.returnValues.actions as string[]).map(e=>Number(e));
-				for (let tokenId of tokenIds) {
-					let mbr = await db.selectOne<MemberDef>(`member_${this.chain}`, { token: this.address, tokenId })
-					if ( mbr ) {
-						let permissions = mbr.permissions || [];
-						let len = permissions.length;
-						for (let per of permissions) {
-							if (actions.indexOf(per) != -1)
-								permissions.deleteOf(per);
-						}
-						if (len != permissions.length) {
-							await db.update(`member_${this.chain}`, { permissions }, { id: mbr.id });
-						}
-					}
-				}
-			},
-		},
+		}
 	};
 
 	protected async onDescription({blockTime: modify}: HandleEventData, desc: string) {

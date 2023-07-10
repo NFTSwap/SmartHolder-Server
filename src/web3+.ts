@@ -9,6 +9,7 @@ import {AbiInterface} from 'bclib/abi';
 import * as contract from './models/contract';
 import {WatchCat} from 'bclib/watch';
 import { env } from './env';
+import errno from 'web3-tx/errno';
 
 export { Web3, BcWeb3, Contract, AbiInterface };
 
@@ -101,6 +102,12 @@ export function isRpcLimitDataSize(web3: Web3, err: Error) {
 	return false;
 }
 
+export function isExecutionRevreted(err: any) {
+	if (err.errno == errno.ERR_EXECUTION_REVERTED[0] ||
+		err.errno == errno.ERR_EXECUTION_REVERTED_Values_Invalid[0]) return true;
+	return false;
+}
+
 class MvpMultipleProvider extends MultipleProvider {
 	onResult(res: JsonRpcResponse, rpc: string) {
 		if (res.error) {
@@ -115,10 +122,8 @@ class MvpMultipleProvider extends MultipleProvider {
 }
 
 export class MvpWeb3 extends BcWeb3 {
-	private _HasSupportGetTransactionReceiptsByBlock: boolean | undefined;
-
+	private _HasSupportGetTransactionReceiptsByBlock: (number)[] = [];
 	readonly chain: ChainType;
-
 	readonly mode: Web3Mode;
 
 	cattime = 10; // 1 minute call cat()
@@ -143,13 +148,11 @@ export class MvpWeb3 extends BcWeb3 {
 		this.gasPriceLimit = Number(cfg.web3PriceLimit[chain_str]) || 0;
 		this.setProvider(new MvpMultipleProvider(_cfg, undefined, switchMode));
 		if (cfg.logs.rpc || env == 'dev')
-			this.provider.printLog = true;
+			this.provider.logs = 2;
 	}
 
 	private setProviderByIdx(idx: number) {
-		if (this.provider.setProviderIndex(idx)) {
-			this._HasSupportGetTransactionReceiptsByBlock = undefined;
-		}
+		this.provider.setProviderIndex(idx)
 	}
 
 	swatchRpc() {
@@ -159,29 +162,46 @@ export class MvpWeb3 extends BcWeb3 {
 	}
 
 	getTransactionReceiptsByBlock(block: number) {
-		return somes.timeout(this.provider.request({
+		let req = this.provider.request({
 			method: 'eth_getTransactionReceiptsByBlock',
-			params:  [`0x${block.toString(16)}`]
-		}), 3e4); // 30s
+			params:  [`0x${block.toString(16)}`],
+		}, this.provider.providerIndex);
+		// return somes.timeout(req, 3e4); // 30s
+		return req;
+	}
+
+	isExecutionRevreted(err: any) {
+		return isExecutionRevreted(err);
 	}
 
 	async hasSupportGetTransactionReceiptsByBlock() {
-		if (this._HasSupportGetTransactionReceiptsByBlock === undefined) {
+		let idx = this.provider.providerIndex;
+		if (this._HasSupportGetTransactionReceiptsByBlock[idx] == undefined) {
 			try {
 				await this.getTransactionReceiptsByBlock(1);
-				this._HasSupportGetTransactionReceiptsByBlock = true;
+				this._HasSupportGetTransactionReceiptsByBlock[idx] = 0;
 			} catch(err: any) {
 				if (!err.httpErr)
-					this._HasSupportGetTransactionReceiptsByBlock = false;
+					this._HasSupportGetTransactionReceiptsByBlock[idx] = Date.now();
 			}
 		}
-		return !!this._HasSupportGetTransactionReceiptsByBlock;
+		return !this._HasSupportGetTransactionReceiptsByBlock[idx];
 	}
 
 	private _blockNumber(provider: BaseProvider) {
 		return somes.timeout(new MultipleProvider(provider).request<number>({
 			method: 'eth_blockNumber',
 		}), 3e4); // 10s
+	}
+
+	async tryCall(c: Contract, method: string, ...args: any[]) {
+		try {
+			return await c.methods[method](...args).call(); // get locked item
+		} catch(err) {
+			if (this.isExecutionRevreted(err))
+				return null;
+			throw err;
+		}
 	}
 
 	async cat() {
@@ -212,19 +232,29 @@ export class MvpWeb3 extends BcWeb3 {
 }
 
 export const web3s: Dict<MvpWeb3> = {};
+export const web3s_2: Dict<MvpWeb3> = {}; // optimize web rpc
 
 export async function initialize(addWatch: (watch: WatchCat)=>void) {
 	for (var [k,v] of Object.entries(cfg.web3s)) {
-		var chain: ChainType = (ChainType as any)[k];
+		let chain: ChainType = (ChainType as any)[k];
 		somes.assert(chain, `ChainType no match "${k}"`);
-		var web3 = new MvpWeb3(chain, v as string[]);
-		await web3.cat();
+		let web3 = new MvpWeb3(chain, v.filter(e=>e.indexOf('optimize:')==-1) as string[]);
 		web3s[chain] = web3;
 		bcweb3[chain] = web3;
 		addWatch(web3);
 		addWatch(web3.tx);
 		web3.tx.cattime = 10;
-	}
+		await web3.cat();
+
+		// optimize web3
+		let optimize = v.filter(e=>e.indexOf('optimize:')==0).map(e=>e.substring('optimize:'.length));
+		if (optimize.length) {
+			let web3_2 = new MvpWeb3(chain, optimize as string[]);
+			web3s_2[chain] = web3_2;
+			addWatch(web3_2);
+			await web3.cat();
+		}
+	} // for
 }
 
 export default function(type: ChainType) {

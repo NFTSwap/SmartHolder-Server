@@ -6,17 +6,21 @@
 import watch, {WatchCat} from 'bclib/watch';
 import db, {
 	ChainType, ContractInfo, Indexer as IIndexer,
-	ContractType, Transaction, TransactionLog,
-} from '../db';
+	ContractType, Transaction, TransactionLog } from '../db';
 import msg, {postNewIndexer, EventNewIndexer, postIndexerNextBlock} from '../message';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import * as contract from '../models/contract';
 import * as env from '../env';
-import mk_scaner from './mk_scaner';
+import mk_scaner, {ContractScaner} from './mk_scaner';
 import index from './index';
 import redis from 'bclib/redis';
 import {DatabaseCRUD} from 'somes/db';
 import pool from 'somes/mysql/pool';
+import {Event} from 'somes/event';
+import somes from 'somes';
+import * as erc20_cfg from '../../cfg/util/erc20';
+import {AssetUnlockWatch} from './asset_unlock';
+import {web3s, web3s_2} from '../web3+';
 
 /**
  * @class indexer for dao
@@ -34,6 +38,8 @@ export class Indexer implements WatchCat {
 
 	async initialize() {
 		let dss = await db.select<ContractInfo>(`contract_info_${this.chain}`, { indexer_id: this.data.id });
+		somes.assert(dss.length, '#Indexer.initialize dss.length is equal 0');
+
 		for (let ds of dss) {
 			if (ds.state == 0) {
 				this.ds[ds.address] = ds;
@@ -59,6 +65,7 @@ export class Indexer implements WatchCat {
 		} else if (!ds_) { // insert
 			await contract.insert({
 				...ds,
+				address,
 				indexer_id: this.data.id,
 				host: ds.host || '0x0000000000000000000000000000000000000000',
 				time: Date.now(),
@@ -82,24 +89,16 @@ export class Indexer implements WatchCat {
 		}
 	}
 
-	private async solveLogs(logs: TransactionLog[], info: ContractInfo, db: DatabaseCRUD) {
-
-		let tx: Transaction | null = null;
-		let getTx = async (hash: string)=>{
-			if (!tx)
-				tx = await index.watchBlocks[this.chain].getTransaction(hash);
-			return tx!;
-		}
-
+	private async solveLogs(logs: (TransactionLog&{tx:Transaction})[], info: ContractInfo, db: DatabaseCRUD, out: ContractScaner[] ) {
 		for (let log of logs) {
 			let address = log.address;
-			let scaner = mk_scaner(address, info.type, this.chain, db);
-			let tx = await getTx(log.transactionHash);
+			let scaner = mk_scaner(address, info.type,  web3s_2[this.chain] || web3s[this.chain], db);
+			let tx = log.tx;
 
-			if (log.data.slice(0,2) != '0x') {
-				if (log.data == 'rpc:fetch' || log.data.slice(0,4) == 'http'/*Compatible with old*/) {
+			if (log.data) {
+				if (log.data == '0x7270633a6665746368') { // rpc:fetch
 					let logs = await scaner.web3.eth.getPastLogs({
-						fromBlock: tx.blockNumber, toBlock: tx.blockNumber, address: address,
+						fromBlock: log.blockNumber, toBlock: log.blockNumber, address: address,
 					});
 					log.data = logs.find(e=>
 						e.transactionIndex==log.transactionIndex && e.logIndex==log.logIndex
@@ -108,9 +107,9 @@ export class Indexer implements WatchCat {
 			}
 
 			let log_ = {
-				address,
-				data: log.data,
-				topics: [log.topic0, log.topic1, log.topic2, log.topic3].filter(e=>e),
+				address: address,
+				data: log.data?log.data: '0x',
+				topics: log.topic,
 				logIndex: log.logIndex,
 				transactionIndex: log.transactionIndex,
 				transactionHash: log.transactionHash,
@@ -135,6 +134,8 @@ export class Indexer implements WatchCat {
 			};
 
 			await scaner.solveReceiptLog(log_, tx_);
+
+			out.push(scaner);
 		}
 	}
 
@@ -150,6 +151,7 @@ export class Indexer implements WatchCat {
 		let blockNumber = this.data.watchHeight;
 		let watchBlock = index.watchBlocks[chain];
 		let curBlockNumber = await watchBlock.getValidBlockSyncHeight();
+		// let test_id = somes.random();
 
 		let setBlockNumber = async (blockNumber: number)=>{
 			await db.update(`indexer_${chain}`, {watchHeight: blockNumber}, {id: this.data.id});
@@ -158,18 +160,45 @@ export class Indexer implements WatchCat {
 			this.data.watchHeight = blockNumber;
 		};
 
+		let network = ChainType[this.chain].toLowerCase() as 'goerli';
+		let erc20 = erc20_cfg[network]?.map(e=>e.toLowerCase()) || [];
+		let preCheck = !!this._dsList.find(e=>erc20.includes(e.address.toLowerCase()));
+		let DAOs = deployInfo[network].DAOsProxy;
+
 		while (blockNumber < curBlockNumber) {
 			let end = Math.min(blockNumber + 100, curBlockNumber);
+
+			if (preCheck) { // check daos indexer block number
+				let watchHeight = await Indexer.getWatchHeightFromHash(this.chain, DAOs.address);
+				if (watchHeight < end) {
+					break; // wait watchHeight >= end
+				}
+			}
+
 			let logsAll = await watchBlock.getTransactionLogsFrom(blockNumber+1, end, this._dsList);
 
 			for (let block of logsAll.blocks) {
+				let allScaner: (ContractScaner)[] = [];
+
 				await db.transaction(async (db)=>{
 					for (let logs of block.logs) {
-						await this.solveLogs(logs.logs, this._dsList[logs.idx], db);
+						// let log = logs.logs.find(e=>e.transactionHash=='0x84eff6fc01a493fe7dcaaaaf1996eff397592ca44457cdb5303413e61b86b237');
+						// if (log)
+							// console.log(test_id);
+						await this.solveLogs(logs.logs, this._dsList[logs.idx], db, allScaner);
 					}
-					await setBlockNumber(blockNumber = block.blockNumber);
+					if (block.logs.length)
+						await setBlockNumber(blockNumber = block.blockNumber);
 				});
+				// resolve block ok
+
+				if (allScaner.length) {
+					let evt = new Event(null);
+					for (let s of allScaner)
+						s.onAfterSolveBlockReceipts.triggerWithEvent(evt);
+				}
 			}
+
 			if (blockNumber < end) {
 				await setBlockNumber(blockNumber = end);
 			}
@@ -179,12 +208,16 @@ export class Indexer implements WatchCat {
 	}
 }
 
-export class RunIndexer implements WatchCat {
+/**
+ * @class IndexerPool indexer manage
+*/
+export class IndexerPool implements WatchCat {
 	readonly chain: ChainType;
 	readonly workers: number;// = 1;
 	readonly worker: number;// = 0;
 	readonly indexers: Dict<Indexer> = {}; // id => Indexer
 	readonly cattime = 40; // 20 * 6 = 240 second
+	readonly asset_unlock: AssetUnlockWatch;
 
 	constructor(chain: ChainType, worker = 0, workers = 1) {
 		this.chain = chain;
@@ -192,16 +225,15 @@ export class RunIndexer implements WatchCat {
 		this.workers = workers;
 		pool.MAX_CONNECT_COUNT = 10; // max 50
 		// pool.CONNECT_TIMEOUT = 2e4; // 20 second
+		this.asset_unlock = new AssetUnlockWatch(chain);
 	}
 
 	static async addIndexer(
-		chain: ChainType,
-		hash: string,
-		blockNumber: number,
-		initDataSource: (Partial<ContractInfo> & {address: string})[] = []
+		chain: ChainType, hash: string, blockNumber: number,
+		initDataSource: (Partial<ContractInfo> & {address: string, exclude?: boolean/*exclude indexer*/})[] = []
 	) {
 		if (await db.selectOne(`indexer_${chain}`, {hash}))
-			return;
+			return ()=>{};
 
 		let id = await db.transaction(async (db: DatabaseCRUD)=>{
 			let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
@@ -210,7 +242,7 @@ export class RunIndexer implements WatchCat {
 				if (!await contract.select(ds.address, chain, true)) {
 					await db.insert(`contract_info_${chain}`, { // use transaction
 						...ds,
-						indexer_id: id,
+						indexer_id: ds.exclude ? 0: id,
 						host: ds.host || '0x0000000000000000000000000000000000000000',
 						time: Date.now(),
 						blockNumber,
@@ -220,7 +252,7 @@ export class RunIndexer implements WatchCat {
 			return id;
 		});
 
-		postNewIndexer(chain, id);
+		return ()=>postNewIndexer(chain, id);
 	}
 
 	private async addWatch(i: IIndexer) {
@@ -228,9 +260,14 @@ export class RunIndexer implements WatchCat {
 		if (Number(j) == this.worker) {
 			if (!this.indexers[i.id]) {
 				let indexer = new Indexer(this.chain, i);
-				await indexer.initialize(); // init
 				this.indexers[i.id] = indexer;
-				watch.impl.addWatch(indexer); // add to watch
+				try {
+					await indexer.initialize(); // init
+					watch.impl.addWatch(indexer); // add to watch
+				} catch(err) {
+					delete this.indexers[i.id];
+					throw err;
+				}
 			}
 		}
 	}
@@ -245,13 +282,21 @@ export class RunIndexer implements WatchCat {
 		});
 
 		if (isMainWorker) { // init DAOs contract, add indexer
-			let info = deployInfo[ChainType[this.chain].toLowerCase() as 'goerli'];
+			let network = ChainType[this.chain].toLowerCase() as 'goerli';
+			let info = deployInfo[network];
 			if (info) {
 				let {address,blockNumber} = info.DAOsProxy;
 				// init root indexer
-				await RunIndexer.addIndexer(this.chain, address, blockNumber, [{
+				await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
 					address, type: ContractType.DAOs, blockNumber
 				}]);
+
+				for (let address of erc20_cfg[network] || []) {
+					await IndexerPool.addIndexer(this.chain, address, blockNumber, [{
+						address, type: ContractType.ERC20, blockNumber
+					}]);
+					watch.impl.addWatch(this.asset_unlock); // add to watch
+				}
 			}
 		}
 

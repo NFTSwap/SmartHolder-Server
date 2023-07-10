@@ -36,6 +36,9 @@ export interface DAO {
 	members: number;
 	createdBy: string;
 	image: string;
+	state: State;
+	extend: any; // data type as somes/IBuffer
+	share: string;
 }
 
 export interface Member {
@@ -61,32 +64,33 @@ export interface MemberInfo {
 	votes: number;
 }
 
-export enum Selling { // 销售类型
-	UnsellOrUnknown  = 0,  // 0未销售or未知
-	Order   = 1 << 0,   // 2其它平台
-	Opensea = 1 << 1, // 1销售opensea
+export enum Selling { // 销售平台类型
+	Unsell   = 0,      // 0 Unsold
+	Opensea  = 1 << 0, // 1 Opensea
 }
 
 export enum State {
 	Enable,
 	Disable,
+	Complete, // extend state for asset unlock
 }
 
 export interface Asset {
 	id: number;
+	host: string; // dao address
 	token: string; // 合约地址
 	tokenId: string; // id
 	uri: string; // tokenURI
 	owner: string; // 属主
 	author: string; // 作者地址
-	selling: Selling; // 销售类型: 0未销售,1销售opensea,2其它平台
-	sellPrice: string; // 销售价格
+	selling: Selling; // 最后上架销售类型: 0未销售,1销售opensea,2其它平台
+	sellPrice: string; // 最后上架销售价格
 	minimumPrice: string; // 最小销售价格
 	state: State; // 状态: 0正常,1删除
 	time: number; // 数据入库时间
 	modify: number; // 修改时间（非链上数据修改）
 	name: string;//                   varchar (256)  default ('') not null,  -- 名称
-	imageOriign: string;//            varchar (512)  default ('') not null,  -- origin image uri
+	imageOrigin: string;//            varchar (512)  default ('') not null,  -- origin image uri
 	mediaOrigin: string;//            varchar (512)  default ('') not null,  -- origin media uri
 	description: string;//            varchar (2048) default ('') not null,  -- 详细信息
 	externalLink: string;//           varchar (512)  default ('') not null,  -- 外部链接
@@ -96,19 +100,58 @@ export interface Asset {
 	categorie: number;//              int            default (0)  not null,  -- 类别
 	retry: number;//                  int            default (0)  not null   -- 抓取数据重试次数, sync uri data retry count
 	retryTime: number;//              bigint         default (0)  not null,  -- 抓取数据最后重试时间
+	totalSupply: string;//            varchar (66)                not null    -- total supply
+	assetType: AssetType; //          int                         not null   -- asset type, 721/1155
+}
+
+export enum AssetType {
+	Invalid,
+	ERC1155_Single, // Single
+	ERC1155,
+	ERC20,
+	ERC721,
+}
+
+export interface AssetOwner {
+	id: number;//           int     primary key auto_increment not null,
+	asset_id: number;
+	token: string;//        char    (42)                not null,  -- asset contract address
+	tokenId: string;//      char    (66)                not null,  -- token id
+	owner: string;//        char    (42)                not null,  -- owner
+	count: string;//        varchar (66)                not null   -- asset count
 }
 
 export interface AssetOrder {
 	id: number;//           int    primary key auto_increment not null,
+	host: string; //
+	asset_id: number;
 	txHash: string;//       char    (130)                     not null,  -- tx hash
 	blockNumber: number;//  int                               not null,
 	token: string;//        char    (42)                      not null,  -- 协约地址
 	tokenId: string;//      char    (66)                      not null,  -- hash
+	logIndex: number; //
 	fromAddres: string;//   char    (42)                      not null,  -- from
 	toAddress: string;//    char    (42)                      not null,  -- to
-	value: string;//        varchar (128)        default ('') not null,  -- tx value
+	value: string;//        varchar (66)         default ('') not null,  -- tx value
 	description: string;   //  varchar (1024)       default ('') not null,
 	time: number;//         bigint               default (0)  not null
+	count: string;//        varchar (66)                      not null,  -- asset count
+}
+
+export interface AssetUnlock {
+	id: number;//           int    primary key auto_increment not null,
+	host: string;
+	token: string;//        char    (42)                      not null,  -- asset contract address
+	tokenId: string;//      char    (66)                      not null,  -- hash
+	fromAddress: string;//  char    (42)                      not null,  -- owner
+	toAddress: string;//    char    (42)                      not null,  -- previous
+	erc20: string;  //      char    (42)                      not null,
+	amount: string;//       varchar (78)                      not null,
+	source: string;//       char    (42)                      not null,
+	blockNumber: number;//  int                               not null,
+	state: State;//         int            default (0)        not null,
+	time: number;//         bigint         default (0)        not null,
+	message: string;//      varchar (64)   default ('')       not null
 }
 
 export enum LedgerType {
@@ -130,26 +173,35 @@ export interface Ledger {
 	description: string;//     varchar (1024)  default ('') not null, -- 详细
 	target: string;//       varchar (64)                 not null, -- 转账目标,进账为打款人,出账为接收人
 	member_id: string;//    varchar (72)    default ('') not null, -- 成员出账id,如果为成员分成才会存在
-	balance: string;//      varchar (72)                 not null, -- 金额
+	ref: string;//          varchar (42)                 not null, -- 关联地址:资产销售收进账fromAddress,出账为接收人target
+	amount: string;//      varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null, -- 时间
 	blockNumber: number;//  int                          not null  -- 区块
 	state: State;
-	assetIncome_id: number;
 	assetIncome?: LedgerAssetIncome;
+	erc20: string;
+	symbol: string;
 }
 
 export interface LedgerAssetIncome {
-	id: number;//           int primary key auto_increment,
-	ledger_id: number;//    int                          not null, -- ledger_id
+	id: number;//           int primary key,
+	host: string; //
+	asset_id: number;
 	token: string;//        varchar (64)                 not null, -- 原始资产合约地址
 	tokenId: string;//      char    (66)                 not null, -- 原始资产id
-	source: string;//       varchar (64)                 not null, -- 进账来源
-	balance: string;//      varchar (72)                 not null, -- 金额
-	price: string;//        varchar (72)                 not null, -- 成交价格
+	source: string;//       varchar (64)                 not null, -- 进账来源打款源地址
+	amount: string;//       varchar (72)                 not null, -- 实际收到的分成金额
+	price: string;//        varchar (72)                 not null, -- 预估成交价格
+	fromAddress: string;//  varchar (64)                 not null, -- 资产转移from地址
 	toAddress: string;//    varchar (64)                 not null, -- 资产转移目标地址
-	saleType: SaleType;//     int             default (0)  not null,
+	count: string; //       int             default (0)  not null, -- 资产数量
+	saleType: SaleType;//   int             default (0)  not null,
 	blockNumber: number;//  int                          not null, -- 区块
 	time: number;//         bigint                       not null  -- 时间
+	erc20: string;
+	ledger?: Ledger;
+	asset?: Asset;
+	symbol: string;
 }
 
 export interface LedgerReleaseLog {
@@ -158,9 +210,23 @@ export interface LedgerReleaseLog {
 	operator: string;//     varchar (64)                 not null,
 	txHash: string;//       varchar (72)                 not null, -- tx hash
 	log: string;//          varchar (1024)               not null,
-	balance: string;//      varchar (72)                 not null, -- 金额
+	amount: string;//       varchar (72)                 not null, -- 金额
 	time: number;//         bigint                       not null,
 	blockNumber: number;//  int                          not null
+	symbol: string;
+}
+
+export interface LedgerBalance {
+	id: number;//           int primary key auto_increment,
+	host: string;//         varchar (42)                 not null, -- dao host
+	erc20: string;//        varchar (42)                 not null, -- erc20 token address
+	value: string;//        varchar (78)                 not null, -- 余额
+	income: string;//       varchar (78)                 not null, -- 正向收益
+	expenditure: string;//  varchar (78)                 not null, -- 反向支出
+	items: number;//        int                          not null, -- 流通次数
+	symbol: string;//       varchar (32)                 not null, -- erc20 symbol
+	name: string;//         varchar (32)                 not null, -- erc20 name
+	time: number;//         bigint                       not null  -- 更新时间
 }
 
 export interface VoteProposal {
@@ -210,6 +276,10 @@ export enum ContractType {
 	Asset,
 	AssetShell,
 	DAOs,
+	ERC20, // base erc20
+	ERC1155,
+	Share, // erc20 share
+	WETH,  // erc20 weth
 }
 
 export interface ContractInfo {
@@ -242,6 +312,10 @@ export enum ChainType {
 	BSN = 5555,
 	HASHII_TEST = 6666,
 	HASHII = 6667,
+	ARBITRUM = 42161, // ARB
+	ARBITRUM_GOERLI = 421613, // ARB TEST
+	AVALANCHE = 43114, // avax
+	AVALANCHE_FUJI = 43113, // avax fuji
 }
 
 // Network Name: Klaytn Cypress
@@ -272,27 +346,31 @@ export enum ChainType {
 // Symbol: BNB
 // Block Explorer URL: https://testnet.bscscan.com
 
-export class ChainTraits {
-	UNKNOWN = [ChainType.UNKNOWN, 0, 'UNK'];
-	ETHEREUM = [ChainType.ETHEREUM, 18, 'ETH'];
-	MATIC = [ChainType.MATIC, 18, 'MATIC'];
-	KLAYTN = [ChainType.KLAYTN, 18, 'KLAY'];
-	XDAI = [ChainType.XDAI, 18, 'XDAI'];
-	BSC = [ChainType.BSC, 18, 'BNB'];
-	ROPSTEN = [ChainType.ROPSTEN, 18, 'ROPSTEN'];
-	RINKEBY = [ChainType.RINKEBY, 18, 'RINKEBY'];
-	MUMBAI = [ChainType.MUMBAI, 18, 'MUMBAI'];
-	BAOBAB = [ChainType.BAOBAB, 18, 'BAOBAB'];
-	BSC_TESTNET = [ChainType.BSC_TESTNET, 18, 'BNB_TEST'];
-	GOERLI = [ChainType.GOERLI, 18, 'GOERLI'];
-	HCETH = [ChainType.HCETH, 18, 'ETH'];
-	BSN_TEST = [ChainType.BSN_TEST, 18, 'BSN_TEST'];
-	BSN = [ChainType.BSN, 18, 'BSN'];
-	HASHII_TEST = [ChainType.HASHII_TEST, 18, 'HASHII_TEST'];
-	HASHII = [ChainType.HASHII, 18, 'HASHII'];
-}
+export const ChainTraits: Dict<[ChainType, number, string]> = {
+	UNKNOWN: [ChainType.UNKNOWN, 0, 'UNK'],
+	ETHEREUM: [ChainType.ETHEREUM, 18, 'ETH'],
+	MATIC: [ChainType.MATIC, 18, 'MATIC'],
+	KLAYTN: [ChainType.KLAYTN, 18, 'KLAY'],
+	XDAI: [ChainType.XDAI, 18, 'XDAI'],
+	BSC: [ChainType.BSC, 18, 'BNB'],
+	ROPSTEN: [ChainType.ROPSTEN, 18, 'ROPSTEN'],
+	RINKEBY: [ChainType.RINKEBY, 18, 'RINKEBY'],
+	MUMBAI: [ChainType.MUMBAI, 18, 'MUMBAI'],
+	BAOBAB: [ChainType.BAOBAB, 18, 'BAOBAB'],
+	BSC_TESTNET: [ChainType.BSC_TESTNET, 18, 'BNB_TEST'],
+	GOERLI: [ChainType.GOERLI, 18, 'GOERLI'],
+	HCETH: [ChainType.HCETH, 18, 'ETH'],
+	BSN_TEST: [ChainType.BSN_TEST, 18, 'BSN_TEST'],
+	BSN: [ChainType.BSN, 18, 'BSN'],
+	HASHII_TEST: [ChainType.HASHII_TEST, 18, 'HASHII_TEST'],
+	HASHII: [ChainType.HASHII, 18, 'HASHII'],
+	ARBITRUM: [ChainType.ARBITRUM, 18, 'ETH'],
+	ARBITRUM_GOERLI: [ChainType.ARBITRUM_GOERLI, 18, 'GOERLI'],
+	AVALANCHE: [ChainType.AVALANCHE, 18, 'AVAX'],
+	AVALANCHE_FUJI: [ChainType.AVALANCHE_FUJI, 18, 'AVAX_FUJI'],
+};
 
-export const chainTraits = new ChainTraits();
+export const chainTraits = ChainTraits;
 
 export interface EventsItem {
 	id: string;//                   int primary        key auto_increment, -- 主键id
@@ -328,42 +406,42 @@ export interface TokenURIInfo {
 }
 
 export interface Transaction {
-	id: number;//                int primary key auto_increment,
-	nonce: number;//             int                          not null,
-	blockNumber: number;//       int                          not null, -- input
-	fromAddress: string;//       char (42)                    not null,
-	toAddress: string;//         char (64)                    not null,
-	value: string;//             varchar (66)                 not null,
-	gasPrice: string;//          varchar (66)                 not null,
-	gas: string;//               varchar (66)                 not null, -- gas limit
-	// data: string;//              text                             null, -- input data hex format
-	blockHash: string;//         char (66)                    not null, -- receipt
-	transactionHash: string;//   char (66)                    not null,
-	transactionIndex: number;//  int                          not null,
-	gasUsed: number;//           varchar (66)                 not null, -- use gasd
-	cumulativeGasUsed: number;// varchar (66)                 not null,
-	effectiveGasPrice: number;// varchar (66)                 not null,
-	// logsBloom: number;//         varchar (514)                not null,
-	contractAddress: number;//   char (42)                        null, -- created contract address
+	id: number;//                int unsigned primary key auto_increment,
+	nonce: number;//             int unsigned                 not null,
+	fromAddress: string;//       binary (20)                  not null,
+	toAddress: string;//         binary (20)                  not null,
+	value: string;//             varbinary (32)               not null,
+	gasPrice: string;//          varbinary (32)               not null,
+	gas: string;//               varbinary (32)               not null, -- gas limit
+	// data: string;//              blob                           null, -- input data hex format
+	gasUsed: string;//           varbinary (32)               not null, -- use gasd
+	cumulativeGasUsed: string;// varbinary (32)               not null,
+	// effectiveGasPrice: string;// varbinary (32)                 not null,
+	blockNumber: number;//       int unsigned                 not null, -- input
+	blockHash: string;//         binary (32)                  not null, -- receipt
+	transactionHash: string;//   binary (32)                  not null,
+	transactionIndex: number;//  smallint unsigned            not null,
+	// logsBloom: number;//         blob                           not null,
+	contractAddress?: string;//  binary (20)                  null, -- created contract address
 	status: boolean;//           bit                          not null,
-	logsCount: number;//         int                          not null -- logs count
-	time: number;
+	logsCount: number;//         smallint unsigned            not null -- logs count
+	txHash: number;//            int unsigned                 not null, -- short transaction hash
+	fromHash: number;//          int unsigned                 not null,
+	toHash: number;//            int unsigned                 not null
 }
 
 export interface TransactionLog {
-	id: number;//                int primary key auto_increment,
-	tx_id: number;//             int                          not null,
-	address: string;//           char (42)                    not null,
-	topic0: string;//            varchar (66)                 not null,
-	topic1: string;//            varchar (66)  default ('')   not null,
-	topic2: string;//            varchar (66)  default ('')   not null,
-	topic3: string;//            varchar (66)  default ('')   not null,
-	data: string;//              text                         null,
-	logIndex: number;//          int                          not null,
-	transactionIndex: number;//  int                          not null,
-	transactionHash: string;//   char (66)                    not null,
-	blockHash: string;//         char (66)                    not null,
-	blockNumber: number;//       int                          not null
+	tx_id: number;//             int unsigned                 not null,
+	address: string;//           binary (20)                  not null,
+	topic: string[];//           varbinary (128)              not null,
+	data: string;//              blob                         null,
+	logIndex: number;//          int unsigned                 not null,
+	transactionIndex: number;//  smallint unsigned            not null,
+	transactionHash: string;//   binary (32)                  not null,
+	blockHash: string;//         binary (32)                  not null,
+	blockNumber: number;//       int unsigned                 not null,
+	addressHash: number;//       int unsigned                 not null
+	txHash: string;//            char (66)                    not null
 }
 
 export interface Indexer {

@@ -3,19 +3,20 @@
  * @date 2022-07-20
  */
 
-import {HandleEventData} from './scaner';
-import {ModuleScaner} from './asset';
-import * as constants from './constants';
-import db, {DAO as IDAO,ContractType} from '../db';
-import watch from './index';
-import {Indexer} from './indexer';
+import {HandleEventData,ModuleScaner} from '.';
+import * as constants from '../constants';
+import {DAO as IDAO,ContractType} from '../../db';
+import sync from '../index';
+import {Indexer} from '../indexer';
+import * as crypto from 'crypto-tx';
+import somes from 'somes';
 
 export class DAO extends ModuleScaner {
 
 	async setDataSource(indexer: Indexer, del: string, add: string, type: ContractType) {
 		if (del != add) {
 			await indexer.deleteDataSource(del);
-			await indexer.addDataSource({ address: add, host: this.address, type, time: Date.now() });
+			await indexer.addDataSource({ address: add, host: this.address, type, blockNumber: this.blockNumber });
 		}
 	}
 
@@ -34,7 +35,9 @@ export class DAO extends ModuleScaner {
 				let methods = await this.methods();
 				let {address,chain} = this;
 				let dao = (await db.selectOne<IDAO>(`dao_${chain}`, { address }))!;
-				let indexer = watch.getIndexerFromHash(chain, this.address);
+				let indexer = sync.getIndexerFromHash(chain, this.address);
+
+				somes.assert(dao, `#DAO.SetModule.handle is dao empty`);
 
 				switch (id) {
 					case constants.Module_MEMBER_ID:
@@ -48,9 +51,9 @@ export class DAO extends ModuleScaner {
 						await this.setDataSource(indexer, dao.ledger, ledger, ContractType.Ledger);
 						break;
 					case constants.Module_ASSET_ID:
-						let asset = await methods.module(constants.Module_ASSET_ID).call();
-						await db.update(`dao_${chain}`, { asset, modify }, { address });
-						await this.setDataSource(indexer, dao.asset, asset, ContractType.Asset);
+						//let asset = await methods.module(constants.Module_ASSET_ID).call();
+						//await db.update(`dao_${chain}`, { asset, modify }, { address });
+						//await this.setDataSource(indexer, dao.asset, asset, ContractType.Asset);
 						break;
 					case constants.Module_ASSET_First_ID:
 						let first = await methods.module(constants.Module_ASSET_First_ID).call();
@@ -61,6 +64,11 @@ export class DAO extends ModuleScaner {
 						let second = await methods.module(constants.Module_ASSET_Second_ID).call();
 						await db.update(`dao_${chain}`, { second, modify }, { address });
 						await this.setDataSource(indexer, dao.second, second, ContractType.AssetShell);
+						break;
+					case constants.Module_SHARE_ID:
+						let share = await methods.module(constants.Module_SHARE_ID).call();
+						await db.update(`dao_${chain}`, { share, modify }, { address });
+						await this.setDataSource(indexer, dao.share, share, ContractType.Share);
 						break;
 				}
 			}
@@ -87,9 +95,13 @@ export class DAO extends ModuleScaner {
 				let mission = await methods.mission().call();
 				await this.db.update(`dao_${chain}`, { mission, modify }, { address });
 				break;
-				case constants.Change_Tag_DAO_Image:
+			case constants.Change_Tag_DAO_Image:
 				let image = await methods.image().call();
 				await this.db.update(`dao_${chain}`, { image, modify }, { address });
+				break;
+			case constants.Change_Tag_DAO_Extend:
+				let extend = crypto.toBuffer(await methods.extend().call());
+				await this.db.update(`dao_${chain}`, { extend, modify }, { address });
 				break;
 		}
 	}

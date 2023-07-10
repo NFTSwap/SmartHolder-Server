@@ -1,26 +1,17 @@
 
-import { DAO,AssetOrder,Asset } from './define';
+import { DAO,AssetOrder,Asset, Member,AssetOwner } from './define';
 
 export interface AssetOrderExt extends AssetOrder {
-	asset_id: number,
-	asset: Asset;
+	asset?: Asset;
+}
+
+export interface AssetExt extends Asset {
+	dao?: DAO;
+	asset_owner?: AssetOwner;
 }
 
 export interface DAOExtend extends DAO {
-	isMember: boolean;
-	isLike: boolean;
-}
-
-export interface DAOSummarys {
-	membersTotal: number;
-	voteProposalTotal: number; // all proposals total
-	voteProposalPendingTotal: number; // ongoing proposals
-	voteProposalExecutedTotal: number; // resolutions complete executed
-	voteProposalResolveTotal: number; // resolve total
-	voteProposalRejectTotal: number; // reject total
-	assetTotal: number;
-	assetAmountTotal: string;
-	assetOrderTotal: number;
-	assetOrderAmountTotal: string; // Asset order Amount
-	assetLedgerIncomeTotal: string; // Asset Ledger Income
+	isMember?: boolean;
+	isLike?: boolean;
+	memberObjs?: Member[];
 }

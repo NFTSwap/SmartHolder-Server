@@ -20,7 +20,7 @@ export function existsPrefix(prefix: string) {
 
 export function isQiniuPath(src: string) {
 	if (!src) return false;
-	var ok = cfg.qiniu.all_prefix.find(e=>{
+	let ok = cfg.qiniu.all_prefix.find(e=>{
 		return src.substring(0, e.length) == e;
 	});
 	return !!ok;
@@ -35,8 +35,8 @@ export class QiniuSync implements WatchCat<any> {
 	tryTime = 1 * 10; // 1 minute
 
 	get updateList() {
-		var r = [] as string[];
-		for (var s of this._updates.keys())
+		let r = [] as string[];
+		for (let s of this._updates.keys())
 			r.push(s);
 		return r;
 	}
@@ -49,13 +49,13 @@ export class QiniuSync implements WatchCat<any> {
 	async upload(src: string, dest?: string) {
 		somes.assert(!this._updates.has(src), errno.ERR_QINIU_UPLOADING_ERR, { src });
 		somes.assert(this._updates.size < this._updateLimit, errno.ERR_QINIU_UPLOAD_LIMIT);
-		var retry = 5;
+		let retry = 5;
 		do {
 			try {
 				this._updates.set(src, 1);
 				console.log('Qiniu upload retry', 5 - retry, src);
 				somes.assert(await fs2.exists(src), errno.ERR_QINIU_UPLOADING_ERR, {src});
-				var key = dest || path.basename(src);
+				let key = dest || path.basename(src);
 				if (await exists(key)) return key; //
 				return await qiniu(src, dest);
 			} catch(err: any) {

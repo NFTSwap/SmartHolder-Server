@@ -4,16 +4,18 @@
  */
 
 import ApiController from '../api';
-import { ChainType, State,Selling,LedgerType,TokenURIInfo } from '../db';
+import { ChainType, State,Selling,LedgerType,TokenURIInfo,AssetType} from '../db';
 import * as utils from '../models/utils';
 import * as dao from '../models/dao';
 import * as asset from '../models/asset';
+import * as order from '../models/order';
 import * as events from '../models/events';
 import * as member from '../models/member';
 import * as ledger from '../models/ledger';
 import * as vp from '../models/vote_pool';
 import * as qn from 'bclib/qn';
 import { RuleResult } from 'somes/router';
+import {qiniu} from '../../config';
 
 const non_auth_apis = ['printJSON'];
 
@@ -34,8 +36,11 @@ export default class extends ApiController {
 				v == 'true' ? true:
 				v == 'false' ? false:
 				v.match(/^\d+$/) ? Number(v):
+				v.substring(0,3) == 'b64' ? Buffer.from(v.substring(3), 'base64').toString() :
+				v.substring(0,3) == '0xs' ? Buffer.from(v.substring(3), 'hex').toString() :
 				v.substring(0,4) == 'b64,' ? Buffer.from(v.substring(4), 'base64').toString() :
-				v.substring(0,4) == 'hex,' ? Buffer.from(v.substring(4), 'hex').toString() : v
+				v.substring(0,4) == 'hex,' ? Buffer.from(v.substring(4), 'hex').toString() :
+				v
 			);
 		this.returnString(JSON.stringify(json), this.server.getMime('json'));
 	}
@@ -59,8 +64,8 @@ export default class extends ApiController {
 	/**
 	 * @method getDAOsFromOwner() 通过owner钱包地址获取dao列表
 	 * */ 
-	getDAOsFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return dao.getDAOsFromOwner(chain,owner);
+	getDAOsFromOwner({chain,owner,memberObjs}: { chain: ChainType, owner: string, memberObjs?: number}) {
+		return dao.getDAOsFromOwner.query({chain,owner,memberObjs});
 	}
 
 	/**
@@ -70,19 +75,23 @@ export default class extends ApiController {
 	async getMembersFrom({chain,host,owner,time,orderBy,limit}: { 
 		chain: ChainType, host: string, owner?: string, time?: number |number[], orderBy?: string, limit?: number | number[]
 	}) {
-		let ms = await member.getMembersFrom(chain,host,owner,time,orderBy,limit);
+		let ms = await member.getMembersFrom.query({chain,host,owner,time,orderBy,limit});
 		return ms.map(e=>((e as any).avatar=e.image,e)); // Compatible with older versions
 	}
 
 	/**
 	 * @method getAssetFrom() 通过dao地址与owner获取资产列表
 	 * */ 
-	getAssetFrom({chain,host,owner,author,state,name,time,selling,orderBy,limit,owner_not,author_not}: {
-		chain: ChainType, host: string, owner?: string, author?: string, 
-		owner_not?: string, author_not?: string, state?: State,
-		name?: string, time?: [number,number], selling?: Selling, orderBy?: string, limit?: number | number[]
+	getAssetFrom({
+		chain,host,owner,author,state,name,time,orderBy,limit,owner_not,author_not,assetType,selling,selling_not,tokenIds
+	}: {
+		chain: ChainType, host?: string, owner?: string, author?: string,
+		owner_not?: string, author_not?: string, state?: State,tokenIds?: string[],
+		selling?: Selling, selling_not?: Selling, assetType?: AssetType,
+		name?: string, time?: [number,number], orderBy?: string, limit?: number | number[]
 	}) {
-		return asset.getAssetFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling,orderBy,limit);
+		return asset.getAssetFrom.query({chain,host,owner,author,tokenIds,
+			owner_not,author_not,state,name,time,assetType,orderBy,limit,selling,selling_not});
 	}
 
 	/**
@@ -95,50 +104,63 @@ export default class extends ApiController {
 	/**
 	 * @method getAssetOrderFrom() 通过dao地址与fromAddres地址获订单列表
 	 * */ 
-	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,name,time,limit,orderBy}: {
-		chain: ChainType, host: string, fromAddres?: string,
-		toAddress?: string, tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
+	getAssetOrderFrom({chain,host,tokenId,fromAddres,toAddress,fromAddres_not,toAddress_not,name,time,limit,orderBy}: {
+		chain: ChainType, host: string, fromAddres?: string, toAddress?: string,
+		fromAddres_not?: string, toAddress_not?: string,
+		tokenId?: string, name?: string, time?: [number,number], limit?: number | number[], orderBy?: string
 	}) {
-		return asset.getAssetOrderFrom(chain,host,fromAddres,toAddress,tokenId,name,time,orderBy,limit);
+		return order.getAssetOrderFrom.query({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time,orderBy,limit});
+	}
+
+	getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,fromAddres_not,toAddress_not,name,time}: {
+		chain: ChainType, host: string, fromAddres?: string,toAddress?: string,
+		fromAddres_not?: string, toAddress_not?: string,
+		tokenId?: string, name?: string, time?: [number,number]
+	}) {
+		return order.getAssetOrderFrom.queryTotal({chain,host,fromAddres,toAddress,fromAddres_not,toAddress_not,tokenId,name,time});
 	}
 
 	getOrderTotalAmount({chain,host,tokenId,fromAddres,toAddress,name,time}: {
 		chain: ChainType, host: string, fromAddres?: string,
 		toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
 	}) {
-		return asset.getOrderTotalAmount(chain,host,fromAddres, toAddress, tokenId, name,time);
+		return order.getOrderSummarys({chain,host,fromAddres, toAddress,
+			fromAddres_not: '0x0000000000000000000000000000000000000000',
+			toAddress_not: '0x0000000000000000000000000000000000000000', tokenId, name,time});
 	}
 
-	getAssetTotalFrom({chain,host,owner,author,state,name,time,selling,owner_not,author_not}: {
-		chain: ChainType, host: string, 
-		owner?: string, author?: string, 
-		owner_not?: string, author_not?: string,
-		state?: State, name?: string, time?: [number,number],selling?: Selling
+	getAssetTotalFrom({chain,host,owner,author,state,name,time,assetType,owner_not,author_not,selling,selling_not}: {
+		chain: ChainType, host?: string, owner?: string, author?: string, 
+		owner_not?: string, author_not?: string, selling?: Selling, selling_not?: Selling, 
+		assetType?: AssetType, state?: State, name?: string, time?: [number,number]
 	}) {
-		return asset.getAssetTotalFrom(chain,host,owner,author,owner_not,author_not,state,name,time,selling);
-	}
-
-	 getAssetOrderTotalFrom({chain,host,fromAddres,toAddress,tokenId,name,time}: {
-		chain: ChainType, host: string, fromAddres?: string,toAddress?: string, tokenId?: string, name?: string, time?: [number,number]
-	}) {
-		return asset.getAssetOrderTotalFrom(chain,host,fromAddres,toAddress,tokenId,name,time);
+		return asset.getAssetFrom.queryTotal({
+			chain,host,owner,author,owner_not,author_not,assetType,state,name,time,selling,selling_not
+		});
 	}
 
 	/**
 	 * @method getLedgerItemsFromHost() 通过dao地址获取财务流水
 	 * */ 
-	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy}: {
-		chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State, limit?: number | number[], orderBy?: string
+	getLedgerItemsFromHost({chain,host,type,time,state,limit,orderBy,target,target_not,ref}: {
+		chain: ChainType, host: string, type?: LedgerType, time?: [number,number],
+		state?: State, limit?: number | number[], orderBy?: string,target?: string,target_not?: string,ref?:string
 	}) {
-		return ledger.getLedgerItemsFromHost(chain,host,type,time,state,orderBy,limit);
+		return ledger.getLedgerFrom.query({chain,host,type,time,state,orderBy,limit,target,target_not,ref});
 	}
 
-	getLedgerItemsTotalFromHost({chain,host,type,time,state}: { chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return ledger.getLedgerItemsTotalFromHost(chain,host,type,time,state);
+	getLedgerItemsTotalFromHost({chain,host,type,time,state,target,target_not,ref}: {
+		chain: ChainType, host: string, type?: LedgerType,
+		time?: [number,number], state?: State,target?: string, target_not?: string,ref?:string
+	}) {
+		return ledger.getLedgerFrom.queryTotal({chain,host,type,time,state,target,target_not,ref});
 	}
 
-	getLedgerTotalAmount({chain,host,type,time,state}: {chain: ChainType, host: string, type?: LedgerType, time?: [number,number], state?: State}) {
-		return ledger.getLedgerTotalAmount(chain,host,type,time,state);
+	getLedgerTotalAmount({chain,host,type,time,state,target,target_not,ref}: {
+		chain: ChainType, host: string, type?: LedgerType,
+		time?: [number,number], state?: State,target?: string,target_not?: string,ref?:string
+	}) {
+		return ledger.getLedgerSummarys({chain,host,type,time,state,target,target_not,ref});
 	}
 
 	/**
@@ -150,10 +172,14 @@ export default class extends ApiController {
 	
 	/**
 	 * @method getVoteProposalFrom() 通过投票合约地址 address、proposal_id（可选） 获投票提案列表
+	 * @param target {string} target='[]' 表示普通提案
 	 * */ 
-	getVoteProposalFrom({chain,address,proposal_id,limit,orderBy}: {
-		chain: ChainType, address: string, proposal_id?: string, limit?: number | number[], orderBy?: string}) {
-		return vp.getVoteProposalFrom(chain,address,proposal_id,orderBy, limit);
+	getVoteProposalFrom({
+		chain,address,proposal_id, name, isAgree,isClose, isExecuted, target, limit,orderBy}: {
+		chain: ChainType, address: string, proposal_id?: string,
+		name?: string, isAgree?: boolean,isClose?: boolean, isExecuted?: boolean, target?: string,
+		limit?: number | number[], orderBy?: string}) {
+		return vp.getVoteProposalFrom(chain,address,proposal_id, name, isAgree,isClose, isExecuted, target,orderBy,limit);
 	}
 
 	/**
@@ -169,6 +195,19 @@ export default class extends ApiController {
 	 * */ 
 	qiniuToken() {
 		return qn.uploadToken().token;
+	}
+
+	/**
+	 * @method qiniuToken() 获取当前使用的七牛配置
+	 * */ 
+	qiniuConfig() {
+		return {
+			scope: qiniu.scope,
+			zone: qiniu.zone,
+			prefix: qiniu.prefix, // 'https://smart-dao-res-us.stars-mine.com'
+			token: qn.uploadToken().token,
+			config: qn.config().zone!,
+		};
 	}
 
 	/**
@@ -204,15 +243,18 @@ export default class extends ApiController {
 	}
 
 	getDAOsTotalFromOwner({chain,owner}: { chain: ChainType, owner: string}) {
-		return dao.getDAOsTotalFromOwner(chain,owner);
+		return dao.getDAOsFromOwner.queryTotal({chain,owner});
 	}
 
 	getMembersTotalFrom({chain,host,owner,time}: { chain: ChainType, host: string, owner?: string, time?:number| number[]}) {
-		return member.getMembersTotalFrom(chain,host,owner,time);
+		return member.getMembersFrom.queryTotal({chain,host,owner,time});
 	}
 
-	getVoteProposalTotalFrom({chain,address,proposal_id}: { chain: ChainType, address: string, proposal_id?: string}) {
-		return vp.getVoteProposalTotalFrom(chain,address,proposal_id);
+	getVoteProposalTotalFrom({chain,address,proposal_id,name, isAgree, isClose, isExecuted, target}: {
+		chain: ChainType, address: string, proposal_id?: string,
+		name?: string, isAgree?: boolean, isClose?: boolean, isExecuted?: boolean, target?: string
+	}) {
+		return vp.getVoteProposalTotalFrom(chain,address,proposal_id,name, isAgree, isClose, isExecuted, target);
 	}
 
 	getVotesTotalFrom({chain,address,proposal_id,member_id}: { chain: ChainType, address: string, proposal_id: string, member_id?: string}) {

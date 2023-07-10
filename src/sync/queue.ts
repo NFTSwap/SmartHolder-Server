@@ -18,6 +18,7 @@ export interface QueueData {
 	state: number;
 	active: number;
 	chain: ChainType;
+	flags: number;
 }
 
 export interface SyncRuning {
@@ -60,10 +61,13 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 				chain              int                         not null,  -- chain id
 				canRetry           int            default (0)  not null,  -- 在队列中可重试的次数
 				state              int            default (0)  not null,  -- 0 待处理,1 正在处理中
-				active             bigint         default (0)  not null   -- 处理这条数据的活跃时间,超过不活跃会重新加入处理
+				active             bigint         default (0)  not null,   -- 处理这条数据的活跃时间,超过不活跃会重新加入处理
+				flags              int            default (0)  not null 
 			);
 		`,
-		[], [
+		[
+			`alter table ${name} add flags int  default (0)  not null`,
+		], [
 			`create unique  index ${name}_idx0         on ${name}             (chain,asset_id)`,
 			`create         index ${name}_idx1         on ${name}             (chain,contract_info_id)`,
 		], `shs_${name}`);
@@ -88,13 +92,23 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		let asset = await db.selectOne<Asset>(`asset_${chain}`, { id: asset_id });
 		if (!asset) {
 			await db.delete(this._name, {id: it.id}); // delete data
-			throw Error.new(`#AssetSyncQueue#_Dequeue Asset data not found`,  {asset_id});
+			if (it.canRetry-- > 0) { // re enqueue
+				await db.insert(this._name, {
+					asset_id,
+					contract_info_id: it.contract_info_id,
+					canRetry: it.canRetry,
+					chain: it.chain
+				});
+				return;
+			} else {
+				throw Error.new(`#AssetSyncQueue._Dequeue Asset data not found`,  {asset_id});
+			}
 		}
 
 		let contract = await db.selectOne<ContractInfo>(`contract_info_${chain}`, { id: it.contract_info_id });
 		if (!contract) {
 			await db.delete(this._name, {id: it.id}); // delete data
-			throw Error.new(`#AssetSyncQueue#_Dequeue Asset and ContractInfo data not found`,  asset);
+			throw Error.new(`#AssetSyncQueue._Dequeue Asset and ContractInfo data not found`,  asset);
 		}
 
 		let {token, tokenId} = asset;
@@ -118,7 +132,7 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 
 				await this.sync(asset, chain, false, it); // sync
 			} catch (err: any) {
-				console.warn('#AssetSyncQueue#_Dequeue', ...err.filter(['message', 'description', 'stack']));
+				console.warn('#AssetSyncQueue._Dequeue', ...err.filter(['message', 'description', 'stack']));
 				await this._onErr(err, chain);
 			} finally {
 				this._runingObj.delete(idStr);
@@ -128,10 +142,10 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		somes.nextTick(()=>this.dequeue());
 	}
 
-	async sync(asset: Asset, chain: ChainType, force?: boolean, qd?: QueueData) {
+	async sync(asset: Asset, chain: ChainType, force?: boolean, qd?: QueueData, flags = 0) {
 		if (asset.retry < 10 || force) {
 			try {
-				await this.onSync(asset, chain);
+				await this.onSync(asset, chain, flags);
 				somes.assert(asset.mediaOrigin, errno.ERR_SYNC_META_IMAGE_NONE);
 				await this.onSyncComplete(asset, chain);
 				await db.delete(this._name, { asset_id: asset.id, chain }); // delete data
@@ -155,7 +169,7 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 		await this.onError(asset, chain);
 	}
 
-	protected abstract onSync(asset: Asset, chain: ChainType): Promise<void>;
+	protected abstract onSync(asset: Asset, chain: ChainType, flags: number): Promise<void>;
 	protected async onSyncComplete(asset: Asset, chain: ChainType) {}
 	protected async onError(asset: Asset, chain: ChainType) {}
 
@@ -168,25 +182,24 @@ export abstract class AssetSyncQueue implements WatchCat<any> {
 	}
 
 	async dequeue() {
-		if (!env.watch_main) return;
 		if (this._runing >= this._runingLimit) return;
 		try {
 			this._runing++;
 			if (this.isCanDequeue()) { // disk space ok
 				await this._Dequeue();
 			} else {
-				console.error('#AssetSyncQueue#dequeue ******** Insufficient disk space ********');
+				console.error('#AssetSyncQueue.dequeue ******** Insufficient disk space ********');
 			}
 		} finally {
 			this._runing--;
 		}
 	}
 
-	async enqueue(asset_id: number, address: string, chain: ChainType, canRetry = 1) { //  asset_contract_id: number
+	async enqueue(asset_id: number, address: string, chain: ChainType, canRetry = 1, flags = 0) { //  asset_contract_id: number
 		if (!await this.isQueue(asset_id, chain)) {
 			let ac = await db.selectOne<ContractInfo>(`contract_info_${chain}`, { address });
 			if (ac) {
-				await db.insert(this._name, { asset_id, contract_info_id: ac.id, canRetry, chain });
+				await db.insert(this._name, { asset_id, contract_info_id: ac.id, canRetry, chain, flags });
 				this.dequeue();
 			}
 		}

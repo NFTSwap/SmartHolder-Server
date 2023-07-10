@@ -9,6 +9,7 @@ export const DAO_Type = 0xc7b55336; // bytes4(keccak256('initDAO(string,address,
 export const Ledger_Type = 0xf4c38e51; // bytes4(keccak256('initLedger(address,string,address)'))
 export const Member_Type = 0x23fc76b9; // bytes4(keccak256('initMember(address,string,address)'))
 export const VotePool_Type = 0x0ddf27bf; // bytes4(keccak256('initVotePool(address,string)'))
+export const Share_Type = 0x4ea588b0; // bytes4(keccak256('initShare(address,string)'))
 
 // Module indexed id
 export const Module_DAO_ID = 0;
@@ -17,6 +18,7 @@ export const Module_LEDGER_ID = 2;
 export const Module_ASSET_ID = 3;
 export const Module_ASSET_First_ID = 4;
 export const Module_ASSET_Second_ID = 5;
+export const Module_SHARE_ID = 6;
 
 // Departments Change tag
 export const Change_Tag_Common = 0;
@@ -29,6 +31,7 @@ export const Change_Tag_Asset_set_seller_fee_basis_points = 6;
 export const Change_Tag_Asset_set_fee_recipient = 7;
 export const Change_Tag_Member_Set_Executor = 8;
 export const Change_Tag_DAO_Image = 9;
+export const Change_Tag_DAO_Extend = 10;
 
 // Action Permission defines
 export const Action_Member_Create = 0x22a25870; // bytes4(keccak256('create(address,string memory,Info memory,uint256[] memory)'))
@@ -40,5 +43,6 @@ export const Action_DAO_SetModule = 0x5d29163; // bytes4(keccak256('setModule(ui
 export const Action_Asset_set_seller_fee_basis_points = 0x91eb3dee; // bytes4(keccak256('set_seller_fee_basis_points(uint32)'))
 export const Action_Asset_Shell_Withdraw = 0x2e1a7d4d; // bytes4(keccak256('withdraw(uint256)'))
 export const Action_Ledger_Withdraw = 0xf108a7d2; // bytes4(keccak256('withdraw(uint256,address,string)'))
+export const Action_Ledger_Release = 0xe0626f7e; // bytes4(keccak256('release(uint256,string)'))
 
 // contract Constants {}

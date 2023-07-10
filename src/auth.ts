@@ -4,6 +4,7 @@ import auth, {Cache,User,AuthorizationManager,AuthorizationKeyType,Authorization
 import errno from './errno';
 import {Notification} from 'somes/event';
 import redis, {RedisClientType} from 'bclib/redis';
+import db from './db';
 
 export * from 'bclib/auth';
 
@@ -43,6 +44,10 @@ class AuthCache implements Cache {
 }
 
 class Manager extends AuthorizationManager {
+
+	getFromRef(ref: string): Promise<User | null> {
+		return db.selectOne(`auth_user`, {ref})
+	}
 
 	async initialize(msg?: Notification) {
 		await super.initialize(msg);
