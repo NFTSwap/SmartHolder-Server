@@ -19,7 +19,7 @@ module.exports = {
 	enable_auth: true,
 	env: 'dev',
 	mysql: {
-		host: '192.168.1.83', port: 3306, user: 'smartholder', password: 'M5CpA/0hvk8IyD8QHViHsmartholder', database: 'smartholder', // dev inner
+		host: '192.168.1.83', port: 3306, user: 'smartholder', password: '', database: 'smartholder', // dev inner
 		// host: 'rdata.stars-mine.com', port: 22022, user: 'chuxuewen', password: '%5KNRKDQXcvBq358DkWQxtunVN5rel', database: 'smartholder',
 	},
 	fastStart: false,

@@ -14,6 +14,6 @@ module.exports = {
 	mbus_auth: 'nft_mqtt_dev:inmyshowD3', // user:password
 	env: 'dev',
 	mysql: {
-		host: '192.168.0.189', port: 3306, user: 'root', password: 'uzBGtlhlHnAQFtxdKj*Z', database: 'mvp', // dev inner
+		host: '192.168.0.189', port: 3306, user: 'root', password: '', database: 'mvp', // dev inner
 	},
 };
