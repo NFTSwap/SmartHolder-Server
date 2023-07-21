@@ -146,7 +146,7 @@ export class MvpWeb3 extends BcWeb3 {
 			(cfg.web3Mode[chain_str] || Web3Mode.kMultiple_Random): Web3Mode.kMultiple_Random;//Web3Mode.kMultiple_Fixed;
 		var switchMode = (this.mode == Web3Mode.kMultiple_Random ? MPSwitchMode.kRandom: MPSwitchMode.kFixed);
 		this.gasPriceLimit = Number(cfg.web3PriceLimit[chain_str]) || 0;
-		this.setProvider(new MvpMultipleProvider(_cfg, undefined, switchMode));
+		this.setProvider(new MvpMultipleProvider(_cfg, undefined, switchMode, 60*1e3));
 		if (cfg.logs.rpc || env == 'dev')
 			this.provider.logs = 2;
 	}
