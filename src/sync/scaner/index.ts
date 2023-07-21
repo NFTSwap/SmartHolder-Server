@@ -114,7 +114,11 @@ export abstract class ContractScaner {
 
 	contract() { return this.web3.contract(this.address) }
 	async methods() { return (await this.contract()).methods }
-	async host() { return (await this.info()).host }
+	async host() {
+		let host = (await this.info()).host!;
+		somes.assert(host, '#ContractScaner.host()');
+		return host;
+	}
 
 	constructor(address: string, type: ContractType, chain: ChainType | MvpWeb3, db_?: DatabaseCRUD) {
 		this.address = cryptoTx.checksumAddress(address);

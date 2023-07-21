@@ -284,14 +284,14 @@ export enum ContractType {
 
 export interface ContractInfo {
 	id: number;//           int primary key auto_increment,
-	host: string;
+	host: string|null;
 	address: string;//      varchar (64)                 not null,
 	type: ContractType;//   int          default (0)     nut null, -- contracts type
 	blockNumber: number;//  合约部署高度
 	abi: string | null; //  abi
 	state: State; //        int          default (0)     not null, -- 状态: 0启用, 1禁用
-	time: number; //        bigint                       not null  -- 
 	indexer_id: number;
+	addressNumber: number;//smallint unsigned             not null  -- query region number  0-65535
 }
 
 export enum ChainType {
@@ -441,6 +441,7 @@ export interface TransactionLog {
 	blockHash: string;//         binary (32)                  not null,
 	blockNumber: number;//       int unsigned                 not null,
 	addressHash: number;//       int unsigned                 not null
+	addressNumber: number; //    smallint unsigned            not null  -- query region number  0-65535
 	txHash: string;//            char (66)                    not null
 }
 

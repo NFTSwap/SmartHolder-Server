@@ -25,6 +25,8 @@ import api from '../request';
 import * as deployInfo from '../../deps/SmartHolder/deployInfo.json';
 import {toBuffer as toBuffer_0} from 'crypto-tx';
 import * as cry_utils from 'crypto-tx/utils';
+import * as contract from '../models/contract';
+import {hash} from '../utils';
 
 const addressZero = '0x0000000000000000000000000000000000000000';
 const Zero = BigInt(0);
@@ -81,10 +83,6 @@ function formatTransactionLog(log: any, tx: ITransaction): TransactionLog {
 	log.transactionHash = tx.transactionHash;
 	log.blockHash = tx.blockHash;
 	return log;
-}
-
-function hashCode(buff: IBuffer) {
-	return Number((BigInt(buff.hashCode()) & BigInt(0xffffffff)));
 }
 
 export class WatchBlock implements WatchCat {
@@ -203,7 +201,8 @@ export class WatchBlock implements WatchCat {
 						data              blob                         null,
 						logIndex          int unsigned                 not null, -- log index for transaction
 						blockNumber       int unsigned                 not null,
-						addressHash       int unsigned                 not null
+						addressHash       int unsigned                 not null,
+						addressNumber     smallint unsigned            not null  -- query region number  0-65535
 					) row_format=compressed;
 
 					drop procedure if exists insert_transaction_log_${chain}_${part};
@@ -215,16 +214,17 @@ export class WatchBlock implements WatchCat {
 						in data_        blob,
 						in logIndex_    int unsigned,
 						in blockNumber_ int unsigned,
-						in addressHash_ int unsigned
+						in addressHash_ int unsigned,
+						in addressNumber_ smallint unsigned
 					) begin
 						set @count = (
 							select count(*) from transaction_log_bin_${chain}_${part} where tx_id=tx_id_ and logIndex=logIndex_
 						);
 						if @count=0 then
 							insert into transaction_log_bin_${chain}_${part}
-								(tx_id,address,topic,data,logIndex,blockNumber,addressHash)
+								(tx_id,address,topic,data,logIndex,blockNumber,addressHash,addressNumber)
 							values
-								(tx_id_,address_,topic_,data_,logIndex_,blockNumber_,addressHash_);
+								(tx_id_,address_,topic_,data_,logIndex_,blockNumber_,addressHash_,addressNumber_);
 						end if;
 					end;
 
@@ -237,7 +237,7 @@ export class WatchBlock implements WatchCat {
 					//transaction_log_bin
 					`create unique index transaction_log_bin_${chain}_${part}_0 on transaction_log_bin_${chain}_${part} (tx_id,logIndex)`,
 					`create        index transaction_log_bin_${chain}_${part}_1 on transaction_log_bin_${chain}_${part} (addressHash)`,
-					`create        index transaction_log_bin_${chain}_${part}_2 on transaction_log_bin_${chain}_${part} (blockNumber,addressHash)`,
+					`create        index transaction_log_bin_${chain}_${part}_2 on transaction_log_bin_${chain}_${part} (blockNumber,addressNumber,addressHash)`,
 				], `shs_${chain}_${part}`);
 			}
 			let n = Number(part);
@@ -264,7 +264,7 @@ export class WatchBlock implements WatchCat {
 
 		let [{db,part}] = await this.getDatabasePart([blockNumber]);
 		let transactionHash = toBuffer(receipt.transactionHash);
-		let txHash = hashCode(transactionHash);
+		let txHash = hash(transactionHash).value;
 		let tx_id = 0;
 		let [tx_] = (await db.query<{id:number}>(
 			`select id from transaction_bin_${part} where txHash=${txHash}`));
@@ -293,8 +293,8 @@ export class WatchBlock implements WatchCat {
 				status: Number(receipt.status),
 				logsCount: receipt.logs.length,
 				txHash: txHash,
-				fromHash: hashCode(fromAddress),
-				toHash: hashCode(toAddress),
+				fromHash: hash(fromAddress).value,
+				toHash: hash(toAddress).value,
 			});
 		} else {
 			tx_id = tx_.id;
@@ -302,7 +302,10 @@ export class WatchBlock implements WatchCat {
 
 		if (receipt.contractAddress) { // New contract
 			let address = cryptoTx.checksumAddress(receipt.contractAddress);
-			console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
+			let ci = await contract.select(address, chain, true);
+			if (!ci)
+				await contract.insert({address,blockNumber}, chain);
+			//console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
 		}
 
 		if (receipt.logs.length) { // event logs
@@ -311,7 +314,7 @@ export class WatchBlock implements WatchCat {
 				let address = log.address;
 				let logIndex = Number(log.logIndex);
 				let topic = '0x' + (log.topics.length ? log.topics.map(e=>e.slice(2)).join(''): '0');
-				let addressHash = hashCode(buffer.from(address.slice(2), 'hex'));
+				let addressHash = hash(buffer.from(address.slice(2), 'hex'));
 
 				//if (log.topics.length == 0)
 				//	console.warn('#WatchBlock.solveReceipt topic is empty', log);
@@ -321,7 +324,8 @@ export class WatchBlock implements WatchCat {
 				}
 				let data = log.data && log.data.length > 2 ? log.data: 'NULL';
 				sql.push(
-					`call insert_transaction_log_${part}(${tx_id},${address},${topic},${data},${logIndex},${blockNumber},${addressHash});`
+					`call insert_transaction_log_${part}(${tx_id},${address},${topic},${data},`+
+						`${logIndex},${blockNumber},${addressHash.value},${addressHash.number});`
 				);
 			}
 			await db.exec(sql.join('\n'));
@@ -481,16 +485,17 @@ export class WatchBlock implements WatchCat {
 		let parts = await this.getDatabasePart([startBlockNumber, endBlockNumber+1]);
 
 		let addressSet: Dict = {};
-		let addressHash = info.filter(e=>e.state==0).map(e=>{
+		let where = info.filter(e=>e.state==0).map(e=>{
 			let buffer = toBuffer(e.address);
 			e.address = '0x' + buffer.toString('hex');
 			addressSet[e.address] = 1;
-			return hashCode(buffer);
-		}).join(',');
+			let {value,number} = hash(buffer);
+			return `addressNumber=${number} and addressHash=${value}`;
+		});
 
 		let all = await Promise.all(parts.map(({db,part})=>{
-			let sql = `select * from transaction_log_bin_${part} where addressHash in (${addressHash}) 
-				and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)} 
+			let sql = `select * from transaction_log_bin_${part} where (${where.join(' or ')})
+				and blockNumber>=${escape(startBlockNumber)} and blockNumber<=${escape(endBlockNumber)}
 			`;
 			let logs = db.query<Log>(sql);
 			return logs;
@@ -567,7 +572,7 @@ export class WatchBlock implements WatchCat {
 				chain: this.web3.chain, txHash: transactionHash,
 			}, {logs: cfg.moreLog, gzip: true})).data;
 		}
-		let txHash = hashCode(toBuffer(transactionHash));
+		let txHash = hash(toBuffer(transactionHash)).value;
 		let parts = await this.getDatabasePart([blockNumber]);
 
 		let all = await Promise.all(parts.map(({part,db})=>db.select<ITransaction>(

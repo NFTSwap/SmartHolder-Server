@@ -74,14 +74,14 @@ export class DAOs extends ContractScaner {
 
 				let addIndexer = ()=>{
 					let ds: (Partial<ContractInfo> & {address: string, exclude?: boolean} | null)[] = [
-						{ address: host, host, type: ContractType.DAO, time },
-						Root   != addressZero ? { host, address: Root, type: ContractType.VotePool, time }: null,
-						Member != addressZero ? { host, address: Member, type: ContractType.Member, time }: null,
-						Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, time, exclude: true }: null,
-						First  != addressZero ? { host, address: First, type: ContractType.AssetShell, time }: null,
-						Second != addressZero ? { host, address: Second, type: ContractType.AssetShell, time }: null,
-						Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger, time }: null,
-						Share  != addressZero ? { host, address: Share, type: ContractType.Share, time }: null,
+						{ address: host, host, type: ContractType.DAO },
+						Root   != addressZero ? { host, address: Root, type: ContractType.VotePool }: null,
+						Member != addressZero ? { host, address: Member, type: ContractType.Member }: null,
+						Asset  != addressZero ? { host, address: Asset, type: ContractType.Asset, exclude: true }: null,
+						First  != addressZero ? { host, address: First, type: ContractType.AssetShell }: null,
+						Second != addressZero ? { host, address: Second, type: ContractType.AssetShell }: null,
+						Ledger != addressZero ? { host, address: Ledger, type: ContractType.Ledger }: null,
+						Share  != addressZero ? { host, address: Share, type: ContractType.Share }: null,
 					];
 					return IndexerPool.addIndexer(chain, host, blockNumber,
 						ds.filter(e=>e) as Partial<ContractInfo> & {address: string}[]);

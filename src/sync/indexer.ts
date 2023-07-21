@@ -56,19 +56,13 @@ export class Indexer implements WatchCat {
 
 		if (ds_ && ds_.state == 1) {
 			await contract.update({
-				...ds,
-				indexer_id: this.data.id,
-				state: 0,
-				time: Date.now(),
+				...ds, indexer_id: this.data.id, state: 0
 			}, address, chain);
 			ds_.state = 0;
 		} else if (!ds_) { // insert
+			let host = ds.host || '0x0000000000000000000000000000000000000000';
 			await contract.insert({
-				...ds,
-				address,
-				indexer_id: this.data.id,
-				host: ds.host || '0x0000000000000000000000000000000000000000',
-				time: Date.now(),
+				...ds, address, indexer_id: this.data.id, host
 			}, chain);
 			ds_ = (await contract.select(address, chain, true))!;
 		} else {
@@ -239,14 +233,13 @@ export class IndexerPool implements WatchCat {
 			let id = await db.insert(`indexer_${chain}`, {hash, watchHeight: Math.max(0, blockNumber - 1)});
 
 			for (let {id:_, ...ds} of initDataSource) {
-				if (!await contract.select(ds.address, chain, true)) {
-					await db.insert(`contract_info_${chain}`, { // use transaction
-						...ds,
-						indexer_id: ds.exclude ? 0: id,
-						host: ds.host || '0x0000000000000000000000000000000000000000',
-						time: Date.now(),
-						blockNumber,
-					});
+				let ci = await contract.select(ds.address, chain, true);
+				let indexer_id = ds.exclude ? 0: id;
+				let host = ds.host || '0x0000000000000000000000000000000000000000';
+				if (!ci) { // use transaction
+					await contract.insert({ ...ds, indexer_id, host, blockNumber }, chain);
+				} else { // update
+					await contract.update({ ...ds, indexer_id, host }, ci.address, chain);
 				}
 			}
 			return id;

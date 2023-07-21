@@ -262,16 +262,16 @@ async function load_main_db() {
 			);
 
 			create table if not exists contract_info_${chain} (   -- 索引人监控数据源
-				id           int primary key auto_increment,
-				host         char (42)                 not null,
-				address      char (42)                 not null,
-				type         int             default (0)  not null, -- contracts type
-				blockNumber  int                          not null, -- init height
-				abi          text,                                  -- 协约abi json,为空时使用默认值
-				state        int             default (0)  not null, -- 状态: 0启用, 1禁用
-				time         bigint                       not null,  --
-				indexer_id   int             default (0)  not null
-			);
+				id            int unsigned     primary key auto_increment,
+				host          char (42)                         null,
+				address       char (42)                     not null,
+				type          tinyint unsigned default (0)  not null, -- contracts type
+				blockNumber   int unsigned                  not null, -- init height
+				abi           text,                                   -- 协约abi json,为空时使用默认值
+				state         tinyint unsigned default (0)  not null, -- 状态: 0启用, 1禁用
+				indexer_id    int     unsigned default (0)  not null,
+				addressNumber smallint unsigned             not null  -- query region number  0-65535
+			) row_format=compressed;
 
 			create table if not exists indexer_${chain} (   -- 索引人
 				id           int primary key auto_increment,
@@ -382,6 +382,7 @@ async function load_main_db() {
 			// contract_info
 			`create unique  index contract_info_${chain}_idx0    on contract_info_${chain}          (address)`,
 			`create         index contract_info_${chain}_1       on contract_info_${chain}          (indexer_id)`,
+			`create         index contract_info_${chain}_2       on contract_info_${chain}          (addressNumber)`,
 			// indexer
 			`create unique  index indexer_${chain}_0             on indexer_${chain}                (hash)`,
 		], `shs_${chain}`);

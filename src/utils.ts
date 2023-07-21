@@ -265,3 +265,13 @@ export function download(www: string, save: string) {
 		}
 	}, true);
 }
+
+export function hash(buff: IBuffer|string) {
+	if (typeof buff == 'string')
+		buff = buffer.from(buff.slice(2), 'hex');
+	let hash = Number((BigInt(buff.hashCode()) & BigInt(0xffffffff)));
+	return {
+		value: hash,
+		number: hash % 65536, // region
+	};
+}

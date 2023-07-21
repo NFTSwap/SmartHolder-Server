@@ -5,6 +5,7 @@
 
 import db, { ContractInfo, ChainType } from '../db';
 import redis from 'bclib/redis';
+import {hash} from '../utils';
 
 export let isEnableCache = true;
 
@@ -16,8 +17,8 @@ export async function setCache(enable: boolean) {
 }
 
 export async function update(info: Partial<ContractInfo>, address: string, chain: ChainType) {
-	var {address: _, ...info_} = info;
-	var num = await db.update(`contract_info_${chain}`, info_, { address });
+	let {address: _, addressNumber: __, ...info_} = info;
+	let num = await db.update(`contract_info_${chain}`, info_, { address });
 	if (isEnableCache) {
 		await redis.del(`${address}_${chain}`);
 	}
@@ -25,7 +26,8 @@ export async function update(info: Partial<ContractInfo>, address: string, chain
 }
 
 export async function insert(info: Partial<ContractInfo>, chain: ChainType) {
-	var id = await db.insert(`contract_info_${chain}`, info);
+	let addressNumber = hash(info.address!).number;
+	var id = await db.insert(`contract_info_${chain}`, {...info,addressNumber});
 	return id;
 }
 
