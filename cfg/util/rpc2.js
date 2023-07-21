@@ -41,6 +41,12 @@ module.exports = {
 		// -----------
 		'https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM', // louis.tru@gmail.com
 		'https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/fd666b7e', // louistru@hotmail.com github
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/03270cd5', // louistru@live.com
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/21a9f75f', // jfm.s@163.com
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/3a99a740', // louistru@tom.com
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/6e0c2cdb', // louistru2@tom.com
+		'https://eth-mainnet.gateway.pokt.network/v1/lb/ffcd4e2c', // louis.tru@gmail.com
 	],
 	ARBITRUM: [
 		'https://arbitrum-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767' // louis.tru@gmail.com
