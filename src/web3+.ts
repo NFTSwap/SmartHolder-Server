@@ -139,11 +139,11 @@ export class MvpWeb3 extends BcWeb3 {
 			_cfg[i] = _cfg[j]; // swap
 			_cfg[j] = a;
 		}
-		
+
 		var chain_str = ChainType[chain];
 		this.chain = chain;
 		this.mode = (chain_str in cfg.web3Mode) ?
-			(cfg.web3Mode[chain_str] || Web3Mode.kMultiple_Random): Web3Mode.kMultiple_Fixed;
+			(cfg.web3Mode[chain_str] || Web3Mode.kMultiple_Random): Web3Mode.kMultiple_Random;//Web3Mode.kMultiple_Fixed;
 		var switchMode = (this.mode == Web3Mode.kMultiple_Random ? MPSwitchMode.kRandom: MPSwitchMode.kFixed);
 		this.gasPriceLimit = Number(cfg.web3PriceLimit[chain_str]) || 0;
 		this.setProvider(new MvpMultipleProvider(_cfg, undefined, switchMode));

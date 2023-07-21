@@ -331,8 +331,14 @@ export class WatchBlock implements WatchCat {
 	private async solveBlock(blockNumber: number) {
 		let web3 = this.web3;
 		let chain = web3.chain;
-		let txs = (await web3.eth.getBlock(blockNumber, true)).transactions;
+		let block = await web3.eth.getBlock(blockNumber, true);
+		let txs = block.transactions;
 		let idx = 0;
+
+		if (txs.length == 0) {
+			console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', 0, 'logs', 0);
+			return;
+		}
 
 		if (await web3.hasSupportGetTransactionReceiptsByBlock()) {
 			let receipts: TransactionReceipt[] | undefined;
@@ -635,7 +641,7 @@ export class WatchBlock implements WatchCat {
 		let key = (worker: number)=> `Block_Sync_Height_${ChainType[chain]}_${worker}`;
 
 		let blockNumber = await this.storage.get<number>(key(this.worker)) || 0;
-		if (!blockNumber) {
+		if (blockNumber == 0) {
 			for (let i = 0; i < this.workers; i++) {
 				let num = await this.storage.get<number>(key(i));
 				if (num) {
@@ -644,10 +650,14 @@ export class WatchBlock implements WatchCat {
 			}
 		}
 
-		if (!blockNumber) { // blockNumber == 0
-			let info = deployInfo[ChainType[chain].toLowerCase() as 'goerli'];
-			if (info)
-				blockNumber = info.DAOsProxy.blockNumber;
+		if (blockNumber == 0) { // blockNumber == 0
+			if (!cfg.block_full_sync) {
+				let info = deployInfo[ChainType[chain].toLowerCase() as 'goerli'];
+				if (info)
+					blockNumber = info.DAOsProxy.blockNumber;
+				else
+					return true; // cancel
+			}
 		}
 
 		try {

@@ -14,7 +14,7 @@ module.exports = {
 		'https://goerli.infura.io/v3/faf06a5d35454aeaad87969b0aba90a8', // louistru@tom.com
 		'https://goerli.infura.io/v3/96af19f43a3d4e7cac531d93c431f5cf', // louistru2@tom.com
 		'https://goerli.infura.io/v3/81e184a58fd04f8ea6c7d026f26c34d5', // yuyongpeng@hotmail.com
-		'https://goerli.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
+		//'https://goerli.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com, account disable
 		'https://goerli.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
 		// -----------
 		// 'https://eth-goerli.g.alchemy.com/v2/lwDFslNRvhCjzogUVLPtPzGIN4ZZDa8I',
@@ -39,8 +39,8 @@ module.exports = {
 		// 'https://mainnet.infura.io/v3/ccab5917a2b84bb4a64d1bc8e5c07fd1', // moqi.reg@gmail.com
 		// 'https://mainnet.infura.io/v3/12c4da3c5080480db4ae34fec7cf7d2c', // yuyongpeng@hard-chain.cn
 		// -----------
-		'https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM',
-		'https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ',
+		'https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM', // louis.tru@gmail.com
+		'https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
 	],
 	ARBITRUM: [
 		'https://arbitrum-mainnet.infura.io/v3/6b4f3897597e41d1adc12b7447c84767' // louis.tru@gmail.com

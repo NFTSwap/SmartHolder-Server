@@ -1,6 +1,6 @@
 
 R_DIR    = ~
-D_PORT  ?= 9210
+D_PORT  ?= 9800
 PROJ     = shs
 MAIN     = index.js
 COPYS    = .cfg*.js public abi tools run *.service

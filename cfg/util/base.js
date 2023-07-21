@@ -27,6 +27,7 @@ module.exports = {
 	watch_main: true, // 是否启用数据同步主服务,主服务只能有一个
 	watch_indexer: true, // 索引人监控
 	watch_meta: 'watch_main', // watch_main|watch_indexer, watch meta worker at watch main
+	block_full_sync: false,
 	// root: '/data/apps/smart-dao/dist', // 前端程序路径,可为空
 	root: '/data/apps/smart-dao/smart-dao', // 前端程序路径,可为空
 	tx_api: 'https://dao.smartholder.jp/service-api',
