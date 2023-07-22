@@ -48,10 +48,12 @@ module.exports = {
 		// -----------
 		'*https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM', // louis.tru@gmail.com
 		'*https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
+		'*https://eth-mainnet.g.alchemy.com/v2/J4tBWySG0aJCAfwYZuIeB47Bp6qkMvsE', // louistru@live.com
+		'*https://eth-mainnet.g.alchemy.com/v2/qbTtSHsUsB8EJKhLxKP97XjWUwSAGz0Z', // louistru@tom.com
 		'*https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM', // louis.tru@gmail.com
 		'*https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
-		'*https://eth-mainnet.g.alchemy.com/v2/jwLMO_t2Vd8LXMW5kBImmFtHNiwDf8kM', // louis.tru@gmail.com
-		'*https://eth-mainnet.g.alchemy.com/v2/GowKUhfgb_dUokKbJd25fCQmu_Rh4OOQ', // louistru@hotmail.com
+		'*https://eth-mainnet.g.alchemy.com/v2/J4tBWySG0aJCAfwYZuIeB47Bp6qkMvsE', // louistru@live.com
+		'*https://eth-mainnet.g.alchemy.com/v2/qbTtSHsUsB8EJKhLxKP97XjWUwSAGz0Z', // louistru@tom.com
 		'https://eth-mainnet.gateway.pokt.network/v1/lb/fd666b7e', // louistru@hotmail.com github
 		'https://eth-mainnet.gateway.pokt.network/v1/lb/03270cd5', // louistru@live.com
 		'https://eth-mainnet.gateway.pokt.network/v1/lb/21a9f75f', // jfm.s@163.com
