@@ -9,10 +9,10 @@ module.exports = {
 	web3s: {
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
-		//GOERLI: rpc.GOERLI,
-		GOERLI: [
-			'http://127.0.0.1:8645',
-		],
+		GOERLI: rpc.GOERLI,
+		// GOERLI: [
+		// 	'http://127.0.0.1:8645',
+		// ],
 		// ARBITRUM_GOERLI: rpc.ARBITRUM_GOERLI,
 	},
 	autoIndex: false,
