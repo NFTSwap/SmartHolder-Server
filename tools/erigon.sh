@@ -22,9 +22,12 @@
 	--p2p.allowed-ports="30307,30308,30309,30310"
 
 # geth
-geth --datadir=/data/geth/mainnet --mainnet --syncmode=full --gcmode=archive --authrpc.port=8561 \
+geth --datadir=/data/geth/mainnet --mainnet --syncmode=full --gcmode=archive --authrpc.port=8561 --authrpc.jwtsecret=/data/geth/mainnet/geth/jwtsecret \
 	--port=30313 --http.port=8555 --http.vhosts=* --ws --http \
-	--verbosity=5
+	--verbosity=5 --allow-insecure-unlock
+# --syncmode=snap
+# prysm beacon chain
+beacon-chain --execution-endpoint=http://127.0.0.1:8561 --jwt-secret=/data/geth/mainnet/geth/jwtsecret --datadir=/data/prysm/mainnet --accept-terms-of-use=true
 
 # Polygon
 
