@@ -296,6 +296,7 @@ export class WatchBlock implements WatchCat {
 				fromHash: hash(fromAddress).value,
 				toHash: hash(toAddress).value,
 			});
+
 		} else {
 			tx_id = tx_.id;
 		}
@@ -332,6 +333,105 @@ export class WatchBlock implements WatchCat {
 		}
 	}
 
+	private async solveReceipts(blockNumber: number, receipt: TransactionReceipt[], tx: Transaction[]) {
+		let chain = this.web3.chain;
+		let [{db,part}] = await this.getDatabasePart([blockNumber]);
+		let txHashBuf = receipt.map(e=>toBuffer(e.transactionHash));
+		let txHashNum = txHashBuf.map(e=>hash(e).value);
+		let txBin = await db.exec(txHashNum.map(e=>
+			`select id from transaction_bin_${part} where txHash=${e}`
+		).join(';'));
+
+		let txData = receipt.map((e,j)=>{
+			somes.assert(e, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+			somes.assert(j == e.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
+			let row = txBin[j].rows![0] as {id:number} | undefined;
+			return {
+				receipt: e,
+				transactionHash: txHashBuf[j],
+				txHash: txHashNum[j],
+				tx: tx[j],
+				id: row ? row.id: 0,
+			};
+		});
+
+		let insertSql = txData.filter(e=>!e.id).map(({tx,receipt,txHash,transactionHash})=>{
+			let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
+			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
+			return db.insertSql(`transaction_bin_${part}`, {
+				nonce: Number(tx.nonce),
+				fromAddress,
+				toAddress,
+				value: toBuffer(tx.value),
+				gasPrice: toBuffer(tx.gasPrice),
+				gas: toBuffer(tx.gas), // gas limit
+				// data: tx.input,
+				gasUsed: toBuffer(receipt.gasUsed),
+				cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
+				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
+				blockNumber: toBuffer(receipt.blockNumber),
+				blockHash: toBuffer(receipt.blockHash),
+				transactionHash,
+				transactionIndex: Number(receipt.transactionIndex),
+				// logsBloom: receipt.logsBloom,
+				contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
+				status: Number(receipt.status),
+				logsCount: receipt.logs.length,
+				txHash: txHash,
+				fromHash: hash(fromAddress).value,
+				toHash: hash(toAddress).value,
+			});
+		});
+
+		if (insertSql.length) {
+			let res = await db.exec(insertSql.join(';'));
+			let res_i = 0;
+			for (let d of txData) {
+				if (!d.id) {
+					d.id = Number(res[res_i++].insertId!) || 0;
+				}
+			}
+		}
+
+		let exec_sql: string[] = [];
+
+		for (let {receipt, id} of txData) {
+			if (receipt.contractAddress) { // New contract
+				let address = cryptoTx.checksumAddress(receipt.contractAddress);
+				let ci = await contract.select(address, chain, true);
+				if (!ci)
+					await contract.insert({address,blockNumber}, chain);
+				//console.log(`Discover contract:`, ChainType[chain], blockNumber, address);
+			}
+			somes.assert(id, 'db tx id cannot be empty');
+
+			if (receipt.logs.length) { // event logs
+				for (let log of receipt.logs) {
+					let address = log.address;
+					let logIndex = Number(log.logIndex);
+					let topic = '0x' + (log.topics.length ? log.topics.map(e=>e.slice(2)).join(''): '0');
+					let addressHash = hash(buffer.from(address.slice(2), 'hex'));
+
+					//if (log.topics.length == 0)
+					//	console.warn('#WatchBlock.solveReceipt topic is empty', log);
+
+					if (log.data.length > 65535*2+2) {
+						log.data = '0x' + buffer.from('rpc:fetch').toString('hex');
+					}
+					let data = log.data && log.data.length > 2 ? log.data: 'NULL';
+					exec_sql.push(
+						`call insert_transaction_log_${part}(${id},${address},${topic},${data},`+
+							`${logIndex},${blockNumber},${addressHash.value},${addressHash.number});`
+					);
+				}
+			}
+		}
+
+		if (exec_sql.length) {
+			await db.exec(exec_sql.join('\n'));
+		}
+	}
+
 	private async solveBlock(blockNumber: number) {
 		let web3 = this.web3;
 		let chain = web3.chain;
@@ -355,10 +455,13 @@ export class WatchBlock implements WatchCat {
 			if (receipts) {
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 
 					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0));
-				for (let item of receipts) {
-					let _idx = idx++;
-					await this.solveReceipt(blockNumber, item, _idx, txs[_idx]);
-				}
+
+				await this.solveReceipts(blockNumber, receipts, txs);
+
+				// for (let item of receipts) {
+					// let _idx = idx++;
+					// await this.solveReceipt(blockNumber, item, _idx, txs[_idx]);
+				// }
 				return;
 			}
 		}
@@ -399,9 +502,11 @@ export class WatchBlock implements WatchCat {
 			};
 		}
 
-		for (let receipt of receipts) {
-			await this.solveReceipt(blockNumber, receipt, receipt.transactionIndex, txs[receipt.transactionIndex]);
-		}
+		await this.solveReceipts(blockNumber, receipts, txs);
+
+		//for (let receipt of receipts) {
+		//	await this.solveReceipt(blockNumber, receipt, receipt.transactionIndex, txs[receipt.transactionIndex]);
+		//}
 
 		// for (let txHash of block.transactions) {
 		// 	let _idx = idx++;
