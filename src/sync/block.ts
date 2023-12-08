@@ -453,10 +453,13 @@ export class WatchBlock implements WatchCat {
 			}
 
 			if (receipts) {
-				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 
-					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0));
+				let time = Date.now();
 
 				await this.solveReceipts(blockNumber, receipts, txs);
+
+				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 
+					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0), 'time:', Date.now() - time
+				);
 
 				// for (let item of receipts) {
 					// let _idx = idx++;
@@ -473,8 +476,6 @@ export class WatchBlock implements WatchCat {
 			fromBlock: blockNumber,
 		});
 		let receipts: TransactionReceipt[] = [];
-
-		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', txs.length, 'logs', logs.length);
 
 		for (let tx of txs) {
 			let idx = receipts.length;
@@ -502,6 +503,8 @@ export class WatchBlock implements WatchCat {
 			};
 		}
 
+		let time = Date.now();
+
 		await this.solveReceipts(blockNumber, receipts, txs);
 
 		//for (let receipt of receipts) {
@@ -513,6 +516,10 @@ export class WatchBlock implements WatchCat {
 		// 	let receipt = await web3.eth.getTransactionReceipt(txHash);
 		// 	await this.solveReceipt(blockNumber, receipt, _idx, ()=>getTransaction(_idx));
 		// }
+
+		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber,
+			'receipts', txs.length, 'logs', logs.length, 'time:', Date.now() - time
+		);
 	}
 
 	async getBlockSyncHeight(worker = 0) {
