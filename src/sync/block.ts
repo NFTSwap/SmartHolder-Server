@@ -433,6 +433,7 @@ export class WatchBlock implements WatchCat {
 	}
 
 	private async solveBlock(blockNumber: number) {
+		let time0 = Date.now();
 		let web3 = this.web3;
 		let chain = web3.chain;
 		let block = await web3.eth.getBlock(blockNumber, true);
@@ -458,7 +459,7 @@ export class WatchBlock implements WatchCat {
 				await this.solveReceipts(blockNumber, receipts, txs);
 
 				console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 
-					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0), 'time:', Date.now() - time
+					'receipts', receipts.length, 'logs', receipts.reduce((p,n)=>p+n.logs.length, 0), 'time:', time - time0, Date.now() - time
 				);
 
 				// for (let item of receipts) {
@@ -518,7 +519,7 @@ export class WatchBlock implements WatchCat {
 		// }
 
 		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber,
-			'receipts', txs.length, 'logs', logs.length, 'time:', Date.now() - time
+			'receipts', txs.length, 'logs', logs.length, 'time:', time - time0, Date.now() - time
 		);
 	}
 
