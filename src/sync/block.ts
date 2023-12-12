@@ -386,7 +386,7 @@ export class WatchBlock implements WatchCat {
 		if (insertSql.length) {
 			// let res = await db.exec(`BEGIN;${insertSql.join(';')};COMMIT;`);
 			let res = await db.exec(insertSql.join(';'));
-			let res_i = 1;
+			let res_i = 0;
 			for (let d of txData) {
 				if (!d.id) {
 					d.id = Number(res[res_i++].insertId!) || 0;
