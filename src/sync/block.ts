@@ -485,8 +485,14 @@ export class WatchBlock implements WatchCat {
 			somes.assert(tx.blockHash !== null, '#WatchBlock.solveBlock blockHash !== null');
 			somes.assert(tx.blockNumber == blockNumber, '#WatchBlock.solveBlock blockNumber == blockNumber');
 
-			let contractAddress = tx.to ?
-				undefined: (await web3.eth.getTransactionReceipt(tx.hash)).contractAddress;
+			let contractAddress: string | undefined;
+			if (!tx.to) {
+				let r = await web3.eth.getTransactionReceipt(tx.hash);
+				if (!r) {
+					r = await web3.eth.getTransactionReceipt(tx.hash); // retry
+				}
+				contractAddress = r.contractAddress;
+			}
 
 			receipts[idx] = {
 				status: true,
