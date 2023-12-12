@@ -384,8 +384,8 @@ export class WatchBlock implements WatchCat {
 		});
 
 		if (insertSql.length) {
-			let res = await db.exec(`begin;${insertSql.join(';')};commit;`);
-			let res_i = 0;
+			let res = await db.exec(`BEGIN;${insertSql.join(';')};COMMIT;`);
+			let res_i = 1;
 			for (let d of txData) {
 				if (!d.id) {
 					d.id = Number(res[res_i++].insertId!) || 0;
@@ -428,7 +428,7 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (exec_sql.length) {
-			await db.exec(`start transaction;${exec_sql.join('\n')};commit;`);
+			await db.exec(`START TRANSACTION;\n${exec_sql.join('\n')}\nCOMMIT;`);
 		}
 	}
 
