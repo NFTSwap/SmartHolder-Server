@@ -4,8 +4,8 @@ var rpc = require('./util/rpc2');
 
 module.exports = {
 	...base,
-	var: '/data/smart-dao/shs/var_v2', // `${__dirname}/var`,
-	extendConfigPath: '/data/smart-dao/shs/config', // extend config file
+	var: '/ssd0/smart-dao/shs/var_v2', // `${__dirname}/var`,
+	extendConfigPath: '/ssd0/smart-dao/shs/config', // extend config file
 	web3s: {
 		ETHEREUM: rpc.ETHEREUM,
 		MATIC: rpc.MATIC,
@@ -16,7 +16,7 @@ module.exports = {
 		// ARBITRUM_GOERLI: rpc.ARBITRUM_GOERLI,
 	},
 	autoIndex: false,
-	root: '/data/smart-dao/public',
+	root: '/ssd0/smart-dao/public',
 	publicURL: 'https://dao.smartholder.jp',
 	mbus: 'mqtt://127.0.0.1:1883',
 	mbus_topic: 'shs_default_prod',
