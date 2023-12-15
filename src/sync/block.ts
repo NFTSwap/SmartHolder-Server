@@ -355,6 +355,29 @@ export class WatchBlock implements WatchCat {
 			};
 		});
 
+		/*
+		create procedure insert_transaction_log_${chain}_${part}(
+			in tx_id_       int unsigned,
+			in address_     binary(20),
+			in topic_       varbinary(128),
+			in data_        blob,
+			in logIndex_    int unsigned,
+			in blockNumber_ int unsigned,
+			in addressHash_ int unsigned,
+			in addressNumber_ smallint unsigned
+		) begin
+			set @count = (
+				select count(*) from transaction_log_bin_${chain}_${part} where tx_id=tx_id_ and logIndex=logIndex_
+			);
+			if @count=0 then
+				insert into transaction_log_bin_${chain}_${part}
+					(tx_id,address,topic,data,logIndex,blockNumber,addressHash,addressNumber)
+				values
+					(tx_id_,address_,topic_,data_,logIndex_,blockNumber_,addressHash_,addressNumber_);
+			end if;
+		end;
+		*/
+
 		let insertSql = txData.filter(e=>!e.id).map(({tx,receipt,txHash,transactionHash})=>{
 			let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
 			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
@@ -384,9 +407,9 @@ export class WatchBlock implements WatchCat {
 		});
 
 		if (insertSql.length) {
-			// let res = await db.exec(`BEGIN;${insertSql.join(';')};COMMIT;`);
-			let res = await db.exec(insertSql.join(';'));
-			let res_i = 0;
+			let res = await db.exec(`begin; ${insertSql.join(';')}; commit;`);
+			// let res = await db.exec(insertSql.join(';'));
+			let res_i = 1;
 			for (let d of txData) {
 				if (!d.id) {
 					d.id = Number(res[res_i++].insertId!) || 0;
@@ -429,7 +452,7 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (exec_sql.length) {
-			//await db.exec(`START TRANSACTION;\n${exec_sql.join('\n')}\nCOMMIT;`);
+			//await db.exec(`start transaction;\n${exec_sql.join('\n')}\n commit;`);
 			await db.exec(exec_sql.join('\n'));
 		}
 	}
