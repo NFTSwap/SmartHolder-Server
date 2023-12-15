@@ -10,7 +10,7 @@ import {WatchCat} from 'bclib/watch';
 import db_, { storage as storage_, ChainType,
 	Transaction as ITransaction,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
-import {Transaction, TransactionReceipt} from 'web3-core';
+import {Transaction, TransactionReceipt,Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import {postWatchBlock} from '../message';
 import redis_, {Redis} from 'bclib/redis';
@@ -338,7 +338,6 @@ export class WatchBlock implements WatchCat {
 		let [{db,part}] = await this.getDatabasePart([blockNumber]);
 		let txHashBuf = receipt.map(e=>toBuffer(e.transactionHash));
 		let txHashNum = txHashBuf.map(e=>hash(e).value);
-
 		let txData = receipt.map((e,j)=>{
 			somes.assert(e, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
 			somes.assert(j == e.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
@@ -351,15 +350,15 @@ export class WatchBlock implements WatchCat {
 			};
 		});
 
-		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum[0]})) {
+		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum.indexReverse(0) })) {
 			let res = await db.exec(txHashNum.map(e=>
 				`select id from transaction_bin_${part} where txHash=${e}`).join(';'));
 			txData.forEach((e,j)=>(e.id = res[j].rows![0]?.id || 0));
 		}
-
 		let txIndert = txData.filter(e=>!e.id);
+
 		if (txIndert.length) {
-			let sql = ({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
+			let getSql = ({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
 				let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
 				let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
 				return db.insertSql(`transaction_bin_${part}`, {
@@ -387,32 +386,29 @@ export class WatchBlock implements WatchCat {
 				});
 			};
 			let res = await db.exec(
-				`begin;
-				${txIndert.map(sql).join(';')};
-				commit;`
+				`begin;\n ${txIndert.map(getSql).join(';')};\n commit;`
 			);
 			txIndert.forEach((e,j)=>(e.id = res[j+1].insertId!));
 		}
 
-		let insert_log_sql: string[] = [];
+		let logs: {sql:string,logIndex:number,tx_id:number}[] = [];
 
-		for (let it of txData) {
-			let {receipt, id} = it;
+		for (let data of txData) {
+			let {receipt, id:tx_id} = data;
 			if (receipt.contractAddress) { // New contract
 				let address = cryptoTx.checksumAddress(receipt.contractAddress);
 				let ci = await contract.select(address, chain, true);
 				if (!ci)
 					await contract.insert({address,blockNumber}, chain);
 			}
-			somes.assert(id, 'db tx id cannot be empty');
+			somes.assert(tx_id, 'db tx id cannot be empty');
 
 			for (let log of receipt.logs) { // event logs
-				// let address = log.address;
 				let address = buffer.from(log.address.slice(2), 'hex');
 				let logIndex = Number(log.logIndex);
 				let topic = buffer.from(log.topics.map(e=>e.slice(2)).join(''), 'hex');
 				let addressHash = hash(address);
-
+	
 				let data: IBuffer | undefined;
 				if (log.data && log.data.length > 2) {
 					if (log.data.length > 65535*2+2) {
@@ -421,33 +417,44 @@ export class WatchBlock implements WatchCat {
 						data = buffer.from(log.data.slice(2), 'hex');
 					}
 				}
-				if (insert_log_sql.length == 0) { // check
-					if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id: id, logIndex})) {
-						return;
-					}
-				}
 
-				insert_log_sql.push(db.insertSql(`transaction_log_bin_${part}`, {
-					tx_id: id,
-					address,
-					topic,
-					data,
-					logIndex,
-					blockNumber,
-					addressHash: addressHash.value,
-					addressNumber: addressHash.number,
-				}));
+				logs.push({
+					sql: db.insertSql(`transaction_log_bin_${part}`, {
+						tx_id,
+						address,
+						topic,
+						data,
+						logIndex,
+						blockNumber,
+						addressHash: addressHash.value,
+						addressNumber: addressHash.number,
+					}),
+					logIndex, tx_id
+				});
 			}
 		}
 
-		if (insert_log_sql.length) {
+		if (logs.length) { // check
+			let {tx_id,logIndex} = logs.indexReverse(0);
+			// if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id, logIndex})) {
+			// 	return;
+			// }
+			for (let log of logs) {
+				if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id, logIndex})) {
+					log.sql = ''; // skip
+				}
+			}
+		}
+
+		let sql = logs.filter(e=>e.sql).map(e=>e.sql);
+		if (sql.length) {
+			somes.assert(sql.length == logs.length, 'block.solveReceipts logs length check');
 			await db.exec(
-				`start transaction;
-				${insert_log_sql.join(';')};
-				commit;`
+				`start transaction;\n ${sql.join(';')};\n commit;`
 			);
 		}
 	}
+	
 
 	private async solveBlock(blockNumber: number) {
 		let time0 = Date.now();
