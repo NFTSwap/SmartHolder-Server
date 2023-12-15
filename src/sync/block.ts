@@ -359,35 +359,36 @@ export class WatchBlock implements WatchCat {
 
 		let txIndert = txData.filter(e=>!e.id);
 		if (txIndert.length) {
+			let sql = ({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
+				let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
+				let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
+				return db.insertSql(`transaction_bin_${part}`, {
+					nonce: Number(tx.nonce),
+					fromAddress,
+					toAddress,
+					value: toBuffer(tx.value),
+					gasPrice: toBuffer(tx.gasPrice),
+					gas: toBuffer(tx.gas), // gas limit
+					// data: tx.input,
+					gasUsed: toBuffer(receipt.gasUsed),
+					cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
+					// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
+					blockNumber: toBuffer(receipt.blockNumber),
+					blockHash: toBuffer(receipt.blockHash),
+					transactionHash,
+					transactionIndex: Number(receipt.transactionIndex),
+					// logsBloom: receipt.logsBloom,
+					contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
+					status: Number(receipt.status),
+					logsCount: receipt.logs.length,
+					txHash: txHash,
+					fromHash: hash(fromAddress).value,
+					toHash: hash(toAddress).value,
+				});
+			};
 			let res = await db.exec(
 				`begin;
-				${txIndert.map(({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
-					let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
-					let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
-					return db.insertSql(`transaction_bin_${part}`, {
-						nonce: Number(tx.nonce),
-						fromAddress,
-						toAddress,
-						value: toBuffer(tx.value),
-						gasPrice: toBuffer(tx.gasPrice),
-						gas: toBuffer(tx.gas), // gas limit
-						// data: tx.input,
-						gasUsed: toBuffer(receipt.gasUsed),
-						cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
-						// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
-						blockNumber: toBuffer(receipt.blockNumber),
-						blockHash: toBuffer(receipt.blockHash),
-						transactionHash,
-						transactionIndex: Number(receipt.transactionIndex),
-						// logsBloom: receipt.logsBloom,
-						contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
-						status: Number(receipt.status),
-						logsCount: receipt.logs.length,
-						txHash: txHash,
-						fromHash: hash(fromAddress).value,
-						toHash: hash(toAddress).value,
-					});
-				}).join(';')};
+				${txIndert.map(sql).join(';')};
 				commit;`
 			);
 			txIndert.forEach((e,j)=>(e.id = res[j+1].insertId!));
