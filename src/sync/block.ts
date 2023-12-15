@@ -354,51 +354,49 @@ export class WatchBlock implements WatchCat {
 		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum[0]})) {
 			let res = await db.exec(txHashNum.map(e=>
 				`select id from transaction_bin_${part} where txHash=${e}`).join(';'));
-			txData.forEach((e,j)=>{
-				e.id = res[j].rows![0]?.id || 0;
-			});
-		} else { // insert new
-			let sql = txData.filter(e=>!e.id).map(({tx,receipt,txHash,transactionHash})=>{
-				let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
-				let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
-				return db.insertSql(`transaction_bin_${part}`, {
-					nonce: Number(tx.nonce),
-					fromAddress,
-					toAddress,
-					value: toBuffer(tx.value),
-					gasPrice: toBuffer(tx.gasPrice),
-					gas: toBuffer(tx.gas), // gas limit
-					// data: tx.input,
-					gasUsed: toBuffer(receipt.gasUsed),
-					cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
-					// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
-					blockNumber: toBuffer(receipt.blockNumber),
-					blockHash: toBuffer(receipt.blockHash),
-					transactionHash,
-					transactionIndex: Number(receipt.transactionIndex),
-					// logsBloom: receipt.logsBloom,
-					contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
-					status: Number(receipt.status),
-					logsCount: receipt.logs.length,
-					txHash: txHash,
-					fromHash: hash(fromAddress).value,
-					toHash: hash(toAddress).value,
-				});
-			});
+			txData.forEach((e,j)=>(e.id = res[j].rows![0]?.id || 0));
+		}
 
+		let txIndert = txData.filter(e=>!e.id);
+		if (txIndert.length) {
 			let res = await db.exec(
 				`begin;
-				${sql.join(';')};
+				${txIndert.map(({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
+					let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
+					let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
+					return db.insertSql(`transaction_bin_${part}`, {
+						nonce: Number(tx.nonce),
+						fromAddress,
+						toAddress,
+						value: toBuffer(tx.value),
+						gasPrice: toBuffer(tx.gasPrice),
+						gas: toBuffer(tx.gas), // gas limit
+						// data: tx.input,
+						gasUsed: toBuffer(receipt.gasUsed),
+						cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
+						// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
+						blockNumber: toBuffer(receipt.blockNumber),
+						blockHash: toBuffer(receipt.blockHash),
+						transactionHash,
+						transactionIndex: Number(receipt.transactionIndex),
+						// logsBloom: receipt.logsBloom,
+						contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
+						status: Number(receipt.status),
+						logsCount: receipt.logs.length,
+						txHash: txHash,
+						fromHash: hash(fromAddress).value,
+						toHash: hash(toAddress).value,
+					});
+				}).join(';')};
 				commit;`
 			);
-			txData.forEach((e,j)=>{
-				e.id = Number(res[j+1].insertId!) || 0;
-			});
+			txIndert.forEach((e,j)=>(e.id = res[j+1].insertId!));
 		}
 
 		let insert_log_sql: string[] = [];
 
-		for (let {receipt, id} of txData) {
+		for (let it of txData) {
+			let {receipt, id} = it;
 			if (receipt.contractAddress) { // New contract
 				let address = cryptoTx.checksumAddress(receipt.contractAddress);
 				let ci = await contract.select(address, chain, true);
