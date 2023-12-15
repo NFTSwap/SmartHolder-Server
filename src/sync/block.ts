@@ -434,23 +434,21 @@ export class WatchBlock implements WatchCat {
 			}
 		}
 
-		if (logs.length) { // check
-			if (await db.selectOne(`transaction_log_bin_${part}`, logs[0])) {
-				// return; //
-				let sql = logs.map(e=>db.selectSql(
-					`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
-				let res = await db.exec(sql.join(';'));
-				res.forEach((e,j)=>{
-					if (e.rows![0]) logs[j].sql = ''; // skip
-				});
-			}
+		if (!logs.length) return;
+
+		// check logs
+		if (await db.selectOne(`transaction_log_bin_${part}`, logs[0])) {
+			// return; //
+			let sql = logs.map(e=>db.selectSql(
+				`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
+			let res = await db.exec(sql.join(';'));
+			logs = logs.filter((_,j)=>!res[j].rows![0]); // filter
+			// somes.assert(sql.length == logs.length, 'block.solveReceipts logs length check');
 		}
 
-		let sql = logs.filter(e=>e.sql).map(e=>e.sql);
-		if (sql.length) {
-			somes.assert(sql.length == logs.length, 'block.solveReceipts logs length check');
+		if (logs.length) {
 			await db.exec(
-				`start transaction;\n ${sql.join(';')};\n commit;`
+				`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`
 			);
 		}
 	}
