@@ -438,12 +438,10 @@ export class WatchBlock implements WatchCat {
 
 		// check logs
 		if (await db.selectOne(`transaction_log_bin_${part}`, logs[0])) {
-			// return; //
 			let sql = logs.map(e=>db.selectSql(
 				`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
 			let res = await db.exec(sql.join(';'));
 			logs = logs.filter((_,j)=>!res[j].rows![0]); // filter
-			// somes.assert(sql.length == logs.length, 'block.solveReceipts logs length check');
 		}
 
 		if (logs.length) {
