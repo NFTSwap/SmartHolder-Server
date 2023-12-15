@@ -454,7 +454,6 @@ export class WatchBlock implements WatchCat {
 			);
 		}
 	}
-	
 
 	private async solveBlock(blockNumber: number) {
 		let time0 = Date.now();
