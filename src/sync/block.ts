@@ -435,14 +435,14 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (logs.length) { // check
-			// let {tx_id,logIndex} = logs[0];
-			// if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id, logIndex})) {
-			// 	return;
-			// }
-			for (let log of logs) {
-				if (await db.selectOne(`transaction_log_bin_${part}`, log)) {
-					log.sql = ''; // skip
-				}
+			if (await db.selectOne(`transaction_log_bin_${part}`, logs[0])) {
+				// return; //
+				let sql = logs.map(e=>db.selectSql(
+					`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
+				let res = await db.exec(sql.join(';'));
+				res.forEach((e,j)=>{
+					if (e.rows![0]) logs[j].sql = ''; // skip
+				});
 			}
 		}
 
