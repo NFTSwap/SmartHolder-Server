@@ -350,7 +350,7 @@ export class WatchBlock implements WatchCat {
 			};
 		});
 
-		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum.indexReverse(0) })) {
+		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum[0] })) {
 			let res = await db.exec(txHashNum.map(e=>
 				`select id from transaction_bin_${part} where txHash=${e}`).join(';'));
 			txData.forEach((e,j)=>(e.id = res[j].rows![0]?.id || 0));
@@ -435,12 +435,12 @@ export class WatchBlock implements WatchCat {
 		}
 
 		if (logs.length) { // check
-			let {tx_id,logIndex} = logs.indexReverse(0);
+			// let {tx_id,logIndex} = logs[0];
 			// if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id, logIndex})) {
 			// 	return;
 			// }
 			for (let log of logs) {
-				if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id, logIndex})) {
+				if (await db.selectOne(`transaction_log_bin_${part}`, log)) {
 					log.sql = ''; // skip
 				}
 			}
