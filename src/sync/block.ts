@@ -417,19 +417,17 @@ export class WatchBlock implements WatchCat {
 					}
 				}
 
-				logs.push({
-					sql: db.insertSql(`transaction_log_bin_${part}`, {
-						tx_id,
-						address,
-						topic,
-						data,
-						logIndex,
-						blockNumber,
-						addressHash: addressHash.value,
-						addressNumber: addressHash.number,
-					}),
-					logIndex, tx_id
+				let sql = db.insertSql(`transaction_log_bin_${part}`, {
+					tx_id,
+					address,
+					topic,
+					data,
+					logIndex,
+					blockNumber,
+					addressHash: addressHash.value,
+					addressNumber: addressHash.number,
 				});
+				logs.push({ sql, logIndex, tx_id });
 			}
 		}
 
