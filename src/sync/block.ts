@@ -377,17 +377,15 @@ export class WatchBlock implements WatchCat {
 			);
 			txData.forEach((e,j)=>(e.id = res[j+1].insertId!));
 		} catch(err: any) {
-			if (err.errno == Errors.ER_DUP_ENTRY) {  // filter logs
-				let res = await db.exec(txData.map(e=>
-					`select id from transaction_bin_${part} where txHash=${e.txHash}`).join(';'));
-				let txIndert = txData.filter((e,j)=>(e.id = res[j].rows![0]?.id || 0, !e.id));
-				let res1 = await db.exec(
-					`begin;\n ${txIndert.map(e=>e.sql).join(';')};\n commit;`
-				);
-				txIndert.forEach((e,j)=>(e.id = res1[j+1].insertId!));
-			} else {
-				throw err;
-			}
+			if (err.errno != Errors.ER_DUP_ENTRY) throw err;
+			// filter dup tx
+			let res = await db.exec(txData.map(e=>
+				`select id from transaction_bin_${part} where txHash=${e.txHash}`).join(';'));
+			let txIndert = txData.filter((e,j)=>(e.id = res[j].rows![0]?.id || 0, !e.id));
+			let res1 = await db.exec(
+				`begin;\n ${txIndert.map(e=>e.sql).join(';')};\n commit;`
+			);
+			txIndert.forEach((e,j)=>(e.id = res1[j+1].insertId!));
 		}
 
 		let logs: {sql:string,logIndex:number,tx_id:number}[] = [];
@@ -436,16 +434,14 @@ export class WatchBlock implements WatchCat {
 		try {
 			await db.exec(`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`);
 		} catch (err: any) {
-			if (err.errno == Errors.ER_DUP_ENTRY) {  // filter logs
-				let sql = logs.map(e=>db.selectSql(
-					`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
-				let res = await db.exec(sql.join(';'));
-				logs = logs.filter((_,j)=>!res[j].rows![0]);
-				if (logs.length) {
-					await db.exec(`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`);
-				}
-			} else {
-				throw err;
+			if (err.errno != Errors.ER_DUP_ENTRY) throw err;
+			// filter dup logs
+			let sql = logs.map(e=>db.selectSql(
+				`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
+			let res = await db.exec(sql.join(';'));
+			logs = logs.filter((_,j)=>!res[j].rows![0]);
+			if (logs.length) {
+				await db.exec(`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`);
 			}
 		}
 	}
