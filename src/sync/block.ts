@@ -10,7 +10,7 @@ import {WatchCat} from 'bclib/watch';
 import db_, { storage as storage_, ChainType,
 	Transaction as ITransaction,TransactionLog } from '../db';
 import {MvpWeb3,isRpcLimitRequestAccount} from '../web3+';
-import {Transaction, TransactionReceipt} from 'web3-core';
+import {Transaction, TransactionReceipt,Log} from 'web3-core';
 import * as cryptoTx from 'crypto-tx';
 import {postWatchBlock} from '../message';
 import redis_, {Redis} from 'bclib/redis';
@@ -27,6 +27,7 @@ import {toBuffer as toBuffer_0} from 'crypto-tx';
 import * as cry_utils from 'crypto-tx/utils';
 import * as contract from '../models/contract';
 import {hash} from '../utils';
+import {Errors} from 'somes/mysql/errors';
 
 const addressZero = '0x0000000000000000000000000000000000000000';
 const Zero = BigInt(0);
@@ -333,86 +334,78 @@ export class WatchBlock implements WatchCat {
 		}
 	}
 
-	private async solveReceipts(blockNumber: number, receipt: TransactionReceipt[], tx: Transaction[]) {
+	private async solveReceipts(blockNumber: number, receipts: TransactionReceipt[], txs: Transaction[]) {
 		let chain = this.web3.chain;
 		let [{db,part}] = await this.getDatabasePart([blockNumber]);
-		let txHashBuf = receipt.map(e=>toBuffer(e.transactionHash));
-		let txHashNum = txHashBuf.map(e=>hash(e).value);
-
-		let txData = receipt.map((e,j)=>{
-			somes.assert(e, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
-			somes.assert(j == e.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
-			return {
-				receipt: e,
-				transactionHash: txHashBuf[j],
-				txHash: txHashNum[j],
-				tx: tx[j],
-				id: 0,
-			};
+		let txData = receipts.map((receipt,j)=>{
+			somes.assert(receipt, `#WatchBlock.watchReceipt, receipt: TransactionReceipt Can not be empty, blockNumber=${blockNumber}`);
+			somes.assert(j == receipt.transactionIndex, '#WatchBlock.watchReceipt transaction index no match');
+			let tx = txs[j];
+			let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
+			let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
+			let transactionHash = toBuffer(receipt.transactionHash);
+			let txHash = hash(transactionHash).value;
+			let sql = db.insertSql(`transaction_bin_${part}`, {
+				nonce: Number(tx.nonce),
+				fromAddress,
+				toAddress,
+				value: toBuffer(tx.value),
+				gasPrice: toBuffer(tx.gasPrice),
+				gas: toBuffer(tx.gas), // gas limit
+				// data: tx.input,
+				gasUsed: toBuffer(receipt.gasUsed),
+				cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
+				// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
+				blockNumber: toBuffer(receipt.blockNumber),
+				blockHash: toBuffer(receipt.blockHash),
+				transactionHash,
+				transactionIndex: Number(receipt.transactionIndex),
+				// logsBloom: receipt.logsBloom,
+				contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
+				status: Number(receipt.status),
+				logsCount: receipt.logs.length,
+				txHash: txHash,
+				fromHash: hash(fromAddress).value,
+				toHash: hash(toAddress).value,
+			});
+			return { receipt, transactionHash, txHash, tx, id: 0, sql };
 		});
 
-		if (await db.selectOne(`transaction_bin_${part}`, {txHash: txHashNum[0]})) {
-			let res = await db.exec(txHashNum.map(e=>
-				`select id from transaction_bin_${part} where txHash=${e}`).join(';'));
-			txData.forEach((e,j)=>(e.id = res[j].rows![0]?.id || 0));
-		}
-
-		let txIndert = txData.filter(e=>!e.id);
-		if (txIndert.length) {
-			let sql = ({tx,receipt,txHash,transactionHash}: typeof txData[0])=>{
-				let fromAddress = toBuffer(tx.from != addressZero ? tx.from: receipt.from); // check from address is zero
-				let toAddress = toBuffer(tx.to || '0x0000000000000000000000000000000000000000');
-				return db.insertSql(`transaction_bin_${part}`, {
-					nonce: Number(tx.nonce),
-					fromAddress,
-					toAddress,
-					value: toBuffer(tx.value),
-					gasPrice: toBuffer(tx.gasPrice),
-					gas: toBuffer(tx.gas), // gas limit
-					// data: tx.input,
-					gasUsed: toBuffer(receipt.gasUsed),
-					cumulativeGasUsed: toBuffer(receipt.cumulativeGasUsed),
-					// effectiveGasPrice: '0x' + Number(receipt.effectiveGasPrice || tx.gasPrice).toString(16),
-					blockNumber: toBuffer(receipt.blockNumber),
-					blockHash: toBuffer(receipt.blockHash),
-					transactionHash,
-					transactionIndex: Number(receipt.transactionIndex),
-					// logsBloom: receipt.logsBloom,
-					contractAddress: receipt.contractAddress ? toBuffer(receipt.contractAddress): null,
-					status: Number(receipt.status),
-					logsCount: receipt.logs.length,
-					txHash: txHash,
-					fromHash: hash(fromAddress).value,
-					toHash: hash(toAddress).value,
-				});
-			};
+		try {
 			let res = await db.exec(
-				`begin;
-				${txIndert.map(sql).join(';')};
-				commit;`
+				`begin;\n ${txData.map(e=>e.sql).join(';')};\n commit;`
 			);
-			txIndert.forEach((e,j)=>(e.id = res[j+1].insertId!));
+			txData.forEach((e,j)=>(e.id = res[j+1].insertId!));
+		} catch(err: any) {
+			if (err.errno != Errors.ER_DUP_ENTRY) throw err;
+			// filter dup tx
+			let res = await db.exec(txData.map(e=>
+				`select id from transaction_bin_${part} where txHash=${e.txHash}`).join(';'));
+			let txIndert = txData.filter((e,j)=>(e.id = res[j].rows![0]?.id || 0, !e.id));
+			let res1 = await db.exec(
+				`begin;\n ${txIndert.map(e=>e.sql).join(';')};\n commit;`
+			);
+			txIndert.forEach((e,j)=>(e.id = res1[j+1].insertId!));
 		}
 
-		let insert_log_sql: string[] = [];
+		let logs: {sql:string,logIndex:number,tx_id:number}[] = [];
 
-		for (let it of txData) {
-			let {receipt, id} = it;
+		for (let data of txData) {
+			let {receipt, id:tx_id} = data;
 			if (receipt.contractAddress) { // New contract
 				let address = cryptoTx.checksumAddress(receipt.contractAddress);
 				let ci = await contract.select(address, chain, true);
 				if (!ci)
 					await contract.insert({address,blockNumber}, chain);
 			}
-			somes.assert(id, 'db tx id cannot be empty');
+			somes.assert(tx_id, 'db tx id cannot be empty');
 
 			for (let log of receipt.logs) { // event logs
-				// let address = log.address;
 				let address = buffer.from(log.address.slice(2), 'hex');
 				let logIndex = Number(log.logIndex);
 				let topic = buffer.from(log.topics.map(e=>e.slice(2)).join(''), 'hex');
 				let addressHash = hash(address);
-
+	
 				let data: IBuffer | undefined;
 				if (log.data && log.data.length > 2) {
 					if (log.data.length > 65535*2+2) {
@@ -421,14 +414,9 @@ export class WatchBlock implements WatchCat {
 						data = buffer.from(log.data.slice(2), 'hex');
 					}
 				}
-				if (insert_log_sql.length == 0) { // check
-					if (await db.selectOne(`transaction_log_bin_${part}`, {tx_id: id, logIndex})) {
-						return;
-					}
-				}
 
-				insert_log_sql.push(db.insertSql(`transaction_log_bin_${part}`, {
-					tx_id: id,
+				let sql = db.insertSql(`transaction_log_bin_${part}`, {
+					tx_id,
 					address,
 					topic,
 					data,
@@ -436,16 +424,25 @@ export class WatchBlock implements WatchCat {
 					blockNumber,
 					addressHash: addressHash.value,
 					addressNumber: addressHash.number,
-				}));
+				});
+				logs.push({ sql, logIndex, tx_id });
 			}
 		}
 
-		if (insert_log_sql.length) {
-			await db.exec(
-				`start transaction;
-				${insert_log_sql.join(';')};
-				commit;`
-			);
+		if (!logs.length) return;
+
+		try {
+			await db.exec(`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`);
+		} catch (err: any) {
+			if (err.errno != Errors.ER_DUP_ENTRY) throw err;
+			// filter dup logs
+			let sql = logs.map(e=>db.selectSql(
+				`transaction_log_bin_${part}`, e, { out: 'id', limit: 1 }));
+			let res = await db.exec(sql.join(';'));
+			logs = logs.filter((_,j)=>!res[j].rows![0]);
+			if (logs.length) {
+				await db.exec(`start transaction;\n ${logs.map(e=>e.sql).join(';')};\n commit;`);
+			}
 		}
 	}
 
