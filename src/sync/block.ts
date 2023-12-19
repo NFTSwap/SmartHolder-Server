@@ -497,7 +497,6 @@ export class WatchBlock implements WatchCat {
 			let num = await web3.getBlockNumber();
 			// Confirm that it is not an issue with RPC
 			somes.assert(num - blockNumber > faultBN, `logs is empty ${ChainType[chain]} ${blockNumber}`);
-			logs = await web3.eth.getPastLogs({ toBlock: blockNumber, fromBlock: blockNumber });
 		}
 
 		for (let tx of txs) {
