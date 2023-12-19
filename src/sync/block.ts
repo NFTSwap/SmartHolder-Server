@@ -334,8 +334,17 @@ export class WatchBlock implements WatchCat {
 		let block = await web3.eth.getBlock(blockNumber, true);
 		let txs = block.transactions;
 		let idx = 0;
+		let faultBN = 5; // Fault redundancy block number
+
+		switch (chain) {
+			case ChainType.ETHEREUM:
+			case ChainType.GOERLI: faultBN = 1; break;
+		}
 
 		if (txs.length == 0) {
+			let num = await web3.getBlockNumber();
+			// Confirm that it is not an issue with RPC
+			somes.assert(num - blockNumber > faultBN, `txs is empty ${ChainType[chain]} ${blockNumber}`);
 			console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', 0, 'logs', 0);
 			return;
 		}
@@ -366,6 +375,12 @@ export class WatchBlock implements WatchCat {
 			fromBlock: blockNumber,
 		});
 		let receipts: TransactionReceipt[] = [];
+
+		if (logs.length == 0) {
+			let num = await web3.getBlockNumber();
+			// Confirm that it is not an issue with RPC
+			somes.assert(num - blockNumber > faultBN, `logs is empty ${ChainType[chain]} ${blockNumber}`);
+		}
 
 		console.log(`Watch Block:`, ChainType[chain], 'blockNumber', blockNumber, 'receipts', txs.length, 'logs', logs.length);
 
