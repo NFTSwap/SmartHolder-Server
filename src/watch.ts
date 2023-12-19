@@ -3,7 +3,7 @@ import watch_, {WatchCat} from 'bclib/watch';
 import msg from './message';
 import sync from './sync';
 import * as web3 from '../src/web3+';
-import {callbackTask} from 'bclib/utils';
+import {callbackTask} from 'bclib/cb';
 import * as env from './env';
 
 export async function initialize() {
