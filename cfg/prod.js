@@ -13,10 +13,10 @@ module.exports = {
 	autoIndex: false,
 	root: '/data/apps/smart-dao/smart-dao',
 	publicURL: 'https://dao.smartholder.jp',
-	mbus: 'mqtt://172.16.3.114:1883',
+	mbus: 'mqtt://127.0.0.1:1883',
 	mbus_topic: 'shs_default_prod',
 	enable_auth: true,
 	moreLog: false,
 	env: 'prod', // dev|prod
-	atomicLock: 'http://172.16.3.114:9802', // atomic lock service
+	atomicLock: 'http://127.0.0.1:9802', // atomic lock service
 };
